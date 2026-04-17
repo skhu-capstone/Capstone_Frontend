@@ -1,5 +1,5 @@
 function CoffeeChatCard({
-  id, // userId 받아옴
+  id, // coffeeChatProfileId 받아옴
   name = "윤현승", // name 받아옴
   interest = "프론트엔드", // interestTopics 받아옴
   meetingType = "오프라인", // meetingType 받아옴. online/offline 으로 받는다고 해서 한글로 바꾸는 작업 추가 예정
