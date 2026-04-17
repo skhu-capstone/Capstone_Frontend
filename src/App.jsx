@@ -1,4 +1,5 @@
 import CollaboCard from "./components/common/CollaboCard";
+import CoffeeChatCard from "./components/common/CoffeeChatCard";
 
 function App() {
   return (
@@ -10,6 +11,14 @@ function App() {
         time="3시간 전"
         content="디자인 파트와 협업할 프론트엔드 팀원을 모집합니다."
         dDay="D-03"
+      />
+      <CoffeeChatCard
+        id={1}
+        name="윤현승"
+        interest="프론트엔드"
+        meetingType="오프라인"
+        image="https://placehold.co/206x206"
+        onMoreClick={() => alert("잘 눌러지나 테스트")}
       />
     </>
   );
