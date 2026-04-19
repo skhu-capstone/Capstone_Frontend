@@ -1,4 +1,5 @@
 function CollaboCard({
+  id, // collabId 받아옴
   title = "제목", // title 받아옴
   author = "작성자", // writerName 받아옴
   time = "n시간 전", // createAt 받아서 계산하는 기능 제작 예정
