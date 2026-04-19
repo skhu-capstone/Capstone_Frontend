@@ -1,6 +1,6 @@
-import CollaboCard from "./components/common/CollaboCard";
-import CoffeeChatCard from "./components/common/CoffeeChatCard";
-import FeedCard from "./components/common/FeedCard";
+import CollaboCard from "./components/card/CollaboCard";
+import CoffeeChatCard from "./components/card/CoffeeChatCard";
+import FeedCard from "./components/card/FeedCard";
 import { elapsedText } from "./utils/elapsedText";
 
 function App() {
