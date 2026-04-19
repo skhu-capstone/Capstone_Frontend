@@ -10,7 +10,7 @@ function FeedCard({
     // 여기 link 추가 에정
     <div className="w-160 h-113.75 p-5 bg-white rounded-xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.15)] 
     flex flex-col justify-start items-start gap-4 overflow-hidden transition-all duration-300
-      hover:h-118 hover:-translate-y-4 hover:outline-[3px] hover:outline-offset-[-3px] hover:outline-blue-500">
+    cursor-pointer hover:h-118 hover:-translate-y-4 hover:outline-[3px] hover:outline-offset-[-3px] hover:outline-blue-500">
       <div className="flex justify-center items-center gap-4">
         {/* 프로필 이미지 */}
         {profileImage ? (

@@ -37,7 +37,7 @@ function CoffeeChatCard({
               onClick={onMoreClick}
               className="w-52 h-14 bg-blue-500 rounded-xl border border-blue-700 
               flex items-center justify-center text-white text-3xl font-medium leading-6
-              hover:bg-blue-600 active:scale-[0.98] transition"
+              hover:bg-blue-600 transition cursor-pointer"
             >
               정보 더보기
             </button>
