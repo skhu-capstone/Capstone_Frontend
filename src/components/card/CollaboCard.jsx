@@ -13,7 +13,8 @@ function CollaboCard({
       onClick={onClick}
       className="w-96 h-44 p-4 bg-white rounded-xl shadow-[0px_4px_10px_0px_rgba(0,0,0,0.05)]
       outline-1 outline-offset-1 outline-slate-100 flex flex-col gap-2.5 
-      cursor-pointer transition hover:shadow-md active:scale-[0.98]"
+      cursor-pointer transition-all duration-300 hover:h-48 hover:-translate-y-4 hover:outline-[3px]
+      hover:outline-offset-[-3px] hover:outline-blue-700"
     >
       {/* 제목 */}
       <h3 className="text-black text-2xl font-semibold font-pretendard">
