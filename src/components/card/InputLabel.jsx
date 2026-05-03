@@ -5,7 +5,7 @@ function InputLabel({
   multiline = false, // 긴 텍스트 표시용
 }) {
   return (
-    <div className="w-full inline-flex flex-col justify-start items-start gap-1 ${className}">
+    <div className={`w-full inline-flex flex-col justify-start items-start gap-1 ${className}`}>
       {/* 라벨 */}
       <div className="self-stretch text-gray-900 text-xs font-medium leading-4 line-clamp-1">
         {label}
