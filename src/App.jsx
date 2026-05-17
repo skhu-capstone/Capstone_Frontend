@@ -6,7 +6,8 @@ import CooperationPage from "./pages/cooperation/CooperationPage";
 import CoffeeChatPage from "./pages/coffeeChat/CoffeeChatPage";
 import ClubMainPage from "./pages/club/ClubMainPage";
 import MyPage from "./pages/myPage/MyPage";
-
+import PostDetailPage from "./pages/cooperation/PostDetailPage";
+import ClubPostDetail from "./pages/club/ClubPostDetail";
 export default function App() {
   return (
     <>
@@ -18,7 +19,8 @@ export default function App() {
         <Route path="/coffee-chat" element={<CoffeeChatPage />} />
         <Route path="/club" element={<ClubMainPage />} />
         <Route path="/my-page" element={<MyPage />} />
-        {/* 추가 라우트는 여기에 */}
+        <Route path="/post/:type/:id" element={<PostDetailPage />} />
+        <Route path="/club/:id" element={<ClubPostDetail />} />
       </Routes>
     </>
   );

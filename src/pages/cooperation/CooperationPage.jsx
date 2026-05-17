@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Search, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const CLUB_POSTS = [
   {
@@ -80,9 +81,12 @@ function getDdayClass(dday) {
   return "bg-green-100 text-green-700";
 }
 
-function ClubPostCard({ post }) {
+function ClubPostCard({ post, onClick }) {
   return (
-    <div className="bg-white rounded-2xl px-6 py-5 shadow-sm flex flex-col gap-2">
+    <div
+      className="bg-white rounded-2xl px-6 py-5 shadow-sm flex flex-col gap-2 cursor-pointer hover:shadow-md transition-shadow duration-150"
+      onClick={onClick}
+    >
       <div className="flex justify-between items-start gap-3">
         <span className="font-semibold text-sm text-gray-900 leading-snug flex-1">
           {post.title}
@@ -114,9 +118,12 @@ function ClubPostCard({ post }) {
   );
 }
 
-function ProjectPostCard({ post }) {
+function ProjectPostCard({ post, onClick }) {
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm flex flex-col gap-2.5">
+    <div
+      className="bg-white rounded-2xl p-5 shadow-sm flex flex-col gap-2.5 cursor-pointer hover:shadow-md transition-shadow duration-150"
+      onClick={onClick}
+    >
       <span
         className={`text-xs font-bold px-2.5 py-0.5 rounded-full self-start ${getDdayClass(post.dday)}`}
       >
@@ -131,7 +138,13 @@ function ProjectPostCard({ post }) {
 
       <p className="text-xs text-gray-400">{post.deadline}</p>
 
-      <button className="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors duration-150 cursor-pointer">
+      <button
+        className="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors duration-150 cursor-pointer"
+        onClick={(e) => {
+          e.stopPropagation(); // 카드 클릭과 분리
+          onClick();
+        }}
+      >
         지원하기
       </button>
     </div>
@@ -141,6 +154,7 @@ function ProjectPostCard({ post }) {
 export default function CooperationPage() {
   const [tab, setTab] = useState("club");
   const [search, setSearch] = useState("");
+  const navigate = useNavigate();
 
   const isClub = tab === "club";
 
@@ -198,13 +212,21 @@ export default function CooperationPage() {
         {isClub ? (
           <div className="flex flex-col gap-3">
             {filteredClub.map((post) => (
-              <ClubPostCard key={post.id} post={post} />
+              <ClubPostCard
+                key={post.id}
+                post={post}
+                onClick={() => navigate(`/post/club/${post.id}`)}
+              />
             ))}
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
             {filteredProject.map((post) => (
-              <ProjectPostCard key={post.id} post={post} />
+              <ProjectPostCard
+                key={post.id}
+                post={post}
+                onClick={() => navigate(`/post/project/${post.id}`)}
+              />
             ))}
           </div>
         )}
