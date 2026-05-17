@@ -182,7 +182,7 @@ export default function ClubMainPage() {
 
         {/* 정렬 버튼 */}
         <div className="mb-4">
-          <button className="flex items-center gap-1.5 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors duration-150 cursor-pointer shadow-sm">
+          <button className="flex items-center gap-1.5 text-sm text-gray-600 bg-white border border-gray-100 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors duration-150 cursor-pointer shadow-sm">
             <ArrowUpDown size={13} strokeWidth={2} />
             좋아요순
           </button>
