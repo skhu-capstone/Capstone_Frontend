@@ -7,9 +7,9 @@ function CoffeeChatCard({
   onMoreClick, // link 적용할 예정이라 삭제 예정
 }) {
   return (
-    <div className="w-96 h-125.75 px-6 py-4 bg-white rounded-2xl shadow-[0px_8px_24px_rgba(0,0,0,0.08)] 
+    <div className="w-102 h-125.75 px-6 py-4 bg-white rounded-2xl shadow-[0px_8px_24px_rgba(0,0,0,0.08)] 
     flex flex-col justify-center items-center gap-2.5 overflow-hidden transition-all duration-300
-    hover:h-130.5 hover:-translate-y-5 hover:outline-[3px] hover:outline-offset-[-3px] hover:outline-blue-700"
+    hover:scale-[1.02] hover:-translate-y-5 hover:outline-[3px] hover:outline-offset-[-3px] hover:outline-blue-700"
     >
       <div className="flex flex-col items-center gap-7">
         <img
