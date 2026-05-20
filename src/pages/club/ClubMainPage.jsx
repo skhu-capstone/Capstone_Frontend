@@ -6,6 +6,7 @@ export default function ClubMainPage() {
   const [currentFeedPage, setCurrentFeedPage] = useState(1); // 피드 페이지 번호
   const [currentMemberPage, setCurrentMemberPage] = useState(1); // 멤버 페이지 번호
 
+  // 소속된 동아리 여부
   const hasClub = true;
 
   const members = [
@@ -70,6 +71,7 @@ export default function ClubMainPage() {
     },
   ];
 
+  // 소속된 동아리 없으면 나오는 페이지
   if (!hasClub) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-50 px-12">
@@ -229,7 +231,7 @@ export default function ClubMainPage() {
           </section>
         )}
 
-        {/* 페이지 이동 섹션 */}
+        {/* 페이지네이션 섹션 */}
         <div className="flex justify-center pb-7">
           <div className="flex items-center gap-1">
             <button
