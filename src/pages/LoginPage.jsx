@@ -1,4 +1,47 @@
+import { useGoogleLogin } from "@react-oauth/google";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
+
 export default function LoginPage() {
+  const navigate = useNavigate();
+
+  const loginMutation = useMutation({
+    mutationFn: async (googleAccessToken) => {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/auth/google/login`,
+        {
+          googleAccessToken,
+        },
+      )
+      return response.data.data;
+    },
+
+    onSuccess: (userData) => {
+      localStorage.setItem("accessToken", userData.accessToken);
+      localStorage.setItem("refreshToken", userData.refreshToken);
+      localStorage.setItem("user", JSON.stringify(userData));
+      console.log("로그인 성공");
+      navigate("/");
+    },
+
+    onError: (error) => {
+      console.error(error);
+      alert("로그인에 실패했습니다.");
+    },
+  });
+
+  const googleLogin = useGoogleLogin({
+    onSuccess: (tokenResponse) => {
+      loginMutation.mutate(tokenResponse.access_token);
+      console.log("로그인 성공");
+    },
+
+    onError: () => {
+      alert("구글 로그인에 실패했습니다.");
+    },
+  });
+
   return (
     <main className="min-h-screen bg-linear-to-br from-slate-50 via-slate-50 to-slate-300 px-6 py-12 flex flex-col items-center overflow-hidden">
       <section className="text-center mb-10">
@@ -25,7 +68,11 @@ export default function LoginPage() {
         </div>
 
         {/* 구글 로그인 버튼 - 여기는 살짝 달라질 수도 있음 */}
-        <button className="w-full h-12 rounded-full border border-zinc-900 flex items-center justify-center relative hover:bg-slate-100 transition">
+        <button
+          className="w-full h-12 rounded-full border border-zinc-900 flex items-center justify-center
+          relative hover:bg-slate-100 transition"
+          onClick={() => googleLogin()}
+        >
           <img
             className="w-7 h-7 absolute left-3"
             src="https://www.svgrepo.com/show/475656/google-color.svg"
