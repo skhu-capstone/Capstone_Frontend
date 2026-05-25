@@ -6,6 +6,7 @@ import CooperationPage from "./pages/cooperation/CooperationPage";
 import CoffeeChatPage from "./pages/coffeeChat/CoffeeChatPage";
 import ClubMainPage from "./pages/club/ClubMainPage";
 import MyPage from "./pages/myPage/MyPage";
+import EmailVerifyPage from "./pages/EmailVerifyPage";
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="/coffee-chat" element={<CoffeeChatPage />} />
         <Route path="/club" element={<ClubMainPage />} />
         <Route path="/my-page" element={<MyPage />} />
+        <Route path="/email-verify" element={<EmailVerifyPage />} />
         {/* 추가 라우트는 여기에 */}
       </Routes>
     </>
