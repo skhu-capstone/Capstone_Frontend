@@ -1,7 +1,11 @@
 import { useRef, useState } from "react";
-import { sendSchoolEmailCode } from "../services/authService";
+import { sendSchoolEmailCode, verifySchoolEmailCode } from "../services/authService";
+import { useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
 
 export default function EmailVerifyPage() {
+  const navigate = useNavigate();
+
   const [schoolEmail, setSchoolEmail] = useState("");
   const [code, setCode] = useState(["", "", "", "", ""]);
   const [isCodeSent, setIsCodeSent] = useState(false);
@@ -11,6 +15,7 @@ export default function EmailVerifyPage() {
   
   const isValidSchoolEmail = schoolEmail.endsWith("@office.skhu.ac.kr");
 
+  // 인증코드 발송
   const sendCodeMutation = useMutation({
     mutationFn: sendSchoolEmailCode,
 
@@ -19,9 +24,23 @@ export default function EmailVerifyPage() {
       alert("인증번호가 발송되었습니다.");
     },
 
-    onError: () => {
+    onError: (error) => {
       console.error(error);
       alert("인증번호 발송에 실패했습니다.");
+    }
+  })
+
+  // 인증코드 인증
+  const verifyCodeMutation = useMutation({
+    mutationFn: verifySchoolEmailCode,
+
+    onSuccess: () => {
+      alert("학교 이메일 인증이 완료되었습니다.");
+      navigate("/");
+    },
+    onError: (error) => {
+      console.error(error);
+      alert("인증번호가 올바르지 않거나 만료되었습니다.");
     }
   })
 
@@ -48,7 +67,10 @@ export default function EmailVerifyPage() {
   };
 
   const handleSubmit = () => {
-    console.log("인증코드 제출:", code.join(""));
+    verifyCodeMutation.mutate({
+      schoolEmail,
+      code: code.join(""),
+    })
   };
 
   return (
