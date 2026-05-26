@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { sendSchoolEmailCode } from "../services/authService";
 
 export default function EmailVerifyPage() {
   const [schoolEmail, setSchoolEmail] = useState("");
@@ -9,6 +10,20 @@ export default function EmailVerifyPage() {
   const isCodeComplete = code.every((digit) => digit !== "");
   
   const isValidSchoolEmail = schoolEmail.endsWith("@office.skhu.ac.kr");
+
+  const sendCodeMutation = useMutation({
+    mutationFn: sendSchoolEmailCode,
+
+    onSuccess: () => {
+      setIsCodeSent(true);
+      alert("인증번호가 발송되었습니다.");
+    },
+
+    onError: () => {
+      console.error(error);
+      alert("인증번호 발송에 실패했습니다.");
+    }
+  })
 
   const handleCodeChange = (index, value) => {
     if (!/^\d?$/.test(value)) return;
@@ -29,8 +44,7 @@ export default function EmailVerifyPage() {
   };
 
   const handleSendCode = () => {
-    console.log("인증번호 발송:", schoolEmail);
-    setIsCodeSent(true);
+    sendCodeMutation.mutate(schoolEmail);
   };
 
   const handleSubmit = () => {
