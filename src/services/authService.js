@@ -34,3 +34,18 @@ export const verifySchoolEmailCode = async ({ schoolEmail, code}) => {
   );
   return response.data.data;
 }
+
+export const resendSchoolEmailCode = async (schoolEmail) => {
+  const response = await axios.post(
+    `${BASE_URL}/api/auth/email/resend`,
+    {
+      schoolEmail,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`
+      }
+    }
+  )
+  return response.data.data;
+}

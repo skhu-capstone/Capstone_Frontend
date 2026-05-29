@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { sendSchoolEmailCode, verifySchoolEmailCode } from "../services/authService";
+import { sendSchoolEmailCode, verifySchoolEmailCode, resendSchoolEmailCode } from "../services/authService";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 
@@ -44,6 +44,19 @@ export default function EmailVerifyPage() {
     }
   })
 
+  // 인증코드 재발송
+  const resendCodeMutation = useMutation({
+    mutationFn: resendSchoolEmailCode,
+
+    onSuccess: () => {
+      alert("인증번호가 재전송되었습니다.");
+    },
+    onError: (error) => {
+      console.error(error);
+      alert("인증번호 재전송에 실패했습니다.");
+    }
+  })
+
   const handleCodeChange = (index, value) => {
     if (!/^\d?$/.test(value)) return;
 
@@ -71,6 +84,10 @@ export default function EmailVerifyPage() {
       schoolEmail,
       code: code.join(""),
     })
+  };
+
+  const handleResendCode = () => {
+    resendCodeMutation.mutate(schoolEmail);
   };
 
   return (
@@ -137,7 +154,7 @@ export default function EmailVerifyPage() {
           {isCodeSent && (
             <button
               type="button"
-              onClick={handleSendCode}
+              onClick={handleResendCode}
               className="mt-10 text-blue-600 text-base hover:cursor-pointer"
             >
               메일을 받지 못하셨나요? 인증번호 재전송
