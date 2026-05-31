@@ -1,6 +1,6 @@
-const roleText = { // 추후 백엔드랑 정확한 값을 이야기해야 할듯
+const roleText = {
   PRESIDENT: "대표",
-  MANAGER: "운영진",
+  STAFF: "운영진",
   MEMBER: "동아리 부원",
 };
 
@@ -8,10 +8,13 @@ function MyPageCard({
   name = "이름", // name 받아옴
   email, // email 받아옴
   schoolEmail, // schoolEmail 받아옴
-  clubName = "소속 동아리 없음", // clubName 받아옴
-  role = "MEMBER", // role 받아옴
+  clubName = "", // clubs 받아옴
   image = "https://placehold.co/250x250", // profileImage 받아옴
 }) {
+  const formattedClubName = clubName // role 없애고 "동아리 / 직책" 형식으로 나타낼 때 직책 replace로 텍스트로 바꾸기
+      ? clubName.replace(/PRESIDENT|STAFF|MEMBER/g, (role) => roleText[role])
+      : "소속 동아리 없음";
+
   return (
     <div className="w-225 px-16 py-12 bg-slate-50 rounded-2xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.15)]
     inline-flex justify-start items-center gap-12 overflow-hidden">
@@ -47,7 +50,7 @@ function MyPageCard({
         {/* 동아리 / 역할(대표, 동아리부원 등) */}
         <div className="text-black text-3xl font-normal leading-10">
           {/* 동아리 소속되어 있을 땐 동아리랑 역할 다 출력하고 아니면 '소속 동아리 없음'으로 출력 */}
-          {clubName ? `${clubName} / ${roleText[role] || role}` : "소속 동아리 없음"}
+          {formattedClubName}
         </div>
       </div>
     </div>

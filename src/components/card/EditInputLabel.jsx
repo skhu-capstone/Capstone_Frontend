@@ -6,6 +6,8 @@ function EditInputLabel({
   textarea = false, // textarea 여부
   className = "", // 외부 스타일 확장 -> 2열인지 1열인지에 따라 값을 추가
 }) {
+  const inputValue = value ?? ""; // null이나 undefined 값이 와도 안 깨지겠끔 공백으로 처리
+
   return (
     <div className={`w-full flex flex-col gap-1 ${className}`}>
       
@@ -16,7 +18,7 @@ function EditInputLabel({
 
       {textarea ? (
         <textarea // 길게 입력
-          value={value}
+          value={inputValue}
           placeholder={placeholder}
           onChange={onChange}
           className="w-full min-h-30 px-3.5 py-2.5 bg-blue-900/10 rounded-[10px] 
@@ -26,7 +28,7 @@ function EditInputLabel({
       ) : ( 
         <input // 한 줄 입력
           type="text"
-          value={value}
+          value={inputValue}
           placeholder={placeholder}
           onChange={onChange}
           className="w-full px-3.5 py-2.5 bg-blue-900/10 rounded-[10px] outline-none border-none 

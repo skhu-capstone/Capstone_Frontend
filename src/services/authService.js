@@ -35,6 +35,7 @@ export const verifySchoolEmailCode = async ({ schoolEmail, code}) => {
   return response.data.data;
 }
 
+// 인증코드 다시 전송하는 기능
 export const resendSchoolEmailCode = async (schoolEmail) => {
   const response = await axios.post(
     `${BASE_URL}/api/auth/email/resend`,

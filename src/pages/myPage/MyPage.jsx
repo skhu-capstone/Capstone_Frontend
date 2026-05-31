@@ -1,31 +1,92 @@
-import { useState } from "react";
+// 프로필 이미지 관련해서 api가 수정되면 다시 수정해야 함
+
+import { useState, useEffect } from "react";
+import { useMutation, useQuery} from "@tanstack/react-query";
 import MyPageCard from "../../components/card/MyPageCard";
 import InputLabel from "../../components/card/InputLabel";
 import EditInputLabel from "../../components/card/EditInputLabel";
+import { getMyPage, updateCoffeeChatProfile,updateCoffeeChatVisibility } from "../../services/myPageService";
 
 export default function MyPage() {
-  const [isEditing, setIsEditing] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
+  const [isEditing, setIsEditing] = useState(false); // 수정
+  const [isVisible, setIsVisible] = useState(false); // 커피챗 공개 여부
 
-  const user = {
-    name: "윤현승",
-    email: "hs@gmail.com",
-    schoolEmail: "hs@office.skhu.ac.kr",
-    clubName: "멋쟁이사자처럼",
-    role: "PRESIDENT",
+  const [user, setUser] = useState({
+    name: "",
+    email: "",
+    schoolEmail: "",
+    clubName: "",
     image: "https://placehold.co/250x250",
-  };
+  });
 
   const [profile, setProfile] = useState({
-    studentId: "202114023",
-    interest: "Frontend, Design",
-    preferredMethod: "대면, 비대면",
-    link: "GitHub, Blog",
-    shortIntro: "한 줄 자기소개를 입력해주세요",
-    intro: "자기소개를 입력해주세요",
+    studentId: "",
+    interest: "",
+    preferredMethod: "ONLINE",
+    link: "",
+    shortIntro: "",
+    intro: "",
   });
 
   const [tempProfile, setTempProfile] = useState(profile);
+
+  // 마이페이지 조회 (AI 사용)
+  const { data, isLoading, isError} = useQuery({
+    queryKey: ["myPage"],
+    queryFn: getMyPage,
+  })
+
+  useEffect(() => {
+    if (!data) return;
+
+    const coffeeChatProfile = data.coffeeChatProfile;
+
+    setUser({
+      name: data.name ?? "",
+      email: data.email ?? "",
+      schoolEmail: data.schoolEmail ?? "",
+      clubName: data.clubs?.[0] ?? "",
+      image: "https://placehold.co/250x250",
+    });
+
+    const newProfile = {
+      studentId: coffeeChatProfile?.studentId ?? "",
+      interest: coffeeChatProfile?.interestTopics ?? "",
+      preferredMethod: coffeeChatProfile?.meetingType ?? "ONLINE",
+      link: coffeeChatProfile?.contactLink ?? "",
+      shortIntro: coffeeChatProfile?.headline ?? "",
+      intro: coffeeChatProfile?.introduction ?? "",
+    };
+
+    setProfile(newProfile);
+    setTempProfile(newProfile);
+    setIsVisible(coffeeChatProfile?.isPublic ?? false);
+  }, [data]);
+
+  // 커피챗 프로필 저장
+    const updateProfileMutation = useMutation({
+      mutationFn: updateCoffeeChatProfile,
+      onSuccess: () => {
+        setProfile(tempProfile);
+        setIsEditing(false);
+        alert("프로필이 저장되었습니다.");
+      },
+
+      onError: (error) => {
+        console.error(error);
+        alert("프로필 저장에 실패했습니다.");
+      },
+    });
+
+  // 커피챗 프로필 공개여부 변경
+  const updateVisibilityMutation = useMutation({
+    mutationFn: updateCoffeeChatVisibility,
+    onError: (error) => {
+      console.error(error);
+      setIsVisible((prev) => !prev);
+      alert("공개 여부 변경에 실패했습니다.");
+    },
+  });
 
   const handleChange = (field, value) => {
     setTempProfile((prev) => ({
@@ -44,14 +105,32 @@ export default function MyPage() {
     setIsEditing(false);
   };
 
+  // 저장 버튼 클릭시 put 호출
   const handleSave = () => {
-    setProfile(tempProfile);
-    setIsEditing(false);
+    updateProfileMutation.mutate({
+      studentId: tempProfile.studentId,
+      headline: tempProfile.shortIntro,
+      interestTopics: tempProfile.interest,
+      meetingType: tempProfile.preferredMethod,
+      contactLink: tempProfile.link,
+      introduction: tempProfile.intro,
+    });
   };
 
+  // 토글 클릭시 patch 호출
   const handleToggleVisibility = () => {
-    setIsVisible((prev) => !prev);
+    const nextVisible = !isVisible;
+    setIsVisible(nextVisible);
+    updateVisibilityMutation.mutate(nextVisible);
   };
+
+  if (isLoading) {
+    return <div className="p-10">마이페이지를 불러오는 중입니다...</div>;
+  }
+
+  if (isError) {
+    return <div className="p-10">마이페이지를 불러오지 못했습니다.</div>;
+  }
 
   return (
     <main className="min-h-screen bg-gray-50 px-8 py-20">
@@ -63,7 +142,6 @@ export default function MyPage() {
           email={user.email}
           schoolEmail={user.schoolEmail}
           clubName={user.clubName}
-          role={user.role}
           image={user.image}
         />
 
@@ -195,7 +273,7 @@ export default function MyPage() {
                   textarea
                 />
               ) : (
-                <InputLabel label="자기소개" value={profile.intro} textarea />
+                <InputLabel label="자기소개" value={profile.intro} multiline />
               )}
             </div>
 
