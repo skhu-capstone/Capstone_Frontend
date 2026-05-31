@@ -20,8 +20,6 @@ function ImageCarousel({ images }) {
         className="w-full object-cover"
         style={{ maxHeight: 420 }}
       />
-
-      {/* 이전 버튼 */}
       {idx > 0 && (
         <button
           onClick={prev}
@@ -30,8 +28,6 @@ function ImageCarousel({ images }) {
           <ChevronLeft size={18} strokeWidth={2} className="text-white" />
         </button>
       )}
-
-      {/* 다음 버튼 */}
       {idx < images.length - 1 && (
         <button
           onClick={next}
@@ -40,8 +36,6 @@ function ImageCarousel({ images }) {
           <ChevronRight size={18} strokeWidth={2} className="text-white" />
         </button>
       )}
-
-      {/* 인디케이터 */}
       {images.length > 1 && (
         <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
           {images.map((_, i) => (
@@ -55,8 +49,6 @@ function ImageCarousel({ images }) {
           ))}
         </div>
       )}
-
-      {/* 장 수 뱃지 */}
       {images.length > 1 && (
         <span className="absolute top-3 right-3 text-xs text-white bg-black/40 rounded-full px-2 py-0.5">
           {idx + 1} / {images.length}
@@ -94,6 +86,12 @@ export default function ClubPostDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // 좋아요 상태
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [likeLoading, setLikeLoading] = useState(false);
+
+  // ── 게시글 조회 ──────────────────────────────────────────────────────────
   useEffect(() => {
     async function fetchPost() {
       setLoading(true);
@@ -103,6 +101,8 @@ export default function ClubPostDetail() {
         const data = await res.json();
         if (data.success) {
           setPost(data.data);
+          setLikeCount(data.data.likeCount ?? 0);
+          setLiked(data.data.liked ?? false);
         } else {
           setError(data.message || "게시글을 찾을 수 없어요.");
         }
@@ -115,18 +115,50 @@ export default function ClubPostDetail() {
     fetchPost();
   }, [id]);
 
-  const handleBack = () => {
-    if (location.key !== "default") navigate(-1);
-    else navigate("/club");
-  };
+  // ── 좋아요 토글 ──────────────────────────────────────────────────────────
+  async function handleLike() {
+    if (likeLoading) return;
 
-  // 날짜 포맷 (2026-05-29T21:09:51 → 2026.05.29)
+    // 낙관적 업데이트 — 버튼 즉시 반응
+    const prevLiked = liked;
+    const prevLikeCount = likeCount;
+    setLiked(!liked);
+    setLikeCount((c) => (liked ? c - 1 : c + 1));
+
+    setLikeLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/posts/${id}/likes`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (data.success) {
+        // 서버 응답값으로 정확히 동기화
+        setLiked(data.data.liked);
+        setLikeCount(data.data.likeCount);
+      } else {
+        // 실패 시 롤백
+        setLiked(prevLiked);
+        setLikeCount(prevLikeCount);
+      }
+    } catch {
+      // 네트워크 오류 시 롤백
+      setLiked(prevLiked);
+      setLikeCount(prevLikeCount);
+    } finally {
+      setLikeLoading(false);
+    }
+  }
+
   function formatDate(iso) {
     if (!iso) return "";
     return iso.slice(0, 10).replace(/-/g, ".");
   }
 
-  // 로딩
+  const handleBack = () => {
+    if (location.key !== "default") navigate(-1);
+    else navigate("/club");
+  };
+
   if (loading)
     return (
       <div className="min-h-screen bg-slate-50">
@@ -134,7 +166,6 @@ export default function ClubPostDetail() {
       </div>
     );
 
-  // 에러
   if (error) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-3">
@@ -157,7 +188,7 @@ export default function ClubPostDetail() {
 
         {/* 본문 카드 */}
         <div className="bg-white rounded-2xl shadow-sm px-6 py-5 flex flex-col gap-4 mt-3">
-          {/* 작성자 + 날짜 + 뱃지 */}
+          {/* 작성자 + 날짜 + 공지 뱃지 */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-semibold text-indigo-600">
@@ -188,6 +219,31 @@ export default function ClubPostDetail() {
           <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-line">
             {post.content}
           </p>
+
+          {/* 좋아요 / 댓글 수 */}
+          <div className="flex items-center gap-4 pt-1 border-t border-gray-100">
+            {/* 좋아요 버튼 */}
+            <button
+              onClick={handleLike}
+              disabled={likeLoading}
+              className={`flex items-center gap-1.5 text-sm transition-colors duration-150 cursor-pointer disabled:cursor-not-allowed
+                ${liked ? "text-rose-500" : "text-gray-400 hover:text-rose-400"}`}
+            >
+              <Heart
+                size={16}
+                strokeWidth={1.8}
+                fill={liked ? "currentColor" : "none"}
+                className={`transition-transform duration-150 ${likeLoading ? "scale-90 opacity-60" : liked ? "scale-110" : "scale-100"}`}
+              />
+              {likeCount}
+            </button>
+
+            {/* 댓글 수 (표시 전용) */}
+            <span className="flex items-center gap-1.5 text-sm text-gray-400">
+              <MessageCircle size={16} strokeWidth={1.8} />
+              {post.commentCount ?? 0}
+            </span>
+          </div>
         </div>
 
         {/* 댓글 영역 */}
@@ -196,8 +252,6 @@ export default function ClubPostDetail() {
           <p className="text-sm text-gray-400">
             아직 댓글이 없어요. 첫 댓글을 남겨보세요!
           </p>
-
-          {/* 댓글 입력창 */}
           <div className="flex items-center gap-2 border border-gray-200 rounded-xl px-4 py-2.5">
             <input
               type="text"
