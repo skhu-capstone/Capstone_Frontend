@@ -11,6 +11,10 @@ import {
   Globe,
   ArrowUp,
   ArrowDown,
+  Plus,
+  X,
+  Image,
+  AlertCircle,
 } from "lucide-react";
 
 const DUMMY_POSTS = [
@@ -21,7 +25,7 @@ const DUMMY_POSTS = [
     likes: 16,
     comments: 4,
     club: "멋쟁이사자처럼",
-    content: `😎 LikeLion SKHU 13기 서류 마감 D-7!`,
+    content: "LikeLion SKHU 13기 서류 마감 D-7!",
     author: "현",
     authorColor: "#22c55e",
     createdAt: "2025-04-01",
@@ -121,6 +125,7 @@ const DUMMY_POSTS = [
 ];
 
 const POSTS_PER_PAGE = 6;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // ─── 정렬 드롭다운 ────────────────────────────────────────────────────────────
 const SORT_OPTIONS = [
@@ -140,11 +145,9 @@ const SORT_OPTIONS = [
   },
 ];
 
-function SortDropdown({ value, onChange }) {
+function useDropdown() {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
-  const current = SORT_OPTIONS.find((o) => o.key === value) ?? SORT_OPTIONS[0];
-
   useEffect(() => {
     const handler = (e) => {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
@@ -152,6 +155,12 @@ function SortDropdown({ value, onChange }) {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+  return { open, setOpen, ref };
+}
+
+function SortDropdown({ value, onChange }) {
+  const { open, setOpen, ref } = useDropdown();
+  const current = SORT_OPTIONS.find((o) => o.key === value) ?? SORT_OPTIONS[0];
 
   return (
     <div className="relative" ref={ref}>
@@ -167,7 +176,6 @@ function SortDropdown({ value, onChange }) {
           className={`ml-0.5 transition-transform duration-150 ${open ? "rotate-180" : ""}`}
         />
       </button>
-
       {open && (
         <div className="absolute left-0 top-full mt-1.5 w-44 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden">
           {SORT_OPTIONS.map((opt) => {
@@ -181,8 +189,7 @@ function SortDropdown({ value, onChange }) {
                   onChange(opt.key);
                   setOpen(false);
                 }}
-                className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left transition-colors duration-100 cursor-pointer
-                  ${isActive ? "bg-slate-50 text-gray-900 font-medium" : "text-gray-600 hover:bg-slate-50"}`}
+                className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left transition-colors duration-100 cursor-pointer ${isActive ? "bg-slate-50 text-gray-900 font-medium" : "text-gray-600 hover:bg-slate-50"}`}
               >
                 <Icon size={12} strokeWidth={2} />
                 <DirIcon size={11} strokeWidth={2} className="text-gray-400" />
@@ -206,17 +213,8 @@ const VIEW_OPTIONS = [
 ];
 
 function ViewDropdown({ value, onChange }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
+  const { open, setOpen, ref } = useDropdown();
   const current = VIEW_OPTIONS.find((o) => o.key === value);
-
-  useEffect(() => {
-    const handler = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
 
   return (
     <div className="relative" ref={ref}>
@@ -232,7 +230,6 @@ function ViewDropdown({ value, onChange }) {
           className={`ml-0.5 transition-transform duration-150 ${open ? "rotate-180" : ""}`}
         />
       </button>
-
       {open && (
         <div className="absolute left-0 top-full mt-1.5 w-44 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden">
           {VIEW_OPTIONS.map((opt) => {
@@ -245,8 +242,7 @@ function ViewDropdown({ value, onChange }) {
                   onChange(opt.key);
                   setOpen(false);
                 }}
-                className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left transition-colors duration-100 cursor-pointer
-                  ${isActive ? "bg-slate-50 text-gray-900 font-medium" : "text-gray-600 hover:bg-slate-50"}`}
+                className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left transition-colors duration-100 cursor-pointer ${isActive ? "bg-slate-50 text-gray-900 font-medium" : "text-gray-600 hover:bg-slate-50"}`}
               >
                 <Icon size={13} strokeWidth={2} />
                 {opt.label}
@@ -262,10 +258,260 @@ function ViewDropdown({ value, onChange }) {
   );
 }
 
+// ─── 게시물 생성 모달 ─────────────────────────────────────────────────────────
+const POST_TYPES = [
+  { key: "GENERAL", label: "일반" },
+  { key: "NOTICE", label: "공지" },
+];
+
+function CreatePostModal({ clubId, onClose, onSuccess }) {
+  const [form, setForm] = useState({
+    title: "",
+    content: "",
+    imageUrls: [""],
+    postType: "GENERAL",
+  });
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
+
+  // 배경 스크롤 방지
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
+
+  function validate() {
+    const e = {};
+    if (!form.title.trim()) e.title = "게시글 제목은 필수입니다.";
+    if (!form.content.trim()) e.content = "게시글 내용은 필수입니다.";
+    return e;
+  }
+
+  function setField(key, val) {
+    setForm((f) => ({ ...f, [key]: val }));
+    setErrors((e) => ({ ...e, [key]: undefined }));
+    setApiError("");
+  }
+
+  function setImageUrl(idx, val) {
+    setForm((f) => {
+      const urls = [...f.imageUrls];
+      urls[idx] = val;
+      return { ...f, imageUrls: urls };
+    });
+  }
+
+  function addImageUrl() {
+    setForm((f) => ({ ...f, imageUrls: [...f.imageUrls, ""] }));
+  }
+  function removeImageUrl(idx) {
+    setForm((f) => ({
+      ...f,
+      imageUrls: f.imageUrls.filter((_, i) => i !== idx),
+    }));
+  }
+
+  async function handleSubmit() {
+    const e = validate();
+    if (Object.keys(e).length) {
+      setErrors(e);
+      return;
+    }
+
+    const payload = {
+      title: form.title.trim(),
+      content: form.content.trim(),
+      imageUrls: form.imageUrls.map((u) => u.trim()).filter(Boolean),
+      postType: form.postType,
+    };
+
+    setLoading(true);
+    setApiError("");
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/clubs/${clubId}/posts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.success) {
+        onSuccess(data.data);
+      } else {
+        setApiError(data.message || "게시글 작성에 실패했습니다.");
+      }
+    } catch {
+      setApiError("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      style={{ background: "rgba(0,0,0,0.4)" }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
+        {/* 모달 헤더 */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <h2 className="text-base font-semibold text-gray-900">게시물 작성</h2>
+          <button
+            onClick={onClose}
+            className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
+          >
+            <X size={16} strokeWidth={2} className="text-gray-500" />
+          </button>
+        </div>
+
+        {/* 모달 바디 */}
+        <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4">
+          {/* API 오류 */}
+          {apiError && (
+            <div className="flex items-start gap-2 bg-red-50 border border-red-100 rounded-lg px-3 py-2.5">
+              <AlertCircle
+                size={14}
+                className="text-red-500 mt-0.5 flex-shrink-0"
+                strokeWidth={2}
+              />
+              <p className="text-sm text-red-600">{apiError}</p>
+            </div>
+          )}
+
+          {/* 게시글 유형 */}
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1.5">
+              게시글 유형
+            </label>
+            <div className="flex gap-2">
+              {POST_TYPES.map((t) => (
+                <button
+                  key={t.key}
+                  onClick={() => setField("postType", t.key)}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-medium border transition-colors duration-150 cursor-pointer
+                    ${
+                      form.postType === t.key
+                        ? "bg-blue-50 border-blue-300 text-blue-700"
+                        : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"
+                    }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 제목 */}
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1.5">
+              제목 <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="text"
+              value={form.title}
+              onChange={(e) => setField("title", e.target.value)}
+              placeholder="게시글 제목을 입력하세요"
+              maxLength={100}
+              className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors
+                ${errors.title ? "border-red-300 bg-red-50 focus:border-red-400" : "border-gray-200 focus:border-blue-400"}`}
+            />
+            {errors.title && (
+              <p className="mt-1 text-xs text-red-500">{errors.title}</p>
+            )}
+          </div>
+
+          {/* 내용 */}
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1.5">
+              내용 <span className="text-red-400">*</span>
+            </label>
+            <textarea
+              value={form.content}
+              onChange={(e) => setField("content", e.target.value)}
+              placeholder="게시글 내용을 입력하세요"
+              rows={5}
+              className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors resize-none
+                ${errors.content ? "border-red-300 bg-red-50 focus:border-red-400" : "border-gray-200 focus:border-blue-400"}`}
+            />
+            {errors.content && (
+              <p className="mt-1 text-xs text-red-500">{errors.content}</p>
+            )}
+          </div>
+
+          {/* 이미지 URL */}
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1.5">
+              이미지 URL
+            </label>
+            <div className="space-y-2">
+              {form.imageUrls.map((url, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-1 border border-gray-200 rounded-lg px-3 py-2 focus-within:border-blue-400 transition-colors">
+                    <Image
+                      size={13}
+                      strokeWidth={2}
+                      className="text-gray-400 flex-shrink-0"
+                    />
+                    <input
+                      type="text"
+                      value={url}
+                      onChange={(e) => setImageUrl(idx, e.target.value)}
+                      placeholder={`이미지 URL ${idx + 1}`}
+                      className="flex-1 text-sm outline-none bg-transparent"
+                    />
+                  </div>
+                  {form.imageUrls.length > 1 && (
+                    <button
+                      onClick={() => removeImageUrl(idx)}
+                      className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors cursor-pointer flex-shrink-0"
+                    >
+                      <X size={13} strokeWidth={2} className="text-gray-400" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            {form.imageUrls.length < 5 && (
+              <button
+                onClick={addImageUrl}
+                className="mt-2 flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600 transition-colors cursor-pointer"
+              >
+                <Plus size={12} strokeWidth={2} />
+                URL 추가
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* 모달 푸터 */}
+        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-gray-100">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+          >
+            취소
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="px-4 py-2 text-sm text-white bg-blue-500 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer font-medium"
+          >
+            {loading ? "등록 중..." : "게시물 등록"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── 게시물 카드 ──────────────────────────────────────────────────────────────
 function PostCard({ post, onClick }) {
   const [hovered, setHovered] = useState(false);
-
   return (
     <div
       className="relative rounded-2xl overflow-hidden cursor-pointer aspect-square bg-slate-200"
@@ -279,8 +525,6 @@ function PostCard({ post, onClick }) {
         className="w-full h-full object-cover transition-transform duration-300"
         style={{ transform: hovered ? "scale(1.04)" : "scale(1)" }}
       />
-
-      {/* 호버 오버레이 — 좋아요·댓글 가운데 정렬 */}
       <div
         className="absolute inset-0 flex items-center justify-center gap-4 transition-opacity duration-200"
         style={{
@@ -318,11 +562,12 @@ function sortPosts(posts, sortKey) {
   }
 }
 
-// ─── 메인 게시판 페이지 ───────────────────────────────────────────────────────
-export default function ClubMainPage() {
+// ─── 메인 ────────────────────────────────────────────────────────────────────
+export default function ClubMainPage({ clubId = 1 }) {
   const [page, setPage] = useState(1);
   const [viewMode, setViewMode] = useState("my");
   const [sortKey, setSortKey] = useState("likes_desc");
+  const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
 
   const basePosts =
@@ -343,6 +588,12 @@ export default function ClubMainPage() {
     setPage(1);
   }
 
+  function handlePostSuccess(newPost) {
+    setShowModal(false);
+    // 필요 시 목록 갱신 로직 추가
+    console.log("생성된 게시물:", newPost);
+  }
+
   return (
     <div className="min-h-screen bg-slate-50">
       <main className="max-w-3xl mx-auto px-4 py-8">
@@ -353,12 +604,22 @@ export default function ClubMainPage() {
           </p>
         </div>
 
-        {/* 뷰 드롭다운 먼저, 정렬 드롭다운 다음 */}
+        {/* 필터 바 */}
         <div className="flex items-center gap-2 mb-4">
           <ViewDropdown value={viewMode} onChange={handleViewChange} />
           <SortDropdown value={sortKey} onChange={handleSortChange} />
+
+          {/* 게시물 생성 버튼 — 오른쪽 끝 */}
+          <button
+            onClick={() => setShowModal(true)}
+            className="ml-auto flex items-center gap-1.5 text-sm text-white bg-blue-500 hover:bg-blue-600 active:scale-95 rounded-lg px-3 py-1.5 transition-all duration-150 cursor-pointer shadow-sm font-medium"
+          >
+            <Plus size={14} strokeWidth={2.5} />
+            게시물 작성
+          </button>
         </div>
 
+        {/* 그리드 */}
         {pagePosts.length > 0 ? (
           <div className="grid grid-cols-3 gap-2">
             {pagePosts.map((post) => (
@@ -375,6 +636,7 @@ export default function ClubMainPage() {
           </div>
         )}
 
+        {/* 페이지네이션 */}
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-4 mt-8">
             <button
@@ -405,6 +667,15 @@ export default function ClubMainPage() {
           </div>
         )}
       </main>
+
+      {/* 게시물 생성 모달 */}
+      {showModal && (
+        <CreatePostModal
+          clubId={clubId}
+          onClose={() => setShowModal(false)}
+          onSuccess={handlePostSuccess}
+        />
+      )}
     </div>
   );
 }
