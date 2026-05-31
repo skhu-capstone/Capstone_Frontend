@@ -1,6 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { Heart, MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Heart,
+  MessageCircle,
+  ChevronLeft,
+  ChevronRight,
+  Send,
+} from "lucide-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -8,9 +14,6 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 function ImageCarousel({ images }) {
   const [idx, setIdx] = useState(0);
   if (!images || images.length === 0) return null;
-
-  const prev = () => setIdx((i) => Math.max(0, i - 1));
-  const next = () => setIdx((i) => Math.min(images.length - 1, i + 1));
 
   return (
     <div className="relative w-full rounded-2xl overflow-hidden bg-slate-200">
@@ -22,7 +25,7 @@ function ImageCarousel({ images }) {
       />
       {idx > 0 && (
         <button
-          onClick={prev}
+          onClick={() => setIdx((i) => i - 1)}
           className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 transition-colors cursor-pointer"
         >
           <ChevronLeft size={18} strokeWidth={2} className="text-white" />
@@ -30,29 +33,27 @@ function ImageCarousel({ images }) {
       )}
       {idx < images.length - 1 && (
         <button
-          onClick={next}
+          onClick={() => setIdx((i) => i + 1)}
           className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 transition-colors cursor-pointer"
         >
           <ChevronRight size={18} strokeWidth={2} className="text-white" />
         </button>
       )}
       {images.length > 1 && (
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-          {images.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setIdx(i)}
-              className={`w-1.5 h-1.5 rounded-full transition-all duration-200 cursor-pointer ${
-                i === idx ? "bg-white scale-125" : "bg-white/50"
-              }`}
-            />
-          ))}
-        </div>
-      )}
-      {images.length > 1 && (
-        <span className="absolute top-3 right-3 text-xs text-white bg-black/40 rounded-full px-2 py-0.5">
-          {idx + 1} / {images.length}
-        </span>
+        <>
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+            {images.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setIdx(i)}
+                className={`w-1.5 h-1.5 rounded-full transition-all duration-200 cursor-pointer ${i === idx ? "bg-white scale-125" : "bg-white/50"}`}
+              />
+            ))}
+          </div>
+          <span className="absolute top-3 right-3 text-xs text-white bg-black/40 rounded-full px-2 py-0.5">
+            {idx + 1} / {images.length}
+          </span>
+        </>
       )}
     </div>
   );
@@ -70,7 +71,35 @@ function Skeleton() {
         <div className="h-4 w-1/3 bg-slate-200 rounded" />
         <div className="h-3 w-full bg-slate-100 rounded" />
         <div className="h-3 w-5/6 bg-slate-100 rounded" />
-        <div className="h-3 w-2/3 bg-slate-100 rounded" />
+      </div>
+    </div>
+  );
+}
+
+// ─── 댓글 아이템 ─────────────────────────────────────────────────────────────
+function CommentItem({ comment }) {
+  function formatDate(iso) {
+    if (!iso) return "";
+    return iso.slice(0, 10).replace(/-/g, ".");
+  }
+
+  return (
+    <div className="flex items-start gap-2.5">
+      <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-semibold text-indigo-600 shrink-0">
+        {comment.writerName?.[0] ?? "?"}
+      </div>
+      <div className="flex flex-col gap-0.5 flex-1">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium text-gray-700">
+            {comment.writerName}
+          </span>
+          <span className="text-xs text-gray-400">
+            {formatDate(comment.createdAt)}
+          </span>
+        </div>
+        <p className="text-sm text-gray-700 leading-relaxed">
+          {comment.content}
+        </p>
       </div>
     </div>
   );
@@ -81,15 +110,22 @@ export default function ClubPostDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const commentInputRef = useRef(null);
 
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // 좋아요 상태
+  // 좋아요
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [likeLoading, setLikeLoading] = useState(false);
+
+  // 댓글
+  const [comments, setComments] = useState([]);
+  const [commentText, setCommentText] = useState("");
+  const [commentLoading, setCommentLoading] = useState(false);
+  const [commentError, setCommentError] = useState("");
 
   // ── 게시글 조회 ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -103,6 +139,7 @@ export default function ClubPostDetail() {
           setPost(data.data);
           setLikeCount(data.data.likeCount ?? 0);
           setLiked(data.data.liked ?? false);
+          setComments(data.data.comments ?? []);
         } else {
           setError(data.message || "게시글을 찾을 수 없어요.");
         }
@@ -118,13 +155,10 @@ export default function ClubPostDetail() {
   // ── 좋아요 토글 ──────────────────────────────────────────────────────────
   async function handleLike() {
     if (likeLoading) return;
-
-    // 낙관적 업데이트 — 버튼 즉시 반응
     const prevLiked = liked;
-    const prevLikeCount = likeCount;
+    const prevCount = likeCount;
     setLiked(!liked);
     setLikeCount((c) => (liked ? c - 1 : c + 1));
-
     setLikeLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}/api/posts/${id}/likes`, {
@@ -132,20 +166,54 @@ export default function ClubPostDetail() {
       });
       const data = await res.json();
       if (data.success) {
-        // 서버 응답값으로 정확히 동기화
         setLiked(data.data.liked);
         setLikeCount(data.data.likeCount);
       } else {
-        // 실패 시 롤백
         setLiked(prevLiked);
-        setLikeCount(prevLikeCount);
+        setLikeCount(prevCount);
       }
     } catch {
-      // 네트워크 오류 시 롤백
       setLiked(prevLiked);
-      setLikeCount(prevLikeCount);
+      setLikeCount(prevCount);
     } finally {
       setLikeLoading(false);
+    }
+  }
+
+  // ── 댓글 작성 ────────────────────────────────────────────────────────────
+  async function handleCommentSubmit() {
+    const trimmed = commentText.trim();
+    if (!trimmed || commentLoading) return;
+
+    setCommentLoading(true);
+    setCommentError("");
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/posts/${id}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: trimmed }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        // 작성된 댓글을 목록 맨 아래에 추가
+        setComments((prev) => [...prev, data.data]);
+        setCommentText("");
+        commentInputRef.current?.focus();
+      } else {
+        setCommentError(data.message || "댓글 작성에 실패했습니다.");
+      }
+    } catch {
+      setCommentError("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
+    } finally {
+      setCommentLoading(false);
+    }
+  }
+
+  // Enter 키 제출
+  function handleKeyDown(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleCommentSubmit();
     }
   }
 
@@ -222,12 +290,10 @@ export default function ClubPostDetail() {
 
           {/* 좋아요 / 댓글 수 */}
           <div className="flex items-center gap-4 pt-1 border-t border-gray-100">
-            {/* 좋아요 버튼 */}
             <button
               onClick={handleLike}
               disabled={likeLoading}
-              className={`flex items-center gap-1.5 text-sm transition-colors duration-150 cursor-pointer disabled:cursor-not-allowed
-                ${liked ? "text-rose-500" : "text-gray-400 hover:text-rose-400"}`}
+              className={`flex items-center gap-1.5 text-sm transition-colors duration-150 cursor-pointer disabled:cursor-not-allowed ${liked ? "text-rose-500" : "text-gray-400 hover:text-rose-400"}`}
             >
               <Heart
                 size={16}
@@ -237,29 +303,69 @@ export default function ClubPostDetail() {
               />
               {likeCount}
             </button>
-
-            {/* 댓글 수 (표시 전용) */}
             <span className="flex items-center gap-1.5 text-sm text-gray-400">
               <MessageCircle size={16} strokeWidth={1.8} />
-              {post.commentCount ?? 0}
+              {comments.length}
             </span>
           </div>
         </div>
 
         {/* 댓글 영역 */}
         <div className="bg-white rounded-2xl shadow-sm px-6 py-5 mt-2 flex flex-col gap-4">
-          <p className="text-sm font-semibold text-gray-700">댓글</p>
-          <p className="text-sm text-gray-400">
-            아직 댓글이 없어요. 첫 댓글을 남겨보세요!
+          <p className="text-sm font-semibold text-gray-700">
+            댓글
+            {comments.length > 0 && (
+              <span className="ml-1.5 text-xs font-normal text-gray-400">
+                {comments.length}
+              </span>
+            )}
           </p>
-          <div className="flex items-center gap-2 border border-gray-200 rounded-xl px-4 py-2.5">
+
+          {/* 댓글 목록 */}
+          {comments.length === 0 ? (
+            <p className="text-sm text-gray-400">
+              아직 댓글이 없어요. 첫 댓글을 남겨보세요!
+            </p>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {comments.map((c) => (
+                <CommentItem key={c.commentId} comment={c} />
+              ))}
+            </div>
+          )}
+
+          {/* 댓글 오류 */}
+          {commentError && (
+            <p className="text-xs text-red-500">{commentError}</p>
+          )}
+
+          {/* 댓글 입력창 */}
+          <div
+            className={`flex items-center gap-2 border rounded-xl px-4 py-2.5 transition-colors ${commentLoading ? "border-gray-100 bg-gray-50" : "border-gray-200 focus-within:border-indigo-300"}`}
+          >
             <input
+              ref={commentInputRef}
               type="text"
+              value={commentText}
+              onChange={(e) => {
+                setCommentText(e.target.value);
+                setCommentError("");
+              }}
+              onKeyDown={handleKeyDown}
               placeholder="댓글을 입력하세요..."
-              className="flex-1 text-sm text-gray-700 placeholder-gray-400 outline-none bg-transparent"
+              disabled={commentLoading}
+              className="flex-1 text-sm text-gray-700 placeholder-gray-400 outline-none bg-transparent disabled:opacity-50"
             />
-            <button className="text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors duration-150 cursor-pointer shrink-0">
-              등록
+            <button
+              onClick={handleCommentSubmit}
+              disabled={!commentText.trim() || commentLoading}
+              className={`shrink-0 transition-colors duration-150 cursor-pointer disabled:cursor-not-allowed ${commentText.trim() && !commentLoading ? "text-indigo-600 hover:text-indigo-800" : "text-gray-300"}`}
+            >
+              {commentLoading ? (
+                <span className="text-xs text-gray-400">등록 중...</span>
+              ) : (
+                <Send size={15} strokeWidth={2} />
+              )}
             </button>
           </div>
         </div>
