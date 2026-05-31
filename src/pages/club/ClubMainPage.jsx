@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Heart,
@@ -6,6 +6,9 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowUpDown,
+  ChevronDown,
+  LayoutGrid,
+  Globe,
 } from "lucide-react";
 
 // ─── 더미 데이터 (8개) ────────────────────────────────────────────────────────
@@ -21,6 +24,7 @@ const DUMMY_POSTS = [
     author: "현",
     authorColor: "#22c55e",
     createdAt: "2025-04-01",
+    myClub: true,
   },
   {
     id: 2,
@@ -34,6 +38,7 @@ const DUMMY_POSTS = [
     author: "지",
     authorColor: "#6366f1",
     createdAt: "2025-04-03",
+    myClub: false,
   },
   {
     id: 3,
@@ -47,6 +52,7 @@ const DUMMY_POSTS = [
     author: "민",
     authorColor: "#f59e0b",
     createdAt: "2025-04-05",
+    myClub: true,
   },
   {
     id: 4,
@@ -60,6 +66,7 @@ const DUMMY_POSTS = [
     author: "수",
     authorColor: "#ec4899",
     createdAt: "2025-04-07",
+    myClub: false,
   },
   {
     id: 5,
@@ -73,6 +80,7 @@ const DUMMY_POSTS = [
     author: "태",
     authorColor: "#14b8a6",
     createdAt: "2025-04-08",
+    myClub: false,
   },
   {
     id: 6,
@@ -86,6 +94,7 @@ const DUMMY_POSTS = [
     author: "아",
     authorColor: "#f97316",
     createdAt: "2025-04-09",
+    myClub: false,
   },
   {
     id: 7,
@@ -99,6 +108,7 @@ const DUMMY_POSTS = [
     author: "나",
     authorColor: "#8b5cf6",
     createdAt: "2025-04-10",
+    myClub: false,
   },
   {
     id: 8,
@@ -112,10 +122,81 @@ const DUMMY_POSTS = [
     author: "현",
     authorColor: "#22c55e",
     createdAt: "2025-04-11",
+    myClub: true,
   },
 ];
 
 const POSTS_PER_PAGE = 6;
+
+// ─── 뷰 필터 드롭다운 ─────────────────────────────────────────────────────────
+function ViewDropdown({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  const options = [
+    { key: "my", label: "동아리 게시물 보기", icon: LayoutGrid },
+    { key: "all", label: "전체 게시물 보기", icon: Globe },
+  ];
+
+  const current = options.find((o) => o.key === value);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1.5 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors duration-150 cursor-pointer shadow-sm"
+      >
+        <current.icon size={13} strokeWidth={2} />
+        {current.label}
+        <ChevronDown
+          size={13}
+          strokeWidth={2}
+          className={`ml-0.5 transition-transform duration-150 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-full mt-1.5 w-44 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden">
+          {options.map((opt) => {
+            const Icon = opt.icon;
+            const isActive = opt.key === value;
+            return (
+              <button
+                key={opt.key}
+                onClick={() => {
+                  onChange(opt.key);
+                  setOpen(false);
+                }}
+                className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left transition-colors duration-100 cursor-pointer
+                  ${
+                    isActive
+                      ? "bg-slate-50 text-gray-900 font-medium"
+                      : "text-gray-600 hover:bg-slate-50"
+                  }`}
+              >
+                <Icon size={13} strokeWidth={2} />
+                {opt.label}
+                {isActive && (
+                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ─── 게시물 카드 ──────────────────────────────────────────────────────────────
 function PostCard({ post, onClick }) {
@@ -161,13 +242,22 @@ function PostCard({ post, onClick }) {
 // ─── 메인 게시판 페이지 ───────────────────────────────────────────────────────
 export default function ClubMainPage() {
   const [page, setPage] = useState(1);
+  const [viewMode, setViewMode] = useState("my"); // "my" | "all"
   const navigate = useNavigate();
 
-  const totalPages = Math.ceil(DUMMY_POSTS.length / POSTS_PER_PAGE);
-  const pagePosts = DUMMY_POSTS.slice(
+  const filteredPosts =
+    viewMode === "my" ? DUMMY_POSTS.filter((p) => p.myClub) : DUMMY_POSTS;
+
+  const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
+  const pagePosts = filteredPosts.slice(
     (page - 1) * POSTS_PER_PAGE,
     page * POSTS_PER_PAGE,
   );
+
+  function handleViewChange(mode) {
+    setViewMode(mode);
+    setPage(1); // 필터 변경 시 1페이지로 초기화
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -180,47 +270,65 @@ export default function ClubMainPage() {
           </p>
         </div>
 
-        {/* 정렬 버튼 */}
-        <div className="mb-4">
+        {/* 정렬 버튼 + 뷰 드롭다운 */}
+        <div className="flex items-center gap-2 mb-4">
           <button className="flex items-center gap-1.5 text-sm text-gray-600 bg-white border border-gray-100 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors duration-150 cursor-pointer shadow-sm">
             <ArrowUpDown size={13} strokeWidth={2} />
             좋아요순
           </button>
+
+          <ViewDropdown value={viewMode} onChange={handleViewChange} />
         </div>
 
         {/* 이미지 그리드 */}
-        <div className="grid grid-cols-3 gap-2">
-          {pagePosts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              onClick={() => navigate(`/club/${post.id}`)}
-            />
-          ))}
-        </div>
+        {pagePosts.length > 0 ? (
+          <div className="grid grid-cols-3 gap-2">
+            {pagePosts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                onClick={() => navigate(`/club/${post.id}`)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+            <p className="text-sm">게시물이 없습니다</p>
+          </div>
+        )}
 
         {/* 페이지네이션 */}
-        <div className="flex items-center justify-center gap-4 mt-8">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-150 cursor-pointer"
-          >
-            <ChevronLeft size={18} strokeWidth={2} className="text-gray-600" />
-          </button>
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-4 mt-8">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-150 cursor-pointer"
+            >
+              <ChevronLeft
+                size={18}
+                strokeWidth={2}
+                className="text-gray-600"
+              />
+            </button>
 
-          <span className="text-sm font-medium text-gray-600 w-12 text-center">
-            {page} / {totalPages}
-          </span>
+            <span className="text-sm font-medium text-gray-600 w-12 text-center">
+              {page} / {totalPages}
+            </span>
 
-          <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-150 cursor-pointer"
-          >
-            <ChevronRight size={18} strokeWidth={2} className="text-gray-600" />
-          </button>
-        </div>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-150 cursor-pointer"
+            >
+              <ChevronRight
+                size={18}
+                strokeWidth={2}
+                className="text-gray-600"
+              />
+            </button>
+          </div>
+        )}
       </main>
     </div>
   );
