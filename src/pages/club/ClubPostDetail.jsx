@@ -1,137 +1,150 @@
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { Heart, MessageCircle } from "lucide-react";
+import { Heart, MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
 
-// ─── 더미 데이터 (ClubMainPage와 동일하게 유지) ──────────────────────────────
-const DUMMY_POSTS = [
-  {
-    id: 1,
-    image:
-      "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80",
-    likes: 16,
-    comments: 4,
-    club: "멋쟁이사자처럼",
-    content: `😎 LikeLion SKHU 13기 서류 마감 D-7! 😎\n안녕하세요 성공회대학교 멋쟁이사자처럼입니다 🦁\n서류 마감까지 7일 남았습니다!\n아직 고민 중이셨다면 지금이 바로 지원할 타이밍입니다!\n개발이 처음이어도 괜찮아요!\n기초부터 차근차근 배우며 함께 성장할 수 있도록 운영진이 옆에서 도와드립니다~!\n멋쟁이사자처럼에서는 탄탄한 개발 학습은 물론 다양한 협업 경험과 즐거운 친목 활동까지 함께할 수 있습니다!\n운영진이 직접 준비한 체계적인 커리큘럼과 중앙에서 진행되는 아이디어톤 & 해커톤을 통해 여러분의 아이디어를 실제 서비스로 만들어보세요\n"내 아이디어를, 내 손으로 구현한다!"\n✅ 스터디 자료 제공\n✅ 아이디어톤 및 해커톤을 통한 협업 & 실전 개발 경험`,
-    author: "현",
-    authorColor: "#22c55e",
-    createdAt: "2025-04-01",
-    dummyComments: [],
-  },
-  {
-    id: 2,
-    image:
-      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
-    likes: 24,
-    comments: 8,
-    club: "디자인러버",
-    content:
-      "디자인러버 봄 학기 신입 부원 모집! 🎨\nFigma, Adobe XD 등 다양한 툴을 함께 배워요.\n포트폴리오 제작부터 실무 경험까지, 같이 성장해요!",
-    author: "지",
-    authorColor: "#6366f1",
-    createdAt: "2025-04-03",
-    dummyComments: [],
-  },
-  {
-    id: 3,
-    image:
-      "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80",
-    likes: 9,
-    comments: 2,
-    club: "코딩왕",
-    content:
-      "2026 스타트업 해커톤 출전 후기 🏆\n3박 4일간의 여정, 정말 값진 경험이었습니다.\n팀원들과 함께 밤새워 만든 결과물, 자랑스럽네요!",
-    author: "민",
-    authorColor: "#f59e0b",
-    createdAt: "2025-04-05",
-    dummyComments: [],
-  },
-  {
-    id: 4,
-    image:
-      "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&q=80",
-    likes: 31,
-    comments: 12,
-    club: "디자인러버",
-    content:
-      "UI/UX 스터디 6주차 회고록 📝\n이번 주는 사용자 리서치와 페르소나 설정을 다뤘어요.\n다들 너무 열심히 해줘서 뿌듯합니다 :)",
-    author: "수",
-    authorColor: "#ec4899",
-    createdAt: "2025-04-07",
-    dummyComments: [],
-  },
-  {
-    id: 5,
-    image:
-      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&q=80",
-    likes: 5,
-    comments: 1,
-    club: "간지툰",
-    content:
-      "간지툰 웹툰 공모전 준비 시작! 🖊️\n이번 학기 목표는 외부 공모전 수상입니다.\n스토리 작가, 그림 작가 함께 모여요!",
-    author: "태",
-    authorColor: "#14b8a6",
-    createdAt: "2025-04-08",
-    dummyComments: [],
-  },
-  {
-    id: 6,
-    image:
-      "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&q=80",
-    likes: 18,
-    comments: 6,
-    club: "봉사단",
-    content:
-      "봄 학기 봉사활동 모집 🌱\n지역 아동센터에서 함께 봉사할 분들을 찾습니다.\n따뜻한 마음 하나면 충분해요!",
-    author: "아",
-    authorColor: "#f97316",
-    createdAt: "2025-04-09",
-    dummyComments: [],
-  },
-  {
-    id: 7,
-    image:
-      "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=800&q=80",
-    likes: 42,
-    comments: 15,
-    club: "뮤직클럽",
-    content:
-      "뮤직클럽 봄 정기 공연 📸\n정말 감동적인 무대였습니다. 와주신 분들 감사해요!\n다음 공연도 기대해 주세요 🎵",
-    author: "나",
-    authorColor: "#8b5cf6",
-    createdAt: "2025-04-10",
-    dummyComments: [],
-  },
-  {
-    id: 8,
-    image:
-      "https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=800&q=80",
-    likes: 13,
-    comments: 3,
-    club: "코딩왕",
-    content:
-      "알고리즘 스터디 모집 💻\n매주 토요일 오전 10시, 백준 문제 함께 풀어요.\n실력 무관 누구나 환영합니다!",
-    author: "현",
-    authorColor: "#22c55e",
-    createdAt: "2025-04-11",
-    dummyComments: [],
-  },
-];
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+// ─── 이미지 캐러셀 ────────────────────────────────────────────────────────────
+function ImageCarousel({ images }) {
+  const [idx, setIdx] = useState(0);
+  if (!images || images.length === 0) return null;
+
+  const prev = () => setIdx((i) => Math.max(0, i - 1));
+  const next = () => setIdx((i) => Math.min(images.length - 1, i + 1));
+
+  return (
+    <div className="relative w-full rounded-2xl overflow-hidden bg-slate-200">
+      <img
+        src={images[idx] || null}
+        alt={`이미지 ${idx + 1}`}
+        className="w-full object-cover"
+        style={{ maxHeight: 420 }}
+      />
+
+      {/* 이전 버튼 */}
+      {idx > 0 && (
+        <button
+          onClick={prev}
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 transition-colors cursor-pointer"
+        >
+          <ChevronLeft size={18} strokeWidth={2} className="text-white" />
+        </button>
+      )}
+
+      {/* 다음 버튼 */}
+      {idx < images.length - 1 && (
+        <button
+          onClick={next}
+          className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 transition-colors cursor-pointer"
+        >
+          <ChevronRight size={18} strokeWidth={2} className="text-white" />
+        </button>
+      )}
+
+      {/* 인디케이터 */}
+      {images.length > 1 && (
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+          {images.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setIdx(i)}
+              className={`w-1.5 h-1.5 rounded-full transition-all duration-200 cursor-pointer ${
+                i === idx ? "bg-white scale-125" : "bg-white/50"
+              }`}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* 장 수 뱃지 */}
+      {images.length > 1 && (
+        <span className="absolute top-3 right-3 text-xs text-white bg-black/40 rounded-full px-2 py-0.5">
+          {idx + 1} / {images.length}
+        </span>
+      )}
+    </div>
+  );
+}
+
+// ─── 스켈레톤 ─────────────────────────────────────────────────────────────────
+function Skeleton() {
+  return (
+    <div className="max-w-2xl mx-auto px-4 py-8 flex flex-col gap-3 animate-pulse">
+      <div
+        className="w-full rounded-2xl bg-slate-200"
+        style={{ height: 420 }}
+      />
+      <div className="bg-white rounded-2xl px-6 py-5 flex flex-col gap-3">
+        <div className="h-4 w-1/3 bg-slate-200 rounded" />
+        <div className="h-3 w-full bg-slate-100 rounded" />
+        <div className="h-3 w-5/6 bg-slate-100 rounded" />
+        <div className="h-3 w-2/3 bg-slate-100 rounded" />
+      </div>
+    </div>
+  );
+}
+
+// ─── 메인 ─────────────────────────────────────────────────────────────────────
 export default function ClubPostDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const post = DUMMY_POSTS.find((p) => p.id === Number(id));
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function fetchPost() {
+      setLoading(true);
+      setError("");
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/posts/${id}`);
+        const data = await res.json();
+        if (data.success) {
+          setPost(data.data);
+        } else {
+          setError(data.message || "게시글을 찾을 수 없어요.");
+        }
+      } catch {
+        setError("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchPost();
+  }, [id]);
 
   const handleBack = () => {
     if (location.key !== "default") navigate(-1);
     else navigate("/club");
   };
 
-  if (!post) {
+  // 날짜 포맷 (2026-05-29T21:09:51 → 2026.05.29)
+  function formatDate(iso) {
+    if (!iso) return "";
+    return iso.slice(0, 10).replace(/-/g, ".");
+  }
+
+  // 로딩
+  if (loading)
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <p className="text-gray-400 text-sm">게시글을 찾을 수 없어요.</p>
+      <div className="min-h-screen bg-slate-50">
+        <Skeleton />
+      </div>
+    );
+
+  // 에러
+  if (error) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-3">
+        <p className="text-gray-400 text-sm">{error}</p>
+        <button
+          onClick={handleBack}
+          className="text-sm text-indigo-500 hover:text-indigo-700 transition-colors cursor-pointer"
+        >
+          돌아가기
+        </button>
       </div>
     );
   }
@@ -139,35 +152,39 @@ export default function ClubPostDetail() {
   return (
     <div className="min-h-screen bg-slate-50">
       <main className="max-w-2xl mx-auto px-4 py-8 flex flex-col gap-0">
-        {/* 이미지 */}
-        <div className="w-full rounded-2xl overflow-hidden bg-slate-200">
-          <img
-            src={post.image}
-            alt={post.club}
-            className="w-full object-cover"
-            style={{ maxHeight: 420 }}
-          />
-        </div>
+        {/* 이미지 캐러셀 */}
+        <ImageCarousel images={post.imageUrls} />
 
         {/* 본문 카드 */}
         <div className="bg-white rounded-2xl shadow-sm px-6 py-5 flex flex-col gap-4 mt-3">
-          {/* 좋아요 / 댓글 수 */}
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1.5 text-sm text-gray-500">
-              <Heart size={16} strokeWidth={1.8} className="text-gray-400" />
-              {post.likes}
-            </span>
-            <span className="flex items-center gap-1.5 text-sm text-gray-500">
-              <MessageCircle
-                size={16}
-                strokeWidth={1.8}
-                className="text-gray-400"
-              />
-              {post.comments}
-            </span>
+          {/* 작성자 + 날짜 + 뱃지 */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-semibold text-indigo-600">
+                {post.writerName?.[0] ?? "?"}
+              </div>
+              <span className="text-sm font-medium text-gray-700">
+                {post.writerName}
+              </span>
+              <span className="text-xs text-gray-400">
+                {formatDate(post.createdAt)}
+              </span>
+            </div>
+            {post.postType === "NOTICE" && (
+              <span className="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5">
+                공지
+              </span>
+            )}
           </div>
 
-          {/* 본문 텍스트 */}
+          {/* 제목 */}
+          {post.title && (
+            <h2 className="text-base font-semibold text-gray-900">
+              {post.title}
+            </h2>
+          )}
+
+          {/* 본문 */}
           <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-line">
             {post.content}
           </p>
@@ -176,30 +193,9 @@ export default function ClubPostDetail() {
         {/* 댓글 영역 */}
         <div className="bg-white rounded-2xl shadow-sm px-6 py-5 mt-2 flex flex-col gap-4">
           <p className="text-sm font-semibold text-gray-700">댓글</p>
-
-          {/* 댓글 없을 때 */}
-          {post.dummyComments.length === 0 && (
-            <p className="text-sm text-gray-400">
-              아직 댓글이 없어요. 첫 댓글을 남겨보세요!
-            </p>
-          )}
-
-          {/* 댓글 목록 */}
-          {post.dummyComments.length > 0 && (
-            <div className="flex flex-col gap-3">
-              {post.dummyComments.map((c, i) => (
-                <div key={i} className="flex items-start gap-2.5">
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-                    style={{ background: c.color }}
-                  >
-                    {c.author}
-                  </div>
-                  <p className="text-sm text-gray-700 pt-0.5">{c.text}</p>
-                </div>
-              ))}
-            </div>
-          )}
+          <p className="text-sm text-gray-400">
+            아직 댓글이 없어요. 첫 댓글을 남겨보세요!
+          </p>
 
           {/* 댓글 입력창 */}
           <div className="flex items-center gap-2 border border-gray-200 rounded-xl px-4 py-2.5">
