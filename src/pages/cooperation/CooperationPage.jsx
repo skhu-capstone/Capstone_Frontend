@@ -1,6 +1,18 @@
-import { useState } from "react";
-import { Search, Plus } from "lucide-react";
+import { useState, useEffect } from "react";
+import {
+  Search,
+  Plus,
+  X,
+  Image,
+  AlertCircle,
+  CalendarDays,
+  Users,
+  FileText,
+  Link,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const CLUB_POSTS = [
   {
@@ -100,7 +112,6 @@ function ClubPostCard({ post, onClick }) {
           <span className="text-xs text-gray-400">{post.club}</span>
         </div>
       </div>
-
       <div className="flex items-center gap-2 flex-wrap">
         {post.tags.map((tag) => (
           <span
@@ -112,7 +123,6 @@ function ClubPostCard({ post, onClick }) {
         ))}
         <span className="text-xs text-gray-400">{post.deadline}</span>
       </div>
-
       <p className="text-xs text-gray-500">{post.description}</p>
     </div>
   );
@@ -129,19 +139,15 @@ function ProjectPostCard({ post, onClick }) {
       >
         {post.dday}
       </span>
-
       <p className="font-bold text-sm text-gray-900 leading-snug">
         {post.title}
       </p>
-
       <p className="text-xs text-gray-500 flex-1">{post.description}</p>
-
       <p className="text-xs text-gray-400">{post.deadline}</p>
-
       <button
         className="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors duration-150 cursor-pointer"
         onClick={(e) => {
-          e.stopPropagation(); // 카드 클릭과 분리
+          e.stopPropagation();
           onClick();
         }}
       >
@@ -151,9 +157,248 @@ function ProjectPostCard({ post, onClick }) {
   );
 }
 
+// ─── 팀원 모집 모달 ───────────────────────────────────────────────────────────
+function CreateProjectModal({ onClose, onSuccess }) {
+  const [form, setForm] = useState({
+    title: "",
+    imageUrl: "",
+    positions: "",
+    content: "",
+    deadline: "",
+  });
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
+
+  function setField(key, val) {
+    setForm((f) => ({ ...f, [key]: val }));
+    setErrors((e) => ({ ...e, [key]: undefined }));
+    setApiError("");
+  }
+
+  function validate() {
+    const e = {};
+    if (!form.title.trim()) e.title = "제목을 입력해주세요.";
+    if (!form.positions.trim()) e.positions = "모집 포지션을 입력해주세요.";
+    if (!form.content.trim()) e.content = "내용을 입력해주세요.";
+    if (!form.deadline) e.deadline = "마감일을 선택해주세요.";
+    return e;
+  }
+
+  async function handleSubmit() {
+    const e = validate();
+    if (Object.keys(e).length) {
+      setErrors(e);
+      return;
+    }
+
+    const payload = {
+      title: form.title.trim(),
+      imageUrl: form.imageUrl.trim() || undefined,
+      positions: form.positions.trim(),
+      content: form.content.trim(),
+      deadline: form.deadline,
+    };
+
+    setLoading(true);
+    setApiError("");
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/project-recruitments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.success) {
+        onSuccess(data.data);
+      } else {
+        setApiError(data.message || "등록에 실패했습니다.");
+      }
+    } catch {
+      setApiError("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // 오늘 날짜 (deadline min값)
+  const today = new Date().toISOString().slice(0, 10);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      style={{ background: "rgba(0,0,0,0.4)" }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
+        {/* 헤더 */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <div>
+            <h2 className="text-base font-semibold text-gray-900">
+              새 팀원 모집하기
+            </h2>
+            <p className="text-xs text-gray-400 mt-0.5">
+              프로젝트 팀원을 모집해보세요
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
+          >
+            <X size={16} strokeWidth={2} className="text-gray-500" />
+          </button>
+        </div>
+
+        {/* 바디 */}
+        <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4">
+          {/* API 에러 */}
+          {apiError && (
+            <div className="flex items-start gap-2 bg-red-50 border border-red-100 rounded-lg px-3 py-2.5">
+              <AlertCircle
+                size={14}
+                className="text-red-500 mt-0.5 shrink-0"
+                strokeWidth={2}
+              />
+              <p className="text-sm text-red-600">{apiError}</p>
+            </div>
+          )}
+
+          {/* 제목 */}
+          <div>
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+              <FileText size={12} strokeWidth={2} />
+              제목 <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="text"
+              value={form.title}
+              onChange={(e) => setField("title", e.target.value)}
+              placeholder="예) 포폴용 앱 프로젝트 같이하실분"
+              maxLength={100}
+              className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors
+                ${errors.title ? "border-red-300 bg-red-50" : "border-gray-200 focus:border-indigo-400"}`}
+            />
+            {errors.title && (
+              <p className="mt-1 text-xs text-red-500">{errors.title}</p>
+            )}
+          </div>
+
+          {/* 모집 포지션 */}
+          <div>
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+              <Users size={12} strokeWidth={2} />
+              모집 포지션 <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="text"
+              value={form.positions}
+              onChange={(e) => setField("positions", e.target.value)}
+              placeholder="예) 프론트 2명, 백엔드 1명"
+              className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors
+                ${errors.positions ? "border-red-300 bg-red-50" : "border-gray-200 focus:border-indigo-400"}`}
+            />
+            {errors.positions && (
+              <p className="mt-1 text-xs text-red-500">{errors.positions}</p>
+            )}
+          </div>
+
+          {/* 마감일 */}
+          <div>
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+              <CalendarDays size={12} strokeWidth={2} />
+              마감일 <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="date"
+              value={form.deadline}
+              min={today}
+              onChange={(e) => setField("deadline", e.target.value)}
+              className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors
+                ${errors.deadline ? "border-red-300 bg-red-50" : "border-gray-200 focus:border-indigo-400"}`}
+            />
+            {errors.deadline && (
+              <p className="mt-1 text-xs text-red-500">{errors.deadline}</p>
+            )}
+          </div>
+
+          {/* 내용 */}
+          <div>
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+              <FileText size={12} strokeWidth={2} />
+              내용 <span className="text-red-400">*</span>
+            </label>
+            <textarea
+              value={form.content}
+              onChange={(e) => setField("content", e.target.value)}
+              placeholder="프로젝트 소개, 기술 스택, 우대 조건 등을 자유롭게 작성해주세요"
+              rows={5}
+              className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors resize-none
+                ${errors.content ? "border-red-300 bg-red-50" : "border-gray-200 focus:border-indigo-400"}`}
+            />
+            {errors.content && (
+              <p className="mt-1 text-xs text-red-500">{errors.content}</p>
+            )}
+          </div>
+
+          {/* 이미지 URL (선택) */}
+          <div>
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+              <Image size={12} strokeWidth={2} />
+              이미지 URL
+              <span className="text-gray-400 font-normal">(선택)</span>
+            </label>
+            <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2 focus-within:border-indigo-400 transition-colors">
+              <Link
+                size={12}
+                strokeWidth={2}
+                className="text-gray-400 shrink-0"
+              />
+              <input
+                type="text"
+                value={form.imageUrl}
+                onChange={(e) => setField("imageUrl", e.target.value)}
+                placeholder="https://example.com/image.png"
+                className="flex-1 text-sm outline-none bg-transparent"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 푸터 */}
+        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-gray-100">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+          >
+            취소
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="px-4 py-2 text-sm text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer font-medium"
+          >
+            {loading ? "등록 중..." : "모집 등록"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── 메인 ─────────────────────────────────────────────────────────────────────
 export default function CooperationPage() {
   const [tab, setTab] = useState("club");
   const [search, setSearch] = useState("");
+  const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
 
   const isClub = tab === "club";
@@ -166,6 +411,11 @@ export default function CooperationPage() {
     (p) =>
       !search || p.title.includes(search) || p.description.includes(search),
   );
+
+  function handleSuccess(newPost) {
+    setShowModal(false);
+    console.log("등록된 모집글:", newPost);
+  }
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col">
@@ -234,6 +484,9 @@ export default function CooperationPage() {
         {/* CTA 버튼 */}
         <div className="flex justify-center mt-2">
           <button
+            onClick={() => {
+              if (!isClub) setShowModal(true);
+            }}
             className={[
               "flex items-center gap-2 px-12 py-3.5 rounded-full text-white font-bold text-sm shadow-lg hover:opacity-90 transition-opacity duration-150 cursor-pointer",
               isClub ? "bg-green-500" : "bg-indigo-600",
@@ -244,6 +497,14 @@ export default function CooperationPage() {
           </button>
         </div>
       </main>
+
+      {/* 모집 모달 */}
+      {showModal && (
+        <CreateProjectModal
+          onClose={() => setShowModal(false)}
+          onSuccess={handleSuccess}
+        />
+      )}
     </div>
   );
 }
