@@ -7,7 +7,7 @@ function CoffeeChatListCard({
   image = "https://placehold.co/168x168", // profileImage 받아옴
 }) {
   return (
-    <div className="w-160 h-40 bg-cyan-800/10 rounded-2xl outline-[1.5px] outline-offset-[-1.5px]
+    <div className="w-175 h-40 bg-cyan-800/10 rounded-2xl outline-[1.5px] outline-offset-[-1.5px]
     outline-black/0 inline-flex overflow-hidden transition-all duration-300 cursor-pointer
     hover:-translate-y-2 hover:shadow-[0px_8px_24px_rgba(0,0,0,0.08)] hover:outline-2 
     hover:outline-offset-2 hover:outline-blue-700">
