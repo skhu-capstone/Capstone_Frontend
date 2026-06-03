@@ -7,6 +7,7 @@ import CoffeeChatPage from "./pages/coffeeChat/CoffeeChatPage";
 import ClubMainPage from "./pages/club/ClubMainPage";
 import MyPage from "./pages/myPage/MyPage";
 import EmailVerifyPage from "./pages/EmailVerifyPage";
+import Footer from "./components/common/Footer";
 
 import PostDetailPage from "./pages/cooperation/PostDetailPage";
 import ClubPostDetail from "./pages/club/ClubPostDetail";
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/post/:type/:id" element={<PostDetailPage />} />
         <Route path="/club/:id" element={<ClubPostDetail />} />
       </Routes>
+      <Footer />
     </>
   );
 }

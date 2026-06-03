@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const NAV_ITEMS = [
   { label: "홈", icon: Home, href: "/" },
@@ -20,14 +21,15 @@ const NAV_ITEMS = [
   { label: "마이페이지", icon: User, href: "/my-page" },
 ];
 
-const DUMMY_EMAIL = "hyun136000@gmail.com";
-
 export default function Header() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const profileRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // 로그인된 유저 정보 (email, name, profileImage, isVerified 등)
+  const { user, logout } = useAuth();
 
   // 외부 클릭 시 프로필 드롭다운 닫기
   useEffect(() => {
@@ -51,6 +53,7 @@ export default function Header() {
   };
 
   const handleLogout = () => {
+    logout();
     setProfileOpen(false);
     navigate("/login");
   };
@@ -83,7 +86,7 @@ export default function Header() {
                     onClick={() => navigate(href)}
                     style={{ color: isActive ? "#432DD7" : "#4A5565" }}
                     className={[
-                      "flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors duration-150",
+                      "flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors duration-150 cursor-pointer",
                       isActive
                         ? "font-medium"
                         : "font-normal hover:bg-gray-100",
@@ -107,7 +110,7 @@ export default function Header() {
           {/* 햄버거 버튼 (md 미만에서만 표시) */}
           <button
             onClick={() => setMobileMenuOpen((prev) => !prev)}
-            className="md:hidden w-10 h-10 rounded-full flex items-center justify-center border border-white/50 bg-white/20 hover:bg-white/35 transition-colors duration-150"
+            className="md:hidden w-10 h-10 rounded-full flex items-center justify-center border border-white/50 bg-white/20 hover:bg-white/35 transition-colors duration-150 cursor-pointer"
             aria-label="메뉴"
           >
             {mobileMenuOpen ? (
@@ -121,23 +124,45 @@ export default function Header() {
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => setProfileOpen((prev) => !prev)}
-              className="w-10 h-10 rounded-full flex items-center justify-center border border-white/50 bg-white/20 hover:bg-white/35 transition-colors duration-150"
+              className="w-10 h-10 rounded-full flex items-center justify-center border border-white/50 bg-white/20 hover:bg-white/35 transition-colors duration-150 cursor-pointer"
               aria-label="프로필"
             >
-              <User size={20} strokeWidth={2} color="white" />
+              {/* 구글 프로필 사진이 있으면 표시, 없으면 기본 아이콘 */}
+              {user?.profileImage ? (
+                <img
+                  src={user.profileImage}
+                  alt="프로필"
+                  className="w-full h-full rounded-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <User size={20} strokeWidth={2} color="white" />
+              )}
             </button>
 
             {profileOpen && (
               <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden z-50">
                 <div className="px-4 py-3 border-b border-gray-100">
-                  <p className="text-sm font-medium text-gray-800">
-                    {DUMMY_EMAIL}
-                  </p>
+                  {/* 로그인된 경우 이름 + 이메일, 아닌 경우 안내 문구 */}
+                  {user ? (
+                    <>
+                      {user.name && (
+                        <p className="text-xs text-gray-500 mb-0.5">
+                          {user.name}
+                        </p>
+                      )}
+                      <p className="text-sm font-medium text-gray-800 truncate">
+                        {user.email}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-gray-400">로그인 정보 없음</p>
+                  )}
                 </div>
 
                 <button
                   onClick={handleAddAccount}
-                  className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150 border-b border-gray-100"
+                  className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150 border-b border-gray-100 cursor-pointer"
                 >
                   <span className="w-5 h-5 rounded-full border border-gray-400 flex items-center justify-center shrink-0">
                     <Plus
@@ -151,7 +176,7 @@ export default function Header() {
 
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2.5 px-4 py-3 text-sm transition-colors duration-150 hover:bg-gray-50"
+                  className="w-full flex items-center gap-2.5 px-4 py-3 text-sm transition-colors duration-150 hover:bg-gray-50 cursor-pointer"
                   style={{ color: "#432DD7" }}
                 >
                   <LogOut size={15} strokeWidth={2} />
@@ -174,7 +199,7 @@ export default function Header() {
                   key={label}
                   onClick={() => handleNavClick(href)}
                   className={[
-                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-colors duration-150 text-left",
+                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-colors duration-150 text-left cursor-pointer",
                     isActive
                       ? "bg-white/30 font-semibold text-white"
                       : "text-white/90 hover:bg-white/20 font-normal",
