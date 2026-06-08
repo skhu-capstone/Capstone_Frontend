@@ -5,12 +5,15 @@ function CoffeeChatListCard({
   interest = "관심 분야 없음", // interestTopics 받아옴
   clubName = "동아리 없음", // clubName 받아옴
   image = "https://placehold.co/168x168", // profileImage 받아옴
+  onClick, // 페이지 이동
 }) {
   return (
-    <div className="w-175 h-40 bg-cyan-800/10 rounded-2xl outline-[1.5px] outline-offset-[-1.5px]
-    outline-black/0 inline-flex overflow-hidden transition-all duration-300 cursor-pointer
-    hover:-translate-y-2 hover:shadow-[0px_8px_24px_rgba(0,0,0,0.08)] hover:outline-2 
-    hover:outline-offset-2 hover:outline-blue-700">
+    <div 
+      onClick={onClick}
+      className="w-175 h-40 bg-cyan-800/10 rounded-2xl outline-[1.5px] outline-offset-[-1.5px]
+      outline-black/0 inline-flex overflow-hidden transition-all duration-300 cursor-pointer
+      hover:-translate-y-2 hover:shadow-[0px_8px_24px_rgba(0,0,0,0.08)] hover:outline-2 
+      hover:outline-offset-2 hover:outline-blue-700">
     
       {/* 프로필 이미지 */}
       <img className="w-40 h-full object-cover" src={image} alt={name}/>

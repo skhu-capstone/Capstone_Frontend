@@ -13,3 +13,20 @@ export const getCoffeeChatProfile = async (userId) => {
   );
   return response.data.data;
 }
+
+export const getCoffeeChatUserList = async ({keyword, page, size}) => {
+  const response = await axios.get(
+    `${BASE_URL}/api/coffeechat/profiles`,
+    {
+      params: {
+        keyword,
+        page,
+        size,
+      },
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      }
+    },
+  )
+  return response.data.data;
+}

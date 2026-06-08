@@ -1,6 +1,3 @@
-// DB에 userId를 확인하지 못해 정확한 페이지 확인 불가능
-// 추후 백엔드와 소통해서 코드 수정할 예정
-
 import { useNavigate, useParams } from "react-router-dom";
 import MyPageCard from "../../components/card/MyPageCard";
 import InputLabel from "../../components/card/InputLabel";
@@ -14,6 +11,7 @@ export default function CoffeeChatProfilePage() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["coffeeChatProfile", userId],
     queryFn: () => getCoffeeChatProfile(userId),
+    enabled: !!userId, // userId가 있을 때만 호출하기 (이상한 값 방지)
   })
 
   // 추후 채팅 페이지 나오면 변겨할 예정
@@ -34,8 +32,10 @@ export default function CoffeeChatProfilePage() {
   // user와 profile 부분은 AI 사용
   const user = {
     name: data?.name ?? "",
-    clubName: data?.clubs?.[0] ?? "",
-    image: "https://placehold.co/250x250",
+    clubName: Array.isArray(data?.clubs)
+      ? data.clubs[0] ?? ""
+      : data?.clubs ?? "",
+    image: data?.profileImage ?? "https://placehold.co/250x250",
   };
 
   const profile = {
