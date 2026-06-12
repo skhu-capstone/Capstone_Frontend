@@ -1,74 +1,74 @@
 import { useState } from "react";
 import FeedCard from "../../components/card/FeedCard";
+import { useQuery } from "@tanstack/react-query";
+import { getMyClubs, getClubMembers, getClubPosts }  from "../../services/clubService";
 
 export default function ClubMainPage() {
   const [activeTab, setActiveTab] = useState("feeds"); // 탭 상태
   const [currentFeedPage, setCurrentFeedPage] = useState(1); // 피드 페이지 번호
   const [currentMemberPage, setCurrentMemberPage] = useState(1); // 멤버 페이지 번호
 
-  const hasClub = true;
+  const {
+    data: clubs = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["myClubs"],
+    queryFn: getMyClubs,
+  });
 
-  const members = [
-    { id: 1, name: "윤현승", role: "대표", image: "https://placehold.co/48x48" },
-    { id: 2, name: "윤현승", role: "운영진", image: "https://placehold.co/48x48" },
-    { id: 3, name: "윤현승", role: "부원", image: "https://placehold.co/48x48" },
-    { id: 4, name: "윤현승", role: "#Frontend", image: "https://placehold.co/48x48" },
-    { id: 5, name: "윤현승", role: "#Frontend", image: "https://placehold.co/48x48" },
-    { id: 6, name: "윤현승", role: "#Frontend", image: "https://placehold.co/48x48" },
-    { id: 7, name: "윤현승", role: "#Frontend", image: "https://placehold.co/48x48" },
-    { id: 8, name: "윤현승", role: "#Frontend", image: "https://placehold.co/48x48" },
-    { id: 9, name: "윤현승", role: "#Frontend", image: "https://placehold.co/48x48" },
-    { id: 10, name: "윤현승", role: "#Frontend", image: "https://placehold.co/48x48" },
-    { id: 11, name: "윤현승", role: "#Frontend", image: "https://placehold.co/48x48" },
-  ];
+  // 동아리 존재 여부
+  const hasClub = clubs.length > 0;
 
-  const feeds = [
-    {
-      id: 1,
-      writerName: "윤현승",
-      createdAt: "2026년 04월 10일",
-      profileImage: "https://placehold.co/48x48",
-      feedImage: "https://placehold.co/600x250",
-      content:
-        "피드에서 본문 내용을 작성하면 여기에 띄우는 걸로 하려고 하는데 어떤가요? 괜찮은가요?? 이 정도면 좋다고 생각합니다...ㅎ 일단 최대 3줄 정도만 작성할 수 있도록 하려고 합니당 만약 다른 의견 있으시면 피드백 부탁드립니다",
-    },
-    {
-      id: 2,
-      writerName: "윤현승",
-      createdAt: "2026년 04월 10일",
-      profileImage: "https://placehold.co/48x48",
-      feedImage: "https://placehold.co/600x250",
-      content:
-        "피드에서 본문 내용을 작성하면 여기에 띄우는 걸로 하려고 하는데 어떤가요? 괜찮은가요?? 이 정도면 좋다고 생각합니다...ㅎ 일단 최대 3줄 정도만 작성할 수 있도록 하려고 합니당 만약 다른 의견 있으시면 피드백 부탁드립니다",
-    },
-    {
-      id: 3,
-      writerName: "윤현승",
-      createdAt: "2026년 04월 10일",
-      profileImage: "https://placehold.co/48x48",
-      feedImage: "https://placehold.co/600x250",
-      content:
-        "피드에서 본문 내용을 작성하면 여기에 띄우는 걸로 하려고 하는데 어떤가요? 괜찮은가요?? 이 정도면 좋다고 생각합니다...ㅎ 일단 최대 3줄 정도만 작성할 수 있도록 하려고 합니당 만약 다른 의견 있으시면 피드백 부탁드립니다",
-    },
-    {
-      id: 4,
-      writerName: "윤현승",
-      createdAt: "2026년 04월 10일",
-      profileImage: "https://placehold.co/48x48",
-      feedImage: "https://placehold.co/600x250",
-      content:
-        "피드에서 본문 내용을 작성하면 여기에 띄우는 걸로 하려고 하는데 어떤가요? 괜찮은가요?? 이 정도면 좋다고 생각합니다...ㅎ 일단 최대 3줄 정도만 작성할 수 있도록 하려고 합니당 만약 다른 의견 있으시면 피드백 부탁드립니다",
-    },
-    {
-      id: 5,
-      writerName: "윤현승",
-      createdAt: "2026년 04월 10일",
-      profileImage: "https://placehold.co/48x48",
-      feedImage: "https://placehold.co/600x250",
-      content:
-        "피드에서 본문 내용을 작성하면 여기에 띄우는 걸로 하려고 하는데 어떤가요? 괜찮은가요?? 이 정도면 좋다고 생각합니다...ㅎ 일단 최대 3줄 정도만 작성할 수 있도록 하려고 합니당 만약 다른 의견 있으시면 피드백 부탁드립니다",
-    },
-  ];
+  // 첫 번째로 속한 동아리를 메인으로
+  const selectedClub = clubs[0];
+
+  const selectedClubId = selectedClub?.clubId;
+
+  const {
+    data: members = [],
+    isLoading: isMembersLoading,
+    isError: isMembersError,
+  } = useQuery ({
+    queryKey: ["clubMembers", selectedClubId],
+    queryFn: () => getClubMembers(selectedClubId),
+    enabled: !!selectedClubId,
+  })
+
+  const roleMap = {
+    PRESIDENT: "대표",
+    MANAGER: "운영진",
+    MEMBER: "부원",
+  };
+
+  const {
+    data: postsData,
+    isLoading: isPostsLoading,
+    isError: isPostsError,
+  } = useQuery({
+    queryKey: ["clubPosts", selectedClubId, currentFeedPage],
+    queryFn: () =>
+      getClubPosts({
+        clubId: selectedClubId,
+        page: currentFeedPage - 1,
+        size: 4,
+      }),
+    enabled: !!selectedClubId,
+  });
+
+  const feeds = postsData?.content ?? [];
+
+  console.log(feeds);
+
+  const totalFeedPages = postsData?.totalPages ?? 0;
+
+  if (isLoading) {
+    return <p>동아리 정보를 불러오는 중입니다...</p>
+  }
+
+  if (isError) {
+    return <p>동아리 정보를 불러오지 못했습니다</p>
+  }
 
   if (!hasClub) {
     return (
@@ -91,7 +91,6 @@ export default function ClubMainPage() {
   }
 
   // 한 페이지의 최대 요소 개수
-  const feedPerPage = 4;
   const memberPerPage = 10;
 
   // 위에 있는 멤버 프리뷰
@@ -99,14 +98,7 @@ export default function ClubMainPage() {
   const hiddenMemberCount = members.length - previewMembers.length;
 
   // 전체 페이지 수 계산한 거
-  const totalFeedPages = Math.ceil(feeds.length / feedPerPage);
   const totalMemberPages = Math.ceil(members.length / memberPerPage);
-
-  // 현재 페이지 데이터만 잘라내기
-  const currentFeeds = feeds.slice(
-    (currentFeedPage - 1) * feedPerPage,
-    currentFeedPage * feedPerPage
-  );
 
   const currentMembers = members.slice(
     (currentMemberPage - 1) * memberPerPage,
@@ -139,7 +131,7 @@ export default function ClubMainPage() {
         <header className="flex flex-col gap-7 border-b border-slate-300 pb-4">
           <button className="flex w-fit items-center gap-1">
             <h1 className="text-4xl font-bold leading-10 text-gray-900">
-              멋쟁이사자처럼
+              {selectedClub.clubName}
             </h1>
             <span className="text-gray-900">▾</span>
           </button>
@@ -148,8 +140,8 @@ export default function ClubMainPage() {
             <div className="flex items-center">
               {previewMembers.map((member, index) => (
                 <img
-                  key={member.id}
-                  src={member.image}
+                  key={member.userId}
+                  src={member.profileImage || "https://placehold.co/48x48"}
                   alt="멤버 프로필"
                   className={`h-8 w-8 rounded-full border-2 border-slate-50 object-cover ${
                     index !== 0 ? "-ml-2" : ""
@@ -159,7 +151,8 @@ export default function ClubMainPage() {
             </div>
 
             <p className="text-base text-slate-900/60">
-              윤현승, 최진원{" "}
+              {members[0]?.name}
+              {members[1]?.name && `, ${members[1].name}`}{" "}
               {hiddenMemberCount > 0 && <span>+{hiddenMemberCount} others</span>}
             </p>
           </div>
@@ -192,40 +185,52 @@ export default function ClubMainPage() {
         {/* 조건부로 렌더링 -> 피드 or 멤버 */}
         {activeTab === "feeds" ? (
           <section className="grid grid-cols-2 gap-10 py-7">
-            {currentFeeds.map((feed) => (
-              <FeedCard
-                key={feed.id}
-                writerName={feed.writerName}
-                createdAt={feed.createdAt}
-                profileImage={feed.profileImage}
-                feedImage={feed.feedImage}
-                content={feed.content}
-              />
-            ))}
+            {isPostsLoading ? (
+              <p>게시글을 불러오는 중입니다...</p>
+            ) : isPostsError ? (
+              <p>게시글을 불러오지 못했습니다.</p>
+            ) : (
+              feeds.map((feed) => (
+                <FeedCard
+                  key={feed.postId}
+                  id={feed.postId}
+                  author={feed.writerName}
+                  date={feed.createdAt}
+                  profileImage="https://placehold.co/48x48"
+                  image={feed.imageUrls?.[0] || "https://placehold.co/600x250"}
+                  content={feed.content}
+                />
+              ))
+            )}
           </section>
         ) : (
           <section className="py-7">
-            {currentMembers.map((member) => (
-              <div
-                key={member.id}
-                className="flex h-14 items-center gap-3 border-b border-slate-300"
-              >
-                <img
-                  src={member.image}
-                  alt={`${member.name} 프로필`}
-                  className="h-10 w-10 rounded-full object-cover"
-                />
-
-                <div className="flex flex-col">
-                  <span className="text-sm font-bold text-gray-900">
-                    {member.name}
-                  </span>
-                  <span className="text-sm text-slate-900/60">
-                    {member.role}
-                  </span>
+            {isMembersLoading ? (
+              <p>멤버 정보를 불러오는 중입니다...</p>
+            ) : isMembersError ? (
+              <p>멤버 정보를 불러오지 못했습니다.</p>
+            ) : (
+              currentMembers.map((member) => (
+                <div
+                  key={member.userId}
+                  className="flex h-14 items-center gap-3 border-b border-slate-300"
+                >
+                  <img
+                    src={member.profileImage || "https://placehold.co/48x48"}
+                    alt={`${member.name} 프로필`}
+                    className="h-10 w-10 rounded-full object-cover"
+                  />
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-gray-900">
+                      {member.name}
+                    </span>
+                    <span className="text-sm text-slate-900/60">
+                      {roleMap[member.role] ?? member.role}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </section>
         )}
 
