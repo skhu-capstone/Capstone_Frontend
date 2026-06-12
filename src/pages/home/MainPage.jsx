@@ -1,31 +1,28 @@
 import CoffeeChatCard from "../../components/card/CoffeeChatCard";
 import CollaboCard from "../../components/card/CollaboCard";
 import FeedCard from "../../components/card/FeedCard";
+import { getCoffeeChatUserList } from "../../services/coffeeChatProfileService";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 
 export default function MainPage() {
-  const coffeeChats = [
-    {
-      coffeeChatProfileId: 1,
-      name: "윤현승",
-      profileImage: "https://placehold.co/206x206",
-      interestTopics: ["프론트엔드"],
-      meetingType: "OFFLINE",
-    },
-    {
-      coffeeChatProfileId: 2,
-      name: "윤현승",
-      profileImage: "https://placehold.co/206x206",
-      interestTopics: ["프론트엔드"],
-      meetingType: "OFFLINE",
-    },
-    {
-      coffeeChatProfileId: 3,
-      name: "윤현승",
-      profileImage: "https://placehold.co/206x206",
-      interestTopics: ["프론트엔드"],
-      meetingType: "OFFLINE",
-    },
-  ];
+
+  const { data } = useQuery({
+    queryKey: ["mainCoffeeChats"],
+    queryFn: () =>
+      getCoffeeChatUserList({
+        keyword: "",
+        page: 0,
+        size: 100,
+      }),
+  });
+
+  const coffeeChats = useMemo(() => {
+    return [...(data?.content ?? [])]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 3);
+  }, [data]);
+
 
   const collaborations = Array.from({ length: 6 }, (_, index) => ({
     collabId: index + 1,
@@ -71,6 +68,7 @@ export default function MainPage() {
             {coffeeChats.map((coffeeChat) => (
               <CoffeeChatCard
                 key={coffeeChat.coffeeChatProfileId}
+                id={coffeeChat.coffeeChatProfileId}
                 name={coffeeChat.name}
                 profileImage={coffeeChat.profileImage}
                 interestTopics={coffeeChat.interestTopics}
