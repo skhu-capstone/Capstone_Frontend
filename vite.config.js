@@ -6,6 +6,9 @@ import tailwindcss from "@tailwindcss/vite";
 const BACKEND_URL = "http://localhost:8080";
 
 export default defineConfig({
+  define: {
+    global: "globalThis", // ← 이것만 추가
+  },
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {

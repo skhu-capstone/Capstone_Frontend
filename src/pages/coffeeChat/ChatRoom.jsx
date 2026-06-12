@@ -1,0 +1,413 @@
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Send, Coffee, Loader2, AlertCircle } from "lucide-react";
+import { useChatSocket } from "../../hooks/useChatSocket";
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
+
+// ─── 유틸 ─────────────────────────────────────────────────────────────────────
+function formatMessageTime(iso) {
+  if (!iso) return "";
+  return new Date(iso).toLocaleTimeString("ko-KR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
+function formatDateDivider(iso) {
+  return new Date(iso).toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    weekday: "long",
+  });
+}
+
+function isSameDay(a, b) {
+  const da = new Date(a);
+  const db = new Date(b);
+  return (
+    da.getFullYear() === db.getFullYear() &&
+    da.getMonth() === db.getMonth() &&
+    da.getDate() === db.getDate()
+  );
+}
+
+const AVATAR_COLORS = [
+  ["#e0f2fe", "#0369a1"],
+  ["#fce7f3", "#be185d"],
+  ["#dcfce7", "#15803d"],
+  ["#fef3c7", "#b45309"],
+  ["#ede9fe", "#6d28d9"],
+  ["#fee2e2", "#b91c1c"],
+];
+function avatarColor(name) {
+  const idx = (name?.charCodeAt(0) ?? 0) % AVATAR_COLORS.length;
+  return AVATAR_COLORS[idx];
+}
+
+// ─── 날짜 구분선 ──────────────────────────────────────────────────────────────
+function DateDivider({ iso }) {
+  return (
+    <div className="flex items-center gap-3 my-4 px-4">
+      <div className="flex-1 h-px bg-gray-100" />
+      <span className="text-xs text-gray-400 shrink-0">
+        {formatDateDivider(iso)}
+      </span>
+      <div className="flex-1 h-px bg-gray-100" />
+    </div>
+  );
+}
+
+// ─── 메시지 버블 ──────────────────────────────────────────────────────────────
+function MessageBubble({ msg, isMine, showAvatar, senderName }) {
+  const [bg, text] = avatarColor(senderName);
+
+  if (isMine) {
+    return (
+      <div className="flex justify-end items-end gap-1.5 mb-1 px-4">
+        <span className="text-xs text-gray-300 self-end mb-0.5">
+          {formatMessageTime(msg.createdAt)}
+        </span>
+        <div
+          className="max-w-[60%] px-3.5 py-2.5 rounded-2xl rounded-br-sm text-sm text-white leading-relaxed"
+          style={{ background: "#4F7BF7" }}
+        >
+          {msg.content}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-end gap-2 mb-1 px-4">
+      {/* 아바타 자리 항상 확보 */}
+      <div className="w-8 h-8 shrink-0">
+        {showAvatar && (
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold"
+            style={{ background: bg, color: text }}
+          >
+            {senderName?.[0] ?? "?"}
+          </div>
+        )}
+      </div>
+      <div className="max-w-[60%]">
+        {showAvatar && (
+          <p className="text-xs text-gray-400 mb-1 ml-0.5">{senderName}</p>
+        )}
+        <div className="bg-gray-100 px-3.5 py-2.5 rounded-2xl rounded-bl-sm text-sm text-gray-800 leading-relaxed">
+          {msg.content}
+        </div>
+      </div>
+      <span className="text-xs text-gray-300 self-end mb-0.5">
+        {formatMessageTime(msg.createdAt)}
+      </span>
+    </div>
+  );
+}
+
+// ─── 빈 상태 ──────────────────────────────────────────────────────────────────
+function EmptyState() {
+  return (
+    <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center px-8">
+      <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center">
+        <Coffee size={28} strokeWidth={1.5} className="text-amber-400" />
+      </div>
+      <div>
+        <p className="text-sm font-medium text-gray-600 mb-1">
+          대화를 선택해보세요
+        </p>
+        <p className="text-xs text-gray-400">
+          왼쪽 목록에서 대화를 클릭하면 <br />
+          채팅창이 열립니다
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── 메인 컴포넌트 ────────────────────────────────────────────────────────────
+export default function ChatRoom({ room }) {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [sending, setSending] = useState(false);
+
+  const bottomRef = useRef(null);
+  const inputRef = useRef(null);
+
+  // 현재 로그인 유저 ID (localStorage)
+  const myUserId = Number(localStorage.getItem("userId") ?? -1);
+
+  // ── REST: 메시지 히스토리 로드 ──────────────────────────────────────────
+  useEffect(() => {
+    if (!room) return;
+    setMessages([]);
+    setError(null);
+    setLoading(true);
+
+    const token = localStorage.getItem("accessToken");
+
+    fetch(`${API_BASE}/api/chat/rooms/${room.chatRoomId}/messages`, {
+      headers: { Authorization: token ? `Bearer ${token}` : "" },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        // 백엔드 응답: data.data.content (배열)
+        const msgs = data?.data?.content ?? data?.data ?? [];
+        setMessages(Array.isArray(msgs) ? msgs : []);
+      })
+      .catch((e) => {
+        console.error("[ChatRoom] 메시지 로드 실패", e);
+        setError("메시지를 불러오지 못했어요.");
+      })
+      .finally(() => setLoading(false));
+  }, [room?.chatRoomId]);
+
+  // ── REST: 읽음 처리 ────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!room || messages.length === 0) return;
+    const unreadIds = messages
+      .filter((m) => !m.isRead && m.senderId !== myUserId)
+      .map((m) => m.chatMessageId);
+
+    if (unreadIds.length === 0) return;
+
+    const token = localStorage.getItem("accessToken");
+    fetch(`${API_BASE}/api/chat/rooms/${room.chatRoomId}/read`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token ? `Bearer ${token}` : "",
+      },
+      body: JSON.stringify({ messageIds: unreadIds }),
+    }).catch(console.error);
+  }, [messages, room?.chatRoomId]);
+
+  // ── WebSocket: 실시간 메시지 수신 ──────────────────────────────────────
+  const handleIncoming = useCallback((msg) => {
+    setMessages((prev) => [...prev, msg]);
+  }, []);
+
+  const { sendMessage } = useChatSocket(
+    room?.chatRoomId ?? null,
+    handleIncoming
+  );
+
+  // ── 스크롤 하단 고정 ────────────────────────────────────────────────────
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // ── 방 바뀌면 인풋 포커스 ──────────────────────────────────────────────
+  useEffect(() => {
+    if (room) inputRef.current?.focus();
+  }, [room?.chatRoomId]);
+
+  // ── 메시지 전송 ─────────────────────────────────────────────────────────
+  const handleSend = async () => {
+    const content = input.trim();
+    if (!content || sending) return;
+
+    // 낙관적 업데이트
+    const optimistic = {
+      chatMessageId: `opt-${Date.now()}`,
+      senderId: myUserId,
+      senderName: "나",
+      content,
+      isRead: false,
+      createdAt: new Date().toISOString(),
+      _optimistic: true,
+    };
+    setMessages((prev) => [...prev, optimistic]);
+    setInput("");
+    setSending(true);
+
+    // STOMP로 전송 시도
+    const sent = sendMessage(content);
+
+    if (!sent) {
+      // WebSocket 연결 안 됐으면 REST fallback
+      const token = localStorage.getItem("accessToken");
+      try {
+        const res = await fetch(
+          `${API_BASE}/api/chat/rooms/${room.chatRoomId}/messages`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: token ? `Bearer ${token}` : "",
+            },
+            body: JSON.stringify({ content }),
+          }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        // 낙관적 메시지를 실제 응답으로 교체
+        setMessages((prev) =>
+          prev.map((m) =>
+            m._optimistic && m.chatMessageId === optimistic.chatMessageId
+              ? { ...data.data, _optimistic: false }
+              : m
+          )
+        );
+      } catch (e) {
+        console.error("[ChatRoom] 전송 실패", e);
+        // 실패 시 낙관적 메시지 제거
+        setMessages((prev) =>
+          prev.filter((m) => m.chatMessageId !== optimistic.chatMessageId)
+        );
+        setInput(content); // 입력값 복원
+      }
+    }
+
+    setSending(false);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  // ── 렌더 ────────────────────────────────────────────────────────────────
+  if (!room) {
+    return (
+      <div className="flex-1 flex flex-col bg-gray-50">
+        <EmptyState />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 flex flex-col bg-white min-h-0">
+      {/* 채팅방 헤더 */}
+      <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-3 shrink-0 bg-white">
+        {(() => {
+          const [bg, text] = avatarColor(room.targetUserName);
+          return (
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold shrink-0"
+              style={{ background: bg, color: text }}
+            >
+              {room.targetProfileImage ? (
+                <img
+                  src={room.targetProfileImage}
+                  alt={room.targetUserName}
+                  className="w-full h-full rounded-full object-cover"
+                />
+              ) : (
+                room.targetUserName?.[0] ?? "?"
+              )}
+            </div>
+          );
+        })()}
+        <div>
+          <p className="text-sm font-semibold text-gray-900">
+            {room.targetUserName}
+          </p>
+          <p className="text-xs text-gray-400">커피챗</p>
+        </div>
+      </div>
+
+      {/* 메시지 영역 */}
+      <div className="flex-1 overflow-y-auto py-4 min-h-0">
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 size={20} className="text-gray-300 animate-spin" />
+          </div>
+        )}
+
+        {error && !loading && (
+          <div className="flex items-center justify-center gap-2 py-12">
+            <AlertCircle size={16} className="text-red-300" />
+            <p className="text-sm text-gray-400">{error}</p>
+          </div>
+        )}
+
+        {!loading && !error && messages.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-12 gap-2">
+            <p className="text-sm text-gray-400">아직 대화 내용이 없어요</p>
+            <p className="text-xs text-gray-300">먼저 인사해보세요 👋</p>
+          </div>
+        )}
+
+        {!loading &&
+          messages.map((msg, idx) => {
+            const isMine = msg.senderId === myUserId;
+            const prev = messages[idx - 1];
+            const showDateDivider =
+              !prev || !isSameDay(prev.createdAt, msg.createdAt);
+            // 연속 메시지면 아바타 숨기기 (상대방 메시지만)
+            const showAvatar =
+              !isMine &&
+              (!prev || prev.senderId !== msg.senderId || showDateDivider);
+
+            return (
+              <div key={msg.chatMessageId}>
+                {showDateDivider && <DateDivider iso={msg.createdAt} />}
+                <MessageBubble
+                  msg={msg}
+                  isMine={isMine}
+                  showAvatar={showAvatar}
+                  senderName={msg.senderName ?? room.targetUserName}
+                />
+              </div>
+            );
+          })}
+        <div ref={bottomRef} />
+      </div>
+
+      {/* 입력창 */}
+      <div className="px-4 py-3 border-t border-gray-100 shrink-0 bg-white">
+        <div className="flex items-end gap-2 bg-gray-50 rounded-2xl px-4 py-2.5">
+          <textarea
+            ref={inputRef}
+            value={input}
+            onChange={(e) => {
+              setInput(e.target.value);
+              // 자동 높이 조절
+              e.target.style.height = "auto";
+              e.target.style.height = `${Math.min(
+                e.target.scrollHeight,
+                120
+              )}px`;
+            }}
+            onKeyDown={handleKeyDown}
+            placeholder="메시지를 입력하세요..."
+            rows={1}
+            className="flex-1 text-sm text-gray-800 placeholder-gray-400 outline-none bg-transparent resize-none leading-relaxed"
+            style={{ minHeight: "24px", maxHeight: "120px" }}
+          />
+          <button
+            onClick={handleSend}
+            disabled={!input.trim() || sending}
+            className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-150 disabled:opacity-30"
+            style={{
+              background: input.trim() && !sending ? "#4F7BF7" : "#e5e7eb",
+            }}
+          >
+            {sending ? (
+              <Loader2 size={14} className="text-white animate-spin" />
+            ) : (
+              <Send
+                size={14}
+                strokeWidth={2}
+                className={input.trim() ? "text-white" : "text-gray-400"}
+              />
+            )}
+          </button>
+        </div>
+        <p className="text-xs text-gray-300 mt-1.5 ml-1">
+          Enter로 전송 · Shift+Enter 줄바꿈
+        </p>
+      </div>
+    </div>
+  );
+}
