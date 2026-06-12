@@ -1,7 +1,11 @@
 import { useState } from "react";
 import FeedCard from "../../components/card/FeedCard";
 import { useQuery } from "@tanstack/react-query";
-import { getMyClubs, getClubMembers, getClubPosts }  from "../../services/clubService";
+import {
+  getMyClubs,
+  getClubMembers,
+  getClubPosts,
+} from "../../services/clubService";
 
 export default function ClubMainPage() {
   const [activeTab, setActiveTab] = useState("feeds"); // 탭 상태
@@ -25,15 +29,18 @@ export default function ClubMainPage() {
 
   const selectedClubId = selectedClub?.clubId;
 
+  console.log("selectedClub", selectedClub);
+  console.log("selectedClubId", selectedClubId);
+
   const {
     data: members = [],
     isLoading: isMembersLoading,
     isError: isMembersError,
-  } = useQuery ({
+  } = useQuery({
     queryKey: ["clubMembers", selectedClubId],
     queryFn: () => getClubMembers(selectedClubId),
     enabled: !!selectedClubId,
-  })
+  });
 
   const roleMap = {
     PRESIDENT: "대표",
@@ -63,11 +70,11 @@ export default function ClubMainPage() {
   const totalFeedPages = postsData?.totalPages ?? 0;
 
   if (isLoading) {
-    return <p>동아리 정보를 불러오는 중입니다...</p>
+    return <p>동아리 정보를 불러오는 중입니다...</p>;
   }
 
   if (isError) {
-    return <p>동아리 정보를 불러오지 못했습니다</p>
+    return <p>동아리 정보를 불러오지 못했습니다</p>;
   }
 
   if (!hasClub) {
@@ -102,11 +109,12 @@ export default function ClubMainPage() {
 
   const currentMembers = members.slice(
     (currentMemberPage - 1) * memberPerPage,
-    currentMemberPage * memberPerPage
+    currentMemberPage * memberPerPage,
   );
 
   // 현재 탭 기준으로 페이지 정보 결정 (피드랑 멤버)
-  const currentPage = activeTab === "feeds" ? currentFeedPage : currentMemberPage;
+  const currentPage =
+    activeTab === "feeds" ? currentFeedPage : currentMemberPage;
   const totalPages = activeTab === "feeds" ? totalFeedPages : totalMemberPages;
 
   const handlePrevPage = () => {
@@ -153,7 +161,9 @@ export default function ClubMainPage() {
             <p className="text-base text-slate-900/60">
               {members[0]?.name}
               {members[1]?.name && `, ${members[1].name}`}{" "}
-              {hiddenMemberCount > 0 && <span>+{hiddenMemberCount} others</span>}
+              {hiddenMemberCount > 0 && (
+                <span>+{hiddenMemberCount} others</span>
+              )}
             </p>
           </div>
 
@@ -253,11 +263,12 @@ export default function ClubMainPage() {
                 <button
                   key={page}
                   onClick={() =>
-                    activeTab === "feeds" ? setCurrentFeedPage(page) : setCurrentMemberPage(page)
+                    activeTab === "feeds"
+                      ? setCurrentFeedPage(page)
+                      : setCurrentMemberPage(page)
                   }
                   className={`flex h-10 w-10 items-center justify-center rounded-2xl text-base font-medium 
-                    ${currentPage === page ? "bg-sky-700 text-slate-50" : "text-gray-900/60 hover:bg-slate-200"}`
-                  }
+                    ${currentPage === page ? "bg-sky-700 text-slate-50" : "text-gray-900/60 hover:bg-slate-200"}`}
                 >
                   {page}
                 </button>
