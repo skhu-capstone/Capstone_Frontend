@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
-import { createClubPost } from "../../services/clubService";
+import { createClubPost, uploadPostImage } from "../../services/clubService";
 
 export default function ClubPostCreatePage() {
   const navigate = useNavigate();
   const { clubId } = useParams();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [imageFile, setImageFile] = useState(null);
 
   const handleCreatePost = () => {
     if (!title.trim() || !content.trim()) {
@@ -28,7 +29,11 @@ export default function ClubPostCreatePage() {
   const createPostMutation = useMutation({
     mutationFn: createClubPost,
 
-    onSuccess: () => {
+    onSuccess: async (createdPost) => {
+      if (imageFile) {
+        await uploadPostImage(createdPost.postId, imageFile);
+      }
+
       alert("게시물이 등록되었습니다.");
       navigate("/club/main");
     },
@@ -90,7 +95,17 @@ export default function ClubPostCreatePage() {
               <span className="mt-2 text-xs text-gray-400">
                 PNG, JPG 파일 지원
               </span>
-              <input type="file" className="hidden" />
+              <input
+                type="file"
+                accept="image/png, image/jpeg"
+                onChange={(e) => setImageFile(e.target.files[0])}
+                className="hidden"
+              />
+              {imageFile && (
+                <span className="mt-2 text-xs text-blue-600">
+                  {imageFile.name}
+                </span>
+              )}
             </label>
           </div>
 

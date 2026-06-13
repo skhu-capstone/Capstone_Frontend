@@ -10,6 +10,15 @@ export default function ClubMainPage() {
   const [currentMemberPage, setCurrentMemberPage] = useState(1); // 멤버 페이지 번호
   const navigate = useNavigate();
 
+  const getImageUrl = (url) => {
+    if (!url) return "https://placehold.co/600x250";
+    if (url.startsWith("http")) return url;
+    const fixedUrl = url.startsWith("/uploads")
+      ? url
+      : `/uploads${url}`;
+    return `${import.meta.env.VITE_API_BASE_URL}${fixedUrl}`;
+  };
+
   const {
     data: clubs = [],
     isLoading,
@@ -223,7 +232,7 @@ export default function ClubMainPage() {
                   author={feed.writerName}
                   date={feed.createdAt}
                   profileImage="https://placehold.co/48x48"
-                  image={feed.imageUrls?.[0] || "https://placehold.co/600x250"}
+                  image={getImageUrl(feed.imageUrls?.[0])}
                   content={feed.content}
                 />
               ))

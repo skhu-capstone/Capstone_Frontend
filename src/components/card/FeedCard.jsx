@@ -37,7 +37,7 @@ function FeedCard({
           </div>
           {/* 작성한 날짜 */}
           <div className="text-black text-base font-normal leading-6">
-            {date}
+            {date?.slice(0, 10).replace(/-/g, ".")}
           </div>
         </div>
       </div>
