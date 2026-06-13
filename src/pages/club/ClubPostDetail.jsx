@@ -7,6 +7,8 @@ import {
   ChevronRight,
   Send,
 } from "lucide-react";
+import { deleteClubPost } from "../../services/clubService";
+import { useMutation } from "@tanstack/react-query";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -127,13 +129,46 @@ export default function ClubPostDetail() {
   const [commentLoading, setCommentLoading] = useState(false);
   const [commentError, setCommentError] = useState("");
 
+  // 게시물 삭제 (진원 추가)
+  const deleteMutation = useMutation({
+    mutationFn: deleteClubPost,
+
+    onSuccess: () => {
+      alert("게시글이 삭제되었습니다.");
+      navigate("/club/main");
+    },
+
+    onError: (error) => {
+      console.error(error);
+
+      if (error.response?.status === 403) {
+        alert("게시글을 삭제할 권한이 없습니다.");
+        return;
+      }
+
+      alert("게시글 삭제에 실패했습니다.");
+    },
+  });
+
+  const handleDeletePost = () => {
+    const confirmed = window.confirm("정말 게시글을 삭제하시겠습니까?");
+
+    if (!confirmed) return;
+
+    deleteMutation.mutate(id);
+  };
+
   // ── 게시글 조회 ──────────────────────────────────────────────────────────
   useEffect(() => {
     async function fetchPost() {
       setLoading(true);
       setError("");
       try {
-        const res = await fetch(`${API_BASE_URL}/api/posts/${id}`);
+        const res = await fetch(`${API_BASE_URL}/api/posts/${id}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        });
         const data = await res.json();
         if (data.success) {
           setPost(data.data);
@@ -269,11 +304,21 @@ export default function ClubPostDetail() {
                 {formatDate(post.createdAt)}
               </span>
             </div>
-            {post.postType === "NOTICE" && (
-              <span className="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5">
-                공지
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              {post.postType === "NOTICE" && (
+                <span className="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5">
+                  공지
+                </span>
+              )}
+
+              <button
+                onClick={handleDeletePost}
+                disabled={deleteMutation.isPending}
+                className="text-xs font-medium text-red-500 hover:text-red-700 disabled:text-gray-400 disabled:cursor-not-allowed"
+              >
+                {deleteMutation.isPending ? "삭제 중" : "삭제"}
+              </button>
+            </div>
           </div>
 
           {/* 제목 */}
