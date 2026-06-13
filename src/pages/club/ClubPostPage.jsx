@@ -15,114 +15,8 @@ import {
   X,
   Image,
   AlertCircle,
+  Loader2,
 } from "lucide-react";
-
-const DUMMY_POSTS = [
-  {
-    id: 1,
-    image:
-      "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&q=80",
-    likes: 16,
-    comments: 4,
-    club: "멋쟁이사자처럼",
-    content: "LikeLion SKHU 13기 서류 마감 D-7!",
-    author: "현",
-    authorColor: "#22c55e",
-    createdAt: "2025-04-01",
-    myClub: true,
-  },
-  {
-    id: 2,
-    image:
-      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80",
-    likes: 24,
-    comments: 8,
-    club: "디자인러버",
-    content: "디자인러버 봄 학기 신입 부원 모집! 🎨",
-    author: "지",
-    authorColor: "#6366f1",
-    createdAt: "2025-04-03",
-    myClub: false,
-  },
-  {
-    id: 3,
-    image:
-      "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&q=80",
-    likes: 9,
-    comments: 2,
-    club: "코딩왕",
-    content: "2026 스타트업 해커톤 출전 후기 🏆",
-    author: "민",
-    authorColor: "#f59e0b",
-    createdAt: "2025-04-05",
-    myClub: true,
-  },
-  {
-    id: 4,
-    image:
-      "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=600&q=80",
-    likes: 31,
-    comments: 12,
-    club: "디자인러버",
-    content: "UI/UX 스터디 6주차 회고록 📝",
-    author: "수",
-    authorColor: "#ec4899",
-    createdAt: "2025-04-07",
-    myClub: false,
-  },
-  {
-    id: 5,
-    image:
-      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&q=80",
-    likes: 5,
-    comments: 1,
-    club: "간지툰",
-    content: "간지툰 웹툰 공모전 준비 시작! 🖊️",
-    author: "태",
-    authorColor: "#14b8a6",
-    createdAt: "2025-04-08",
-    myClub: false,
-  },
-  {
-    id: 6,
-    image:
-      "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&q=80",
-    likes: 18,
-    comments: 6,
-    club: "봉사단",
-    content: "봄 학기 봉사활동 모집 🌱",
-    author: "아",
-    authorColor: "#f97316",
-    createdAt: "2025-04-09",
-    myClub: false,
-  },
-  {
-    id: 7,
-    image:
-      "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=600&q=80",
-    likes: 42,
-    comments: 15,
-    club: "뮤직클럽",
-    content: "뮤직클럽 봄 정기 공연 📸",
-    author: "나",
-    authorColor: "#8b5cf6",
-    createdAt: "2025-04-10",
-    myClub: false,
-  },
-  {
-    id: 8,
-    image:
-      "https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=600&q=80",
-    likes: 13,
-    comments: 3,
-    club: "코딩왕",
-    content: "알고리즘 스터디 모집 💻",
-    author: "현",
-    authorColor: "#22c55e",
-    createdAt: "2025-04-11",
-    myClub: true,
-  },
-];
 
 const POSTS_PER_PAGE = 6;
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -161,7 +55,6 @@ function useDropdown() {
 function SortDropdown({ value, onChange }) {
   const { open, setOpen, ref } = useDropdown();
   const current = SORT_OPTIONS.find((o) => o.key === value) ?? SORT_OPTIONS[0];
-
   return (
     <div className="relative" ref={ref}>
       <button
@@ -215,7 +108,6 @@ const VIEW_OPTIONS = [
 function ViewDropdown({ value, onChange }) {
   const { open, setOpen, ref } = useDropdown();
   const current = VIEW_OPTIONS.find((o) => o.key === value);
-
   return (
     <div className="relative" ref={ref}>
       <button
@@ -275,7 +167,6 @@ function CreatePostModal({ clubId, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
 
-  // 배경 스크롤 방지
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => {
@@ -303,7 +194,6 @@ function CreatePostModal({ clubId, onClose, onSuccess }) {
       return { ...f, imageUrls: urls };
     });
   }
-
   function addImageUrl() {
     setForm((f) => ({ ...f, imageUrls: [...f.imageUrls, ""] }));
   }
@@ -321,6 +211,7 @@ function CreatePostModal({ clubId, onClose, onSuccess }) {
       return;
     }
 
+    const token = localStorage.getItem("accessToken");
     const payload = {
       title: form.title.trim(),
       content: form.content.trim(),
@@ -333,7 +224,10 @@ function CreatePostModal({ clubId, onClose, onSuccess }) {
     try {
       const res = await fetch(`${API_BASE_URL}/api/clubs/${clubId}/posts`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify(payload),
       });
       const data = await res.json();
@@ -358,7 +252,6 @@ function CreatePostModal({ clubId, onClose, onSuccess }) {
       }}
     >
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
-        {/* 모달 헤더 */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <h2 className="text-base font-semibold text-gray-900">게시물 작성</h2>
           <button
@@ -369,9 +262,7 @@ function CreatePostModal({ clubId, onClose, onSuccess }) {
           </button>
         </div>
 
-        {/* 모달 바디 */}
         <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4">
-          {/* API 오류 */}
           {apiError && (
             <div className="flex items-start gap-2 bg-red-50 border border-red-100 rounded-lg px-3 py-2.5">
               <AlertCircle
@@ -383,7 +274,6 @@ function CreatePostModal({ clubId, onClose, onSuccess }) {
             </div>
           )}
 
-          {/* 게시글 유형 */}
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1.5">
               게시글 유형
@@ -393,12 +283,7 @@ function CreatePostModal({ clubId, onClose, onSuccess }) {
                 <button
                   key={t.key}
                   onClick={() => setField("postType", t.key)}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-medium border transition-colors duration-150 cursor-pointer
-                    ${
-                      form.postType === t.key
-                        ? "bg-blue-50 border-blue-300 text-blue-700"
-                        : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"
-                    }`}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-medium border transition-colors duration-150 cursor-pointer ${form.postType === t.key ? "bg-blue-50 border-blue-300 text-blue-700" : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"}`}
                 >
                   {t.label}
                 </button>
@@ -406,7 +291,6 @@ function CreatePostModal({ clubId, onClose, onSuccess }) {
             </div>
           </div>
 
-          {/* 제목 */}
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1.5">
               제목 <span className="text-red-400">*</span>
@@ -417,15 +301,13 @@ function CreatePostModal({ clubId, onClose, onSuccess }) {
               onChange={(e) => setField("title", e.target.value)}
               placeholder="게시글 제목을 입력하세요"
               maxLength={100}
-              className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors
-                ${errors.title ? "border-red-300 bg-red-50 focus:border-red-400" : "border-gray-200 focus:border-blue-400"}`}
+              className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors ${errors.title ? "border-red-300 bg-red-50 focus:border-red-400" : "border-gray-200 focus:border-blue-400"}`}
             />
             {errors.title && (
               <p className="mt-1 text-xs text-red-500">{errors.title}</p>
             )}
           </div>
 
-          {/* 내용 */}
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1.5">
               내용 <span className="text-red-400">*</span>
@@ -435,15 +317,13 @@ function CreatePostModal({ clubId, onClose, onSuccess }) {
               onChange={(e) => setField("content", e.target.value)}
               placeholder="게시글 내용을 입력하세요"
               rows={5}
-              className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors resize-none
-                ${errors.content ? "border-red-300 bg-red-50 focus:border-red-400" : "border-gray-200 focus:border-blue-400"}`}
+              className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors resize-none ${errors.content ? "border-red-300 bg-red-50 focus:border-red-400" : "border-gray-200 focus:border-blue-400"}`}
             />
             {errors.content && (
               <p className="mt-1 text-xs text-red-500">{errors.content}</p>
             )}
           </div>
 
-          {/* 이미지 URL */}
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1.5">
               이미지 URL
@@ -488,7 +368,6 @@ function CreatePostModal({ clubId, onClose, onSuccess }) {
           </div>
         </div>
 
-        {/* 모달 푸터 */}
         <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-gray-100">
           <button
             onClick={onClose}
@@ -512,6 +391,11 @@ function CreatePostModal({ clubId, onClose, onSuccess }) {
 // ─── 게시물 카드 ──────────────────────────────────────────────────────────────
 function PostCard({ post, onClick }) {
   const [hovered, setHovered] = useState(false);
+  // API 응답 필드에 맞게 매핑
+  const imageUrl = post.imageUrls?.[0] || null;
+  const likeCount = post.likeCount ?? 0;
+  const commentCount = post.commentCount ?? 0;
+
   return (
     <div
       className="relative rounded-2xl overflow-hidden cursor-pointer aspect-square bg-slate-200"
@@ -519,12 +403,29 @@ function PostCard({ post, onClick }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <img
-        src={post.image}
-        alt={post.club}
-        className="w-full h-full object-cover transition-transform duration-300"
-        style={{ transform: hovered ? "scale(1.04)" : "scale(1)" }}
-      />
+      {imageUrl ? (
+        <img
+          src={imageUrl}
+          alt={post.clubName}
+          className="w-full h-full object-cover transition-transform duration-300"
+          style={{ transform: hovered ? "scale(1.04)" : "scale(1)" }}
+        />
+      ) : (
+        // 이미지 없을 때 fallback
+        <div className="w-full h-full flex items-center justify-center bg-slate-100">
+          <span className="text-xs text-slate-400 px-3 text-center line-clamp-3">
+            {post.title}
+          </span>
+        </div>
+      )}
+
+      {/* 공지 뱃지 */}
+      {post.postType === "NOTICE" && (
+        <span className="absolute top-2 left-2 text-xs font-medium text-amber-700 bg-amber-50/90 border border-amber-200 rounded-full px-2 py-0.5">
+          공지
+        </span>
+      )}
+
       <div
         className="absolute inset-0 flex items-center justify-center gap-4 transition-opacity duration-200"
         style={{
@@ -534,50 +435,100 @@ function PostCard({ post, onClick }) {
       >
         <span className="flex items-center gap-1.5 text-white text-sm font-semibold drop-shadow">
           <Heart size={16} fill="white" strokeWidth={0} />
-          {post.likes}
+          {likeCount}
         </span>
         <span className="flex items-center gap-1.5 text-white text-sm font-semibold drop-shadow">
           <MessageCircle size={16} fill="white" strokeWidth={0} />
-          {post.comments}
+          {commentCount}
         </span>
       </div>
     </div>
   );
 }
 
-// ─── 정렬 함수 ────────────────────────────────────────────────────────────────
+// ─── 정렬 함수 (프론트 정렬) ──────────────────────────────────────────────────
 function sortPosts(posts, sortKey) {
   const sorted = [...posts];
   switch (sortKey) {
     case "likes_desc":
-      return sorted.sort((a, b) => b.likes - a.likes);
+      return sorted.sort((a, b) => (b.likeCount ?? 0) - (a.likeCount ?? 0));
     case "likes_asc":
-      return sorted.sort((a, b) => a.likes - b.likes);
+      return sorted.sort((a, b) => (a.likeCount ?? 0) - (b.likeCount ?? 0));
     case "comments_desc":
-      return sorted.sort((a, b) => b.comments - a.comments);
+      return sorted.sort(
+        (a, b) => (b.commentCount ?? 0) - (a.commentCount ?? 0),
+      );
     case "comments_asc":
-      return sorted.sort((a, b) => a.comments - b.comments);
+      return sorted.sort(
+        (a, b) => (a.commentCount ?? 0) - (b.commentCount ?? 0),
+      );
     default:
       return sorted;
   }
 }
 
+// ─── 스켈레톤 그리드 ──────────────────────────────────────────────────────────
+function SkeletonGrid() {
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div
+          key={i}
+          className="aspect-square rounded-2xl bg-slate-200 animate-pulse"
+        />
+      ))}
+    </div>
+  );
+}
+
 // ─── 메인 ────────────────────────────────────────────────────────────────────
 export default function ClubMainPage({ clubId = 1 }) {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [page, setPage] = useState(1);
-  const [viewMode, setViewMode] = useState("my");
+  const [totalPages, setTotalPages] = useState(1);
+
+  const [viewMode, setViewMode] = useState("all"); // "my" | "all"  ※my 필터는 clubName 기준 프론트 필터
   const [sortKey, setSortKey] = useState("likes_desc");
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
 
-  const basePosts =
-    viewMode === "my" ? DUMMY_POSTS.filter((p) => p.myClub) : DUMMY_POSTS;
-  const filteredPosts = sortPosts(basePosts, sortKey);
-  const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
-  const pagePosts = filteredPosts.slice(
-    (page - 1) * POSTS_PER_PAGE,
-    page * POSTS_PER_PAGE,
-  );
+  // ── API 호출 ──────────────────────────────────────────────────────────────
+  useEffect(() => {
+    setLoading(true);
+    setError("");
+
+    const token = localStorage.getItem("accessToken");
+    const params = new URLSearchParams({
+      page: page - 1, // 백엔드가 0-based면 page-1, 1-based면 page 그대로 — 확인 후 조정
+      size: POSTS_PER_PAGE,
+    });
+
+    fetch(`${API_BASE_URL}/api/posts?${params}`, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (data.success) {
+          setPosts(data.data.content ?? []);
+          setTotalPages(data.data.totalPages ?? 1);
+        } else {
+          setError(data.message || "게시글을 불러오지 못했습니다.");
+        }
+      })
+      .catch(() => setError("네트워크 오류가 발생했습니다. 다시 시도해주세요."))
+      .finally(() => setLoading(false));
+  }, [page]);
+
+  // ── 프론트 필터 + 정렬 ────────────────────────────────────────────────────
+  // "my" 모드: clubId로 연결된 clubName 필터링 — 지금은 전체만 내려오므로 일단 pass
+  const filteredPosts = sortPosts(posts, sortKey);
 
   function handleViewChange(mode) {
     setViewMode(mode);
@@ -590,8 +541,12 @@ export default function ClubMainPage({ clubId = 1 }) {
 
   function handlePostSuccess(newPost) {
     setShowModal(false);
-    // 필요 시 목록 갱신 로직 추가
-    console.log("생성된 게시물:", newPost);
+    // 목록 첫 페이지로 돌아가서 새 게시글 반영
+    if (page === 1) {
+      setPosts((prev) => [newPost, ...prev].slice(0, POSTS_PER_PAGE));
+    } else {
+      setPage(1);
+    }
   }
 
   return (
@@ -608,8 +563,6 @@ export default function ClubMainPage({ clubId = 1 }) {
         <div className="flex items-center gap-2 mb-4">
           <ViewDropdown value={viewMode} onChange={handleViewChange} />
           <SortDropdown value={sortKey} onChange={handleSortChange} />
-
-          {/* 게시물 생성 버튼 — 오른쪽 끝 */}
           <button
             onClick={() => setShowModal(true)}
             className="ml-auto flex items-center gap-1.5 text-sm text-white bg-blue-500 hover:bg-blue-600 active:scale-95 rounded-lg px-3 py-1.5 transition-all duration-150 cursor-pointer shadow-sm font-medium"
@@ -619,25 +572,44 @@ export default function ClubMainPage({ clubId = 1 }) {
           </button>
         </div>
 
-        {/* 그리드 */}
-        {pagePosts.length > 0 ? (
-          <div className="grid grid-cols-3 gap-2">
-            {pagePosts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                onClick={() => navigate(`/club/${post.id}`)}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-            <p className="text-sm">게시물이 없습니다</p>
+        {/* 로딩 */}
+        {loading && <SkeletonGrid />}
+
+        {/* 에러 */}
+        {!loading && error && (
+          <div className="flex flex-col items-center justify-center py-20 gap-3">
+            <AlertCircle size={24} className="text-red-300" strokeWidth={1.5} />
+            <p className="text-sm text-gray-400">{error}</p>
+            <button
+              onClick={() => setPage((p) => p)} // 동일 page로 재요청 트리거
+              className="text-xs text-blue-500 hover:text-blue-700 transition-colors cursor-pointer"
+            >
+              다시 시도
+            </button>
           </div>
         )}
 
+        {/* 그리드 */}
+        {!loading &&
+          !error &&
+          (filteredPosts.length > 0 ? (
+            <div className="grid grid-cols-3 gap-2">
+              {filteredPosts.map((post) => (
+                <PostCard
+                  key={post.postId}
+                  post={post}
+                  onClick={() => navigate(`/club/${post.postId}`)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+              <p className="text-sm">게시물이 없습니다</p>
+            </div>
+          ))}
+
         {/* 페이지네이션 */}
-        {totalPages > 1 && (
+        {!loading && totalPages > 1 && (
           <div className="flex items-center justify-center gap-4 mt-8">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -668,7 +640,6 @@ export default function ClubMainPage({ clubId = 1 }) {
         )}
       </main>
 
-      {/* 게시물 생성 모달 */}
       {showModal && (
         <CreatePostModal
           clubId={clubId}

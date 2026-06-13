@@ -116,12 +116,10 @@ export default function ClubPostDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // 좋아요
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [likeLoading, setLikeLoading] = useState(false);
 
-  // 댓글
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState("");
   const [commentLoading, setCommentLoading] = useState(false);
@@ -133,7 +131,12 @@ export default function ClubPostDetail() {
       setLoading(true);
       setError("");
       try {
-        const res = await fetch(`${API_BASE_URL}/api/posts/${id}`);
+        const token = localStorage.getItem("accessToken");
+        const res = await fetch(`${API_BASE_URL}/api/posts/${id}`, {
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
         const data = await res.json();
         if (data.success) {
           setPost(data.data);
@@ -161,8 +164,12 @@ export default function ClubPostDetail() {
     setLikeCount((c) => (liked ? c - 1 : c + 1));
     setLikeLoading(true);
     try {
+      const token = localStorage.getItem("accessToken");
       const res = await fetch(`${API_BASE_URL}/api/posts/${id}/likes`, {
         method: "POST",
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
       });
       const data = await res.json();
       if (data.success) {
@@ -188,14 +195,17 @@ export default function ClubPostDetail() {
     setCommentLoading(true);
     setCommentError("");
     try {
+      const token = localStorage.getItem("accessToken");
       const res = await fetch(`${API_BASE_URL}/api/posts/${id}/comments`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ content: trimmed }),
       });
       const data = await res.json();
       if (data.success) {
-        // 작성된 댓글을 목록 맨 아래에 추가
         setComments((prev) => [...prev, data.data]);
         setCommentText("");
         commentInputRef.current?.focus();
@@ -209,7 +219,6 @@ export default function ClubPostDetail() {
     }
   }
 
-  // Enter 키 제출
   function handleKeyDown(e) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -251,12 +260,9 @@ export default function ClubPostDetail() {
   return (
     <div className="min-h-screen bg-slate-50">
       <main className="max-w-2xl mx-auto px-4 py-8 flex flex-col gap-0">
-        {/* 이미지 캐러셀 */}
         <ImageCarousel images={post.imageUrls} />
 
-        {/* 본문 카드 */}
         <div className="bg-white rounded-2xl shadow-sm px-6 py-5 flex flex-col gap-4 mt-3">
-          {/* 작성자 + 날짜 + 공지 뱃지 */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-semibold text-indigo-600">
@@ -276,19 +282,16 @@ export default function ClubPostDetail() {
             )}
           </div>
 
-          {/* 제목 */}
           {post.title && (
             <h2 className="text-base font-semibold text-gray-900">
               {post.title}
             </h2>
           )}
 
-          {/* 본문 */}
           <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-line">
             {post.content}
           </p>
 
-          {/* 좋아요 / 댓글 수 */}
           <div className="flex items-center gap-4 pt-1 border-t border-gray-100">
             <button
               onClick={handleLike}
@@ -310,7 +313,6 @@ export default function ClubPostDetail() {
           </div>
         </div>
 
-        {/* 댓글 영역 */}
         <div className="bg-white rounded-2xl shadow-sm px-6 py-5 mt-2 flex flex-col gap-4">
           <p className="text-sm font-semibold text-gray-700">
             댓글
@@ -321,7 +323,6 @@ export default function ClubPostDetail() {
             )}
           </p>
 
-          {/* 댓글 목록 */}
           {comments.length === 0 ? (
             <p className="text-sm text-gray-400">
               아직 댓글이 없어요. 첫 댓글을 남겨보세요!
@@ -334,12 +335,10 @@ export default function ClubPostDetail() {
             </div>
           )}
 
-          {/* 댓글 오류 */}
           {commentError && (
             <p className="text-xs text-red-500">{commentError}</p>
           )}
 
-          {/* 댓글 입력창 */}
           <div
             className={`flex items-center gap-2 border rounded-xl px-4 py-2.5 transition-colors ${commentLoading ? "border-gray-100 bg-gray-50" : "border-gray-200 focus-within:border-indigo-300"}`}
           >
