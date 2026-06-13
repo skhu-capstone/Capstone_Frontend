@@ -2,6 +2,7 @@ import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
+import logo from "../assets/logo.png";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -13,7 +14,7 @@ export default function LoginPage() {
         {
           googleAccessToken,
         },
-      )
+      );
       return response.data.data;
     },
 
@@ -54,14 +55,15 @@ export default function LoginPage() {
       </section>
 
       <section className="w-full max-w-127.5 min-h-180 bg-slate-50 rounded-[44px] border border-slate-600/20 flex flex-col items-center px-10 py-14">
-        <h2 className="text-sky-950 text-5xl font-extrabold mb-12">
-          LOGO
-        </h2>
+        <img
+          src={logo}
+          alt="LOGO"
+          className="h-40 w-auto mb-10 cursor-pointer"
+          onClick={() => navigate("/")}
+        />
 
         <div className="w-full text-center mb-10">
-          <h3 className="text-neutral-800 text-3xl font-bold mb-3">
-            로그인
-          </h3>
+          <h3 className="text-neutral-800 text-3xl font-bold mb-3">로그인</h3>
           <p className="text-neutral-800 text-sm">
             로그인 시 서비스 이용약관 및 개인정보처리방침에 동의하게 됩니다
           </p>
@@ -84,9 +86,7 @@ export default function LoginPage() {
         </button>
 
         <div className="mt-16 text-center">
-          <h3 className="text-sky-950 text-5xl font-extrabold">
-            CoffeeChat
-          </h3>
+          <h3 className="text-sky-950 text-5xl font-extrabold">CoffeeChat</h3>
           <p className="mt-4 text-neutral-800/80 text-base">
             쉽게 접근할 수 있는 커피챗을 활용해보세요!
           </p>

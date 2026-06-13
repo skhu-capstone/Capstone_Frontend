@@ -1,4 +1,5 @@
 import { GitFork, Mail, Code2, Server } from "lucide-react";
+import logo from "../../assets/logo.png";
 
 const NAV_ITEMS = [
   { label: "홈", href: "/" },
@@ -23,18 +24,9 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-8 items-start">
           {/* 왼쪽: 로고 + 슬로건 */}
           <div className="flex flex-col gap-3 min-w-[140px]">
-            <div
-              className="w-20 h-8 rounded-lg flex items-center justify-center"
-              style={{ border: "2px dashed #21212150" }}
-              title="로고 추가 예정"
-            >
-              <span
-                className="text-xs font-medium tracking-wide select-none"
-                style={{ color: "#21212160" }}
-              >
-                LOGO
-              </span>
-            </div>
+            <a href="/" className="inline-block">
+              <img src={logo} alt="logo" className="h-10 w-auto" />
+            </a>
             <p
               className="text-xs leading-relaxed max-w-[160px]"
               style={{ color: "#21212199" }}

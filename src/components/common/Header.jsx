@@ -9,14 +9,25 @@ import {
   LogOut,
   Menu,
   X,
+  ChevronDown,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
+import logo from "../../assets/logo.png";
 
 const NAV_ITEMS = [
   { label: "홈", icon: Home, href: "/" },
-  { label: "동아리", icon: Users, href: "/club/main" },
+  {
+    label: "동아리",
+    icon: Users,
+    href: "/club",
+    isDropdown: true,
+    subItems: [
+      { label: "내 동아리", href: "/club/main" },
+      { label: "전체 게시판", href: "/club/post" },
+    ],
+  },
   { label: "협업/모집", icon: Globe, href: "/cooperation" },
   { label: "커피챗", icon: Coffee, href: "/coffee-chat" },
   { label: "마이페이지", icon: User, href: "/my-page" },
@@ -25,7 +36,9 @@ const NAV_ITEMS = [
 export default function Header() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [clubDropdownOpen, setClubDropdownOpen] = useState(false);
   const profileRef = useRef(null);
+  const clubRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -34,20 +47,24 @@ export default function Header() {
 
   const queryClient = useQueryClient();
 
-  // 외부 클릭 시 프로필 드롭다운 닫기
+  // 외부 클릭 시 드롭다운 닫기
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
         setProfileOpen(false);
+      }
+      if (clubRef.current && !clubRef.current.contains(e.target)) {
+        setClubDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // 라우트 변경 시 모바일 메뉴 닫기
+  // 라우트 변경 시 메뉴 닫기
   useEffect(() => {
     setMobileMenuOpen(false);
+    setClubDropdownOpen(false);
   }, [location.pathname]);
 
   const handleAddAccount = () => {
@@ -75,19 +92,70 @@ export default function Header() {
     <header className="w-full" style={{ backgroundColor: "#6B8DD6" }}>
       <div className="max-w-500 mx-auto grid grid-cols-[auto_1fr_auto] items-center gap-4 px-4 h-16">
         {/* 로고 */}
-        <div className="flex items-center">
-          <img src="" alt="logo" className="h-8 w-auto hidden" />
-          <div className="text-[#1a2a6c] font-bold text-base tracking-wide select-none">
-            LOGO
-          </div>
+        <div
+          className="flex items-center cursor-pointer"
+          onClick={() => navigate("/")}
+        >
+          <img src={logo} alt="logo" className="h-10 w-auto" />
         </div>
 
         {/* 데스크탑 네비 (md 이상에서만 표시) */}
         <div className="hidden md:flex justify-end pr-2">
           <div className="bg-white rounded-2xl px-2 py-1.5">
             <nav className="flex items-center gap-1">
-              {NAV_ITEMS.map(({ label, icon: Icon, href }) => {
-                const isActive = location.pathname === href;
+              {NAV_ITEMS.map((item) => {
+                const { label, icon: Icon, href, isDropdown, subItems } = item;
+                // 홈("/")은 정확히 일치할 때만, 나머지는 해당 경로로 시작할 때 활성화
+                const isActive =
+                  href === "/"
+                    ? location.pathname === "/"
+                    : location.pathname.startsWith(href);
+
+                if (isDropdown) {
+                  return (
+                    <div key={label} className="relative" ref={clubRef}>
+                      <button
+                        onClick={() => setClubDropdownOpen((prev) => !prev)}
+                        style={{ color: isActive ? "#432DD7" : "#4A5565" }}
+                        className={[
+                          "flex items-center gap-1 px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors duration-150 cursor-pointer",
+                          isActive
+                            ? "font-medium"
+                            : "font-normal hover:bg-gray-100",
+                        ].join(" ")}
+                      >
+                        <Icon
+                          size={18}
+                          strokeWidth={2}
+                          className="opacity-90 shrink-0"
+                        />
+                        <span>{label}</span>
+                        <ChevronDown
+                          size={14}
+                          className={`transition-transform duration-200 ${clubDropdownOpen ? "rotate-180" : ""}`}
+                        />
+                      </button>
+
+                      {clubDropdownOpen && (
+                        <div className="absolute left-0 mt-2 w-32 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50">
+                          {subItems.map((sub) => (
+                            <button
+                              key={sub.label}
+                              onClick={() => {
+                                navigate(sub.href);
+                                setClubDropdownOpen(false);
+                              }}
+                              className="w-full text-left px-4 py-2.5 text-xs text-gray-700 hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
+                            >
+                              {sub.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
                 return (
                   <button
                     key={label}
@@ -170,7 +238,10 @@ export default function Header() {
 
                 <button
                   onClick={handleAddAccount}
-                  className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150 border-b border-gray-100 cursor-pointer"
+                  className={[
+                    "w-full flex items-center gap-2.5 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150 cursor-pointer",
+                    user ? "border-b border-gray-100" : "",
+                  ].join(" ")}
                 >
                   <span className="w-5 h-5 rounded-full border border-gray-400 flex items-center justify-center shrink-0">
                     <Plus
@@ -179,17 +250,19 @@ export default function Header() {
                       className="text-gray-500"
                     />
                   </span>
-                  다른 계정으로 로그인
+                  {user ? "다른 계정으로 로그인" : "로그인"}
                 </button>
 
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-2.5 px-4 py-3 text-sm transition-colors duration-150 hover:bg-gray-50 cursor-pointer"
-                  style={{ color: "#432DD7" }}
-                >
-                  <LogOut size={15} strokeWidth={2} />
-                  로그아웃
-                </button>
+                {user && (
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-2.5 px-4 py-3 text-sm transition-colors duration-150 hover:bg-gray-50 cursor-pointer"
+                    style={{ color: "#432DD7" }}
+                  >
+                    <LogOut size={15} strokeWidth={2} />
+                    로그아웃
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -200,8 +273,41 @@ export default function Header() {
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-white/20 bg-white/10 backdrop-blur-sm">
           <nav className="flex flex-col px-4 py-2">
-            {NAV_ITEMS.map(({ label, icon: Icon, href }) => {
-              const isActive = location.pathname === href;
+            {NAV_ITEMS.map((item) => {
+              const { label, icon: Icon, href, isDropdown, subItems } = item;
+              const isActive = location.pathname.startsWith(href);
+
+              if (isDropdown) {
+                return (
+                  <div key={label} className="flex flex-col">
+                    <div
+                      className={[
+                        "flex items-center gap-3 px-4 py-3 text-sm text-white/90 font-normal",
+                      ].join(" ")}
+                    >
+                      <Icon size={18} strokeWidth={2} className="shrink-0" />
+                      {label}
+                    </div>
+                    <div className="flex flex-col pl-11 gap-1 pb-2">
+                      {subItems.map((sub) => (
+                        <button
+                          key={sub.label}
+                          onClick={() => handleNavClick(sub.href)}
+                          className={[
+                            "px-4 py-2 rounded-xl text-xs transition-colors duration-150 text-left cursor-pointer",
+                            location.pathname === sub.href
+                              ? "bg-white/30 font-semibold text-white"
+                              : "text-white/80 hover:bg-white/20 font-normal",
+                          ].join(" ")}
+                        >
+                          {sub.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              }
+
               return (
                 <button
                   key={label}
