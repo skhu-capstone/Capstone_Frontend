@@ -22,7 +22,7 @@ export default function LoginPage() {
       localStorage.setItem("refreshToken", userData.refreshToken);
       localStorage.setItem("user", JSON.stringify(userData));
       console.log("로그인 성공");
-      navigate("/");
+      window.location.href = "/";
     },
 
     onError: (error) => {
