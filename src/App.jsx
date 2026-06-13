@@ -35,7 +35,10 @@ export default function App() {
           element={<CoffeeChatUserListPage />}
         />
         <Route path="/club/post" element={<ClubPostPage />} />
-        <Route path="/clubs/:clubId/posts/create" element={<ClubPostCreatePage />} />
+        <Route
+          path="/clubs/:clubId/posts/create"
+          element={<ClubPostCreatePage />}
+        />
         {/* 추가 라우트는 여기에 */}
         <Route path="/cooperation/:type/:id" element={<PostDetailPage />} />
         <Route path="/club/posts/:id" element={<ClubPostDetail />} />

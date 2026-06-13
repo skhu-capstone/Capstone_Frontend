@@ -138,7 +138,7 @@ export default function CoffeeChatPage() {
 
         if (targetRoomId) {
           const targetRoom = roomList.find(
-            (room) => room.chatRoomId === targetRoomId
+            (room) => Number(room.chatRoomId) === Number(targetRoomId)
           );
 
           if (targetRoom) {

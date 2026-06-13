@@ -137,9 +137,19 @@ export default function ChatRoom({ room }) {
 
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
+  const scrollAreaRef = useRef(null);
 
-  // 현재 로그인 유저 ID (localStorage)
-  const myUserId = Number(localStorage.getItem("userId") ?? -1);
+  // 현재 로그인 유저 ID
+  const myUserId = (() => {
+    const userStr = localStorage.getItem("user");
+    if (!userStr) return -1;
+    try {
+      const user = JSON.parse(userStr);
+      return Number(user.userId ?? user.id ?? -1);
+    } catch {
+      return -1;
+    }
+  })();
 
   // ── REST: 메시지 히스토리 로드 ──────────────────────────────────────────
   useEffect(() => {
@@ -173,7 +183,7 @@ export default function ChatRoom({ room }) {
   useEffect(() => {
     if (!room || messages.length === 0) return;
     const unreadIds = messages
-      .filter((m) => !m.isRead && m.senderId !== myUserId)
+      .filter((m) => !m.isRead && Number(m.senderId) !== myUserId)
       .map((m) => m.chatMessageId);
 
     if (unreadIds.length === 0) return;
@@ -187,12 +197,38 @@ export default function ChatRoom({ room }) {
       },
       body: JSON.stringify({ messageIds: unreadIds }),
     }).catch(console.error);
-  }, [messages, room?.chatRoomId]);
+  }, [messages, room?.chatRoomId, myUserId]);
 
   // ── WebSocket: 실시간 메시지 수신 ──────────────────────────────────────
-  const handleIncoming = useCallback((msg) => {
-    setMessages((prev) => [...prev, msg]);
-  }, []);
+  const handleIncoming = useCallback(
+    (msg) => {
+      setMessages((prev) => {
+        // 중복 방지 (이미 같은 ID가 있는 경우)
+        if (prev.some((m) => m.chatMessageId === msg.chatMessageId)) {
+          return prev;
+        }
+
+        // 내가 보낸 메시지인 경우 낙관적 업데이트 메시지를 실제 메시지로 교체
+        if (Number(msg.senderId) === myUserId) {
+          // 가장 최근의 낙관적 메시지 하나를 찾음 (ID가 opt-로 시작하거나 _optimistic 필드가 있는 것)
+          const optimisticIdx = prev.findLastIndex(
+            (m) =>
+              (m._optimistic || String(m.chatMessageId).startsWith("opt-")) &&
+              m.content === msg.content
+          );
+
+          if (optimisticIdx !== -1) {
+            const next = [...prev];
+            next[optimisticIdx] = msg; // 교체
+            return next;
+          }
+        }
+
+        return [...prev, msg];
+      });
+    },
+    [myUserId]
+  );
 
   const { sendMessage } = useChatSocket(
     room?.chatRoomId ?? null,
@@ -201,12 +237,19 @@ export default function ChatRoom({ room }) {
 
   // ── 스크롤 하단 고정 ────────────────────────────────────────────────────
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTo({
+        top: scrollAreaRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
   }, [messages]);
 
   // ── 방 바뀌면 인풋 포커스 ──────────────────────────────────────────────
   useEffect(() => {
-    if (room) inputRef.current?.focus();
+    if (room) {
+      inputRef.current?.focus({ preventScroll: true });
+    }
   }, [room?.chatRoomId]);
 
   // ── 메시지 전송 ─────────────────────────────────────────────────────────
@@ -317,7 +360,10 @@ export default function ChatRoom({ room }) {
       </div>
 
       {/* 메시지 영역 */}
-      <div className="flex-1 overflow-y-auto py-4 min-h-0">
+      <div
+        ref={scrollAreaRef}
+        className="flex-1 overflow-y-auto py-4 min-h-0"
+      >
         {loading && (
           <div className="flex items-center justify-center py-12">
             <Loader2 size={20} className="text-gray-300 animate-spin" />
@@ -340,14 +386,14 @@ export default function ChatRoom({ room }) {
 
         {!loading &&
           messages.map((msg, idx) => {
-            const isMine = msg.senderId === myUserId;
+            const isMine = Number(msg.senderId) === myUserId;
             const prev = messages[idx - 1];
             const showDateDivider =
               !prev || !isSameDay(prev.createdAt, msg.createdAt);
             // 연속 메시지면 아바타 숨기기 (상대방 메시지만)
             const showAvatar =
               !isMine &&
-              (!prev || prev.senderId !== msg.senderId || showDateDivider);
+              (!prev || Number(prev.senderId) !== Number(msg.senderId) || showDateDivider);
 
             return (
               <div key={msg.chatMessageId}>
