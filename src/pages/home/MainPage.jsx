@@ -1,60 +1,21 @@
 import CoffeeChatCard from "../../components/card/CoffeeChatCard";
 import CollaboCard from "../../components/card/CollaboCard";
 import FeedCard from "../../components/card/FeedCard";
-import { getCoffeeChatUserList } from "../../services/coffeeChatProfileService";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { getMain } from "../../services/mainService";
 
 export default function MainPage() {
 
   const { data } = useQuery({
-    queryKey: ["mainCoffeeChats"],
-    queryFn: () =>
-      getCoffeeChatUserList({
-        keyword: "",
-        page: 0,
-        size: 100,
-      }),
+    queryKey: ["main"],
+    queryFn: getMain,
   });
 
-  const coffeeChats = useMemo(() => {
-    return [...(data?.content ?? [])]
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 3);
-  }, [data]);
+  const coffeeChats = data?.recommendedCoffeeChats ?? [];
+  const collaborations = data?.clubCollaborations ?? [];
+  const feeds = data?.clubFeeds ?? [];
 
-
-  const collaborations = Array.from({ length: 6 }, (_, index) => ({
-    collabId: index + 1,
-    title: "제목입니당",
-    writerName: "작성자",
-    createdAt: "2026-04-21T14:00:00",
-    content: "내용입니당 내용입니당 내용입니당 내용입니당 내용입니당 내용입니당 내용입니당 내용입니당 내용입니당",
-    dDay: "D-DAY",
-  }));
-
-  const feeds = [
-    {
-      postId: 1,
-      writer: {
-        userName: "윤현승",
-        profileImage: "https://placehold.co/48x48",
-      },
-      createdAt: "2026년 04월 10일",
-      imageUrl: "https://placehold.co/600x250",
-      content: "피드에서 본문 내용을 작성하면 여기에 띄우는 걸로 하려고 하는데 어떤가요? 괜찮은가요?? 이 정도면 좋다고 생각합니다...ㅎ 일단 최대 3줄 정도만 작성할 수 있도록 하려고 합니다 만약 다른 의견 있으시면 피드백 부탁드립니다",
-    },
-    {
-      postId: 2,
-      writer: {
-        userName: "윤현승",
-        profileImage: "https://placehold.co/48x48",
-      },
-      createdAt: "2026년 04월 10일",
-      imageUrl: "https://placehold.co/600x250",
-      content: "피드에서 본문 내용을 작성하면 여기에 띄우는 걸로 하려고 하는데 어떤가요? 괜찮은가요?? 이 정도면 좋다고 생각합니다...ㅎ 일단 최대 3줄 정도만 작성할 수 있도록 하려고 합니다 만약 다른 의견 있으시면 피드백 부탁드립니다",
-    },
-  ];
+  console.log(data);
 
   return (
     <main className="min-h-screen bg-slate-50 px-14 pt-14 pb-7">
@@ -70,7 +31,7 @@ export default function MainPage() {
                 key={coffeeChat.coffeeChatProfileId}
                 id={coffeeChat.coffeeChatProfileId}
                 name={coffeeChat.name}
-                profileImage={coffeeChat.profileImage}
+                profileImage={coffeeChat.profileImage} // 프로필을 안 받아옴
                 interestTopics={coffeeChat.interestTopics}
                 meetingType={coffeeChat.meetingType}
               />
@@ -87,11 +48,11 @@ export default function MainPage() {
             {collaborations.map((collabo) => (
               <CollaboCard
                 key={collabo.collabId}
+                id={collabo.collabId}
                 title={collabo.title}
-                writerName={collabo.writerName}
-                createdAt={collabo.createdAt}
+                author={collabo.clubName}
                 content={collabo.content}
-                dDay={collabo.dDay}
+                dDay={collabo.ddayText}
               />
             ))}
           </div>
@@ -106,9 +67,12 @@ export default function MainPage() {
             {feeds.map((feed) => (
               <FeedCard
                 key={feed.postId}
-                writer={feed.writer}
+                writer={{
+                  userName: feed.writerName,
+                  profileImage: "",
+                }}
                 createdAt={feed.createdAt}
-                imageUrl={feed.imageUrl}
+                imageUrl={feed.imageUrls?.[0]}
                 content={feed.content}
               />
             ))}
