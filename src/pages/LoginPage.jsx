@@ -22,8 +22,12 @@ export default function LoginPage() {
       localStorage.setItem("accessToken", userData.accessToken);
       localStorage.setItem("refreshToken", userData.refreshToken);
       localStorage.setItem("user", JSON.stringify(userData));
-      console.log("로그인 성공");
-      window.location.href = "/";
+
+      if (userData.isVerified) {
+        window.location.href = "/";
+      } else {
+        navigate("/email-verify");
+      }
     },
 
     onError: (error) => {

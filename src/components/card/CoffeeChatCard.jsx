@@ -15,11 +15,16 @@ function CoffeeChatCard({
     hover:scale-[1.02] hover:-translate-y-5 hover:outline-[3px] hover:outline-offset-[-3px] hover:outline-blue-700"
     >
       <div className="flex flex-col items-center gap-7">
-        <img
-          className="w-52 h-52 rounded-full object-cover"
-          src={profileImage}
-          alt={`${name} 프로필 이미지`}
-        />
+        {profileImage ? (
+          <img
+            className="w-52 h-52 rounded-full object-cover"
+            src={profileImage}
+            alt={`${name} 프로필 이미지`}
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <div className="w-52 h-52 rounded-full bg-zinc-300" />
+        )}
 
         <div className="flex flex-col items-center gap-7">
           <div className="text-center text-black text-3xl font-bold leading-6">
