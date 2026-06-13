@@ -24,6 +24,7 @@ function FeedCard({
             src={profileImage}
             alt={`${author} 프로필 이미지`}
             className="w-12 h-12 rounded-full object-cover"
+            referrerPolicy="no-referrer"
           />
         ) : (
           <div className="w-12 h-12 bg-zinc-300 rounded-full" />
