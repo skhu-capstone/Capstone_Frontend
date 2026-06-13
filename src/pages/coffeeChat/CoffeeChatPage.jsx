@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Search, Coffee, Loader2, AlertCircle } from "lucide-react";
 import ChatRoom from "./ChatRoom";
 
@@ -109,6 +110,9 @@ function RoomItem({ room, isActive, onClick }) {
 
 // ─── 메인 ─────────────────────────────────────────────────────────────────────
 export default function CoffeeChatPage() {
+  const location = useLocation();
+  const targetRoomId = location.state?.roomId;
+
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -128,14 +132,34 @@ export default function CoffeeChatPage() {
       })
       .then((data) => {
         const list = data?.data?.content ?? data?.data ?? [];
-        setRooms(Array.isArray(list) ? list : []);
+        const roomList = Array.isArray(list) ? list : [];
+
+        setRooms(roomList);
+
+        if (targetRoomId) {
+          const targetRoom = roomList.find(
+            (room) => room.chatRoomId === targetRoomId
+          );
+
+          if (targetRoom) {
+            setSelectedRoom(targetRoom);
+
+            setRooms((prev) =>
+              prev.map((r) =>
+                r.chatRoomId === targetRoom.chatRoomId
+                  ? { ...r, unreadCount: 0 }
+                  : r
+              )
+            );
+          }
+        }
       })
       .catch((e) => {
         console.error("[CoffeeChatPage] 목록 로드 실패", e);
         setError("채팅 목록을 불러오지 못했어요.");
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [targetRoomId]);
 
   // ── 방 선택 시 unreadCount 0으로 초기화 (로컬) ─────────────────────────
   const handleSelectRoom = (room) => {

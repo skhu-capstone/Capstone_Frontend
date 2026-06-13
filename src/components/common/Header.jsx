@@ -16,7 +16,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 const NAV_ITEMS = [
   { label: "홈", icon: Home, href: "/" },
-  { label: "동아리", icon: Users, href: "/club" },
+  { label: "동아리", icon: Users, href: "/club/main" },
   { label: "협업/모집", icon: Globe, href: "/cooperation" },
   { label: "커피챗", icon: Coffee, href: "/coffee-chat" },
   { label: "마이페이지", icon: User, href: "/my-page" },

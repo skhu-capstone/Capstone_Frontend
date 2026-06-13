@@ -26,12 +26,18 @@ export default function App() {
         <Route path="/club/main" element={<ClubMainPage />} />
         <Route path="/my-page" element={<MyPage />} />
         <Route path="/email-verify" element={<EmailVerifyPage />} />
-        <Route path="/coffee-chat/profile/:userId" element={<CoffeeChatProfilePage />} />
-        <Route path="/coffee-chat/user-list" element={<CoffeeChatUserListPage />} />
+        <Route
+          path="/coffee-chat/profile/:userId"
+          element={<CoffeeChatProfilePage />}
+        />
+        <Route
+          path="/coffee-chat/user-list"
+          element={<CoffeeChatUserListPage />}
+        />
         <Route path="/club/post" element={<ClubPostPage />} />
         <Route path="/clubs/:clubId/posts/create" element={<ClubPostCreatePage />} />
         {/* 추가 라우트는 여기에 */}
-        <Route path="/post/:type/:id" element={<PostDetailPage />} />
+        <Route path="/cooperation/:type/:id" element={<PostDetailPage />} />
         <Route path="/club/posts/:id" element={<ClubPostDetail />} />
       </Routes>
       <Footer />
