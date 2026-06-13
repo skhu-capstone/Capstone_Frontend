@@ -41,7 +41,7 @@ export default function App() {
         />
         {/* 추가 라우트는 여기에 */}
         <Route path="/cooperation/:type/:id" element={<PostDetailPage />} />
-        <Route path="/club/:id" element={<ClubPostDetail />} />
+        <Route path="/club/posts/:id" element={<ClubPostDetail />} />
       </Routes>
       <Footer />
     </>

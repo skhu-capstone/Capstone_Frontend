@@ -24,6 +24,7 @@ function FeedCard({
             src={profileImage}
             alt={`${author} 프로필 이미지`}
             className="w-12 h-12 rounded-full object-cover"
+            referrerPolicy="no-referrer"
           />
         ) : (
           <div className="w-12 h-12 bg-zinc-300 rounded-full" />
@@ -37,7 +38,7 @@ function FeedCard({
           </div>
           {/* 작성한 날짜 */}
           <div className="text-black text-base font-normal leading-6">
-            {date}
+            {date?.slice(0, 10).replace(/-/g, ".")}
           </div>
         </div>
       </div>

@@ -92,3 +92,21 @@ export const deleteClubPost = async (postId) => {
 
   return response.data;
 };
+
+export const uploadPostImage = async (postId, file) => {
+  const accessToken = localStorage.getItem("accessToken");
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await axios.post(
+    `${BASE_URL}/api/posts/${postId}/image`,
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      }
+    }
+  );
+  return response.data.data;
+};

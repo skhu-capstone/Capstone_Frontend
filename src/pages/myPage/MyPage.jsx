@@ -6,17 +6,19 @@ import MyPageCard from "../../components/card/MyPageCard";
 import InputLabel from "../../components/card/InputLabel";
 import EditInputLabel from "../../components/card/EditInputLabel";
 import { getMyPage, updateCoffeeChatProfile,updateCoffeeChatVisibility } from "../../services/myPageService";
+import { useAuth } from "../../context/AuthContext";
 
 export default function MyPage() {
   const [isEditing, setIsEditing] = useState(false); // 수정
   const [isVisible, setIsVisible] = useState(false); // 커피챗 공개 여부
+  const { user: authUser } = useAuth();
 
   const [user, setUser] = useState({
     name: "",
     email: "",
     schoolEmail: "",
     clubName: "",
-    image: "https://placehold.co/250x250",
+    image: authUser?.profileImage || "https://placehold.co/250x250",
   });
 
   const [profile, setProfile] = useState({
@@ -46,7 +48,7 @@ export default function MyPage() {
       email: data.email ?? "",
       schoolEmail: data.schoolEmail ?? "",
       clubName: data.clubs?.[0] ?? "",
-      image: "https://placehold.co/250x250",
+      image: authUser?.profileImage || "https://placehold.co/250x250",
     });
 
     const newProfile = {
