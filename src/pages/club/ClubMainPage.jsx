@@ -1,16 +1,14 @@
 import { useState } from "react";
 import FeedCard from "../../components/card/FeedCard";
 import { useQuery } from "@tanstack/react-query";
-import {
-  getMyClubs,
-  getClubMembers,
-  getClubPosts,
-} from "../../services/clubService";
+import { getMyClubs, getClubMembers, getClubPosts } from "../../services/clubService";
+import { useNavigate } from "react-router-dom";
 
 export default function ClubMainPage() {
   const [activeTab, setActiveTab] = useState("feeds"); // 탭 상태
   const [currentFeedPage, setCurrentFeedPage] = useState(1); // 피드 페이지 번호
   const [currentMemberPage, setCurrentMemberPage] = useState(1); // 멤버 페이지 번호
+  const navigate = useNavigate();
 
   const {
     data: clubs = [],
@@ -28,6 +26,7 @@ export default function ClubMainPage() {
   const selectedClub = clubs[0];
 
   const selectedClubId = selectedClub?.clubId;
+  const loginUser = JSON.parse(localStorage.getItem("user"));
 
   console.log("selectedClub", selectedClub);
   console.log("selectedClubId", selectedClubId);
@@ -47,6 +46,12 @@ export default function ClubMainPage() {
     MANAGER: "운영진",
     MEMBER: "부원",
   };
+
+  const myRole = members.find(
+    (member) => member.userId === loginUser?.userId
+  )?.role;
+
+  const canCreatePost = myRole === "PRESIDENT" || myRole === "MANAGER";
 
   const {
     data: postsData,
@@ -137,12 +142,23 @@ export default function ClubMainPage() {
     <main className="min-h-screen bg-slate-50 px-12 py-12">
       <section className="mx-auto flex w-full max-w-330 flex-col">
         <header className="flex flex-col gap-7 border-b border-slate-300 pb-4">
-          <button className="flex w-fit items-center gap-1">
-            <h1 className="text-4xl font-bold leading-10 text-gray-900">
-              {selectedClub.clubName}
-            </h1>
-            <span className="text-gray-900">▾</span>
-          </button>
+          <div className="flex w-full items-center justify-between">
+            <button className="flex w-fit items-center gap-1">
+              <h1 className="text-4xl font-bold leading-10 text-gray-900">
+                {selectedClub.clubName}
+              </h1>
+              <span className="text-gray-900">▾</span>
+            </button>
+
+            {canCreatePost && (
+              <button
+                onClick={() => navigate(`/clubs/${selectedClubId}/posts/create`)}
+                className="w-35 rounded-xl bg-sky-700 px-5 py-3 font-medium text-white hover:bg-sky-800"
+              >
+                게시물 작성
+              </button>
+            )}
+          </div>
 
           <div className="flex items-center gap-3">
             <div className="flex items-center">

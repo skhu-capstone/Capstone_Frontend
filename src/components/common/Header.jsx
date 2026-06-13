@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useQueryClient } from "@tanstack/react-query";
 
 const NAV_ITEMS = [
   { label: "홈", icon: Home, href: "/" },
@@ -30,6 +31,8 @@ export default function Header() {
 
   // 로그인된 유저 정보 (email, name, profileImage, isVerified 등)
   const { user, logout } = useAuth();
+
+  const queryClient = useQueryClient();
 
   // 외부 클릭 시 프로필 드롭다운 닫기
   useEffect(() => {
@@ -53,9 +56,14 @@ export default function Header() {
   };
 
   const handleLogout = () => {
-    logout();
-    setProfileOpen(false);
-    navigate("/login");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+
+    queryClient.clear();
+
+    alert("로그아웃 완료");
+    window.location.href = "/";
   };
 
   const handleNavClick = (href) => {
@@ -65,7 +73,7 @@ export default function Header() {
 
   return (
     <header className="w-full" style={{ backgroundColor: "#6B8DD6" }}>
-      <div className="max-w-[2000px] mx-auto grid grid-cols-[auto_1fr_auto] items-center gap-4 px-4 h-16">
+      <div className="max-w-500 mx-auto grid grid-cols-[auto_1fr_auto] items-center gap-4 px-4 h-16">
         {/* 로고 */}
         <div className="flex items-center">
           <img src="" alt="logo" className="h-8 w-auto hidden" />
