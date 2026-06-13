@@ -11,7 +11,7 @@ import Footer from "./components/common/Footer";
 import CoffeeChatProfilePage from "./pages/coffeeChat/CoffeeChatProfilePage";
 import CoffeeChatUserListPage from "./pages/coffeeChat/CoffeeChatUserListPage";
 import ClubPostPage from "./pages/club/ClubPostPage";
-
+import ClubPostCreatePage from "./pages/club/ClubPostCreatePage";
 import PostDetailPage from "./pages/cooperation/PostDetailPage";
 import ClubPostDetail from "./pages/club/ClubPostDetail";
 export default function App() {
@@ -29,9 +29,10 @@ export default function App() {
         <Route path="/coffee-chat/profile/:userId" element={<CoffeeChatProfilePage />} />
         <Route path="/coffee-chat/user-list" element={<CoffeeChatUserListPage />} />
         <Route path="/club/post" element={<ClubPostPage />} />
+        <Route path="/clubs/:clubId/posts/create" element={<ClubPostCreatePage />} />
         {/* 추가 라우트는 여기에 */}
         <Route path="/post/:type/:id" element={<PostDetailPage />} />
-        <Route path="/club/:id" element={<ClubPostDetail />} />
+        <Route path="/club/posts/:id" element={<ClubPostDetail />} />
       </Routes>
       <Footer />
     </>
