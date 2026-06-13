@@ -168,8 +168,36 @@ function ClubPostDetail({ id, onBack }) {
   ];
 
   // 문의하기 → 커피챗으로 연결 (writerId 없으므로 일단 목록으로)
-  function handleContact() {
-    navigate("/coffee-chat");
+  async function handleContact() {
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/club-collaborations/${id}/apply`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeader(),
+          },
+        }
+      );
+
+      const data = await res.json();
+
+      console.log("채팅방 생성 응답", data);
+
+      if (data.success) {
+        navigate("/coffee-chat", {
+          state: {
+            roomId: data.data.chatRoomId,
+          },
+        });
+      } else {
+        alert(data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("채팅방 생성에 실패했습니다.");
+    }
   }
 
   return (

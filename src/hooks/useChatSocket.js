@@ -4,6 +4,8 @@ import SockJS from "sockjs-client";
 
 const WS_URL = import.meta.env.VITE_WS_URL || "/ws";
 
+console.log("WS_URL =", WS_URL);
+
 /**
  * STOMP over SockJS 채팅 훅
  * @param {number|null} chatRoomId  - 현재 열려 있는 채팅방 ID
@@ -24,14 +26,47 @@ export function useChatSocket(chatRoomId, onMessage) {
     const token = localStorage.getItem("accessToken");
 
     const client = new Client({
-      webSocketFactory: () => new SockJS(WS_URL),
+      debug: (msg) => {
+        console.log("[STOMP]", msg);
+      },
+
+      webSocketFactory: () => {
+        console.log("Creating SockJS:", WS_URL);
+
+        const socket = new SockJS(WS_URL);
+
+        socket.onopen = () => {
+          console.log("SOCKET OPEN");
+        };
+
+        socket.onclose = (e) => {
+          console.log("SOCKET CLOSE", e);
+        };
+
+        socket.onerror = (e) => {
+          console.log("SOCKET ERROR", e);
+        };
+
+        return socket;
+      },
+
+      onConnect: () => {
+        console.log("STOMP CONNECTED");
+      },
+
+      onWebSocketError: (e) => {
+        console.log("WEBSOCKET ERROR", e);
+      },
+
+      onStompError: (frame) => {
+        console.log("STOMP ERROR", frame);
+      },
+
       connectHeaders: {
         Authorization: token ? `Bearer ${token}` : "",
       },
+
       reconnectDelay: 5000,
-      onStompError: (frame) => {
-        console.error("[STOMP] error", frame);
-      },
     });
 
     client.activate();
