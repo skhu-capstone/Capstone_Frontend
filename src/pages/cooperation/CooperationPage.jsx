@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Search,
   Plus,
@@ -14,86 +14,25 @@ import { useNavigate } from "react-router-dom";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-const CLUB_POSTS = [
-  {
-    id: 1,
-    title: "11/21일 간지툰 디자이너/프론트엔드 협업 모집해요~",
-    tags: ["간지툰"],
-    deadline: "마감: 10/15",
-    dday: "D-5",
-    description: "2학기때 간지툰 열린대어 같이 나갈실분",
-    club: "맛사",
-  },
-  {
-    id: 2,
-    title: "해커톤 백엔드 개발자 구합니다!",
-    tags: ["2026 스타트업 해커톤"],
-    deadline: "마감: 04/20",
-    dday: "D-8",
-    description: "Node.js, Express 경험자 우대. 열정있는 분 환영합니다.",
-    club: "코딩왕",
-  },
-  {
-    id: 3,
-    title: "UX/UI 디자이너 모집 (앱 디자인 프로젝트)",
-    tags: ["캡스톤 디자인"],
-    deadline: "마감: 04/25",
-    dday: "D-13",
-    description: "Figma 사용 가능하신 분, 협업 경험 있으면 좋아요",
-    club: "디자인러버",
-  },
-  {
-    id: 4,
-    title: "UX/UI 디자이너 모집 (앱 디자인 프로젝트)",
-    tags: ["캡스톤 디자인"],
-    deadline: "마감: 04/25",
-    dday: "D-13",
-    description: "Figma 사용 가능하신 분, 협업 경험 있으면 좋아요",
-    club: "디자인러버",
-  },
-];
-
-const PROJECT_POSTS = [
-  {
-    id: 1,
-    title: "AI 스타트업 프론트엔드 개발자 모집",
-    description:
-      "React, TypeScript 사용 가능하신 분을 찾습니다. 스타트업 경험 우대합니다.",
-    deadline: "~ 04/18",
-    dday: "D-6",
-  },
-  {
-    id: 2,
-    title: "게임 개발 팀원 모집 (Unity)",
-    description: "Unity, C# 경험자. 3D 모델링 가능하신 분 환영",
-    deadline: "~ 04/22",
-    dday: "D-10",
-  },
-  {
-    id: 3,
-    title: "데이터 분석 프로젝트 팀원 구해요",
-    description: "Python, pandas 다룰 줄 아는 분. 통계학 전공자 우대",
-    deadline: "~ 04/28",
-    dday: "D-16",
-  },
-  {
-    id: 4,
-    title: "모바일 앱 UI/UX 디자이너 모집",
-    description:
-      "Figma 능숙자. 모바일 디자인 경험 필수. 포트폴리오 제출 필수입니다.",
-    deadline: "~ 05/05",
-    dday: "D-23",
-  },
-];
+function authHeader() {
+  const token = localStorage.getItem("accessToken");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 function getDdayClass(dday) {
-  const n = parseInt(dday.replace("D-", ""));
+  const n = parseInt((dday ?? "D-99").replace("D-", ""));
   if (n <= 7) return "bg-yellow-100 text-yellow-700";
   if (n <= 14) return "bg-cyan-100 text-cyan-700";
   return "bg-green-100 text-green-700";
 }
 
+// ─── 카드 컴포넌트 ────────────────────────────────────────────────────────────
 function ClubPostCard({ post, onClick }) {
+  const dday = post.dDayText ?? "D-?";
+  const tags = post.contestName ? [post.contestName] : [];
+  const club = post.clubName ?? "";
+  const deadline = post.deadline ? `마감: ${post.deadline}` : "";
+
   return (
     <div
       className="bg-white rounded-2xl px-6 py-5 shadow-sm flex flex-col gap-2 cursor-pointer hover:shadow-md transition-shadow duration-150"
@@ -105,15 +44,17 @@ function ClubPostCard({ post, onClick }) {
         </span>
         <div className="flex flex-col items-end gap-1 shrink-0">
           <span
-            className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${getDdayClass(post.dday)}`}
+            className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${getDdayClass(
+              dday
+            )}`}
           >
-            {post.dday}
+            {dday}
           </span>
-          <span className="text-xs text-gray-400">{post.club}</span>
+          <span className="text-xs text-gray-400">{club}</span>
         </div>
       </div>
       <div className="flex items-center gap-2 flex-wrap">
-        {post.tags.map((tag) => (
+        {tags.map((tag) => (
           <span
             key={tag}
             className="bg-indigo-50 text-indigo-600 text-xs font-medium px-2.5 py-0.5 rounded-full"
@@ -121,29 +62,34 @@ function ClubPostCard({ post, onClick }) {
             {tag}
           </span>
         ))}
-        <span className="text-xs text-gray-400">{post.deadline}</span>
+        <span className="text-xs text-gray-400">{deadline}</span>
       </div>
-      <p className="text-xs text-gray-500">{post.description}</p>
+      <p className="text-xs text-gray-500">{post.content}</p>
     </div>
   );
 }
 
 function ProjectPostCard({ post, onClick }) {
+  const dday = post.dDay ?? "D-?";
   return (
     <div
       className="bg-white rounded-2xl p-5 shadow-sm flex flex-col gap-2.5 cursor-pointer hover:shadow-md transition-shadow duration-150"
       onClick={onClick}
     >
       <span
-        className={`text-xs font-bold px-2.5 py-0.5 rounded-full self-start ${getDdayClass(post.dday)}`}
+        className={`text-xs font-bold px-2.5 py-0.5 rounded-full self-start ${getDdayClass(
+          dday
+        )}`}
       >
-        {post.dday}
+        {dday}
       </span>
       <p className="font-bold text-sm text-gray-900 leading-snug">
         {post.title}
       </p>
-      <p className="text-xs text-gray-500 flex-1">{post.description}</p>
-      <p className="text-xs text-gray-400">{post.deadline}</p>
+      <p className="text-xs text-gray-500 flex-1">{post.content}</p>
+      <p className="text-xs text-gray-400">
+        {post.deadline ? `~ ${post.deadline}` : ""}
+      </p>
       <button
         className="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors duration-150 cursor-pointer"
         onClick={(e) => {
@@ -157,11 +103,306 @@ function ProjectPostCard({ post, onClick }) {
   );
 }
 
-// ─── 팀원 모집 모달 ───────────────────────────────────────────────────────────
+// ─── 협업 모집 모달 ───────────────────────────────────────────────────────────
+function CreateClubCollabModal({ onClose, onSuccess }) {
+  const [form, setForm] = useState({
+    clubId: "",
+    title: "",
+    contestName: "",
+    contestDate: "",
+    content: "",
+    deadline: "",
+    imageUrl: "",
+  });
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
+
+  function setField(key, val) {
+    setForm((f) => ({ ...f, [key]: val }));
+    setErrors((e) => ({ ...e, [key]: undefined }));
+    setApiError("");
+  }
+
+  function validate() {
+    const e = {};
+    if (!form.clubId.trim()) e.clubId = "동아리 ID를 입력해주세요.";
+    if (!form.title.trim()) e.title = "제목을 입력해주세요.";
+    if (!form.contestName.trim()) e.contestName = "대회명을 입력해주세요.";
+    if (!form.contestDate) e.contestDate = "대회 날짜를 선택해주세요.";
+    if (!form.content.trim()) e.content = "내용을 입력해주세요.";
+    if (!form.deadline) e.deadline = "마감일을 선택해주세요.";
+    return e;
+  }
+
+  async function handleSubmit() {
+    const e = validate();
+    if (Object.keys(e).length) {
+      setErrors(e);
+      return;
+    }
+
+    const payload = {
+      clubId: Number(form.clubId),
+      title: form.title.trim(),
+      contestName: form.contestName.trim(),
+      contestDate: form.contestDate,
+      content: form.content.trim(),
+      deadline: form.deadline,
+      imageUrl: form.imageUrl.trim() || undefined,
+    };
+
+    setLoading(true);
+    setApiError("");
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/club-collaborations`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeader() },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.success) {
+        onSuccess(data.data);
+      } else {
+        setApiError(data.message || "등록에 실패했습니다.");
+      }
+    } catch {
+      setApiError("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      style={{ background: "rgba(0,0,0,0.4)" }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <div>
+            <h2 className="text-base font-semibold text-gray-900">
+              새 협업 모집하기
+            </h2>
+            <p className="text-xs text-gray-400 mt-0.5">
+              동아리 협업 팀원을 모집해보세요
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
+          >
+            <X size={16} strokeWidth={2} className="text-gray-500" />
+          </button>
+        </div>
+
+        <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4">
+          {apiError && (
+            <div className="flex items-start gap-2 bg-red-50 border border-red-100 rounded-lg px-3 py-2.5">
+              <AlertCircle
+                size={14}
+                className="text-red-500 mt-0.5 shrink-0"
+                strokeWidth={2}
+              />
+              <p className="text-sm text-red-600">{apiError}</p>
+            </div>
+          )}
+
+          {/* 동아리 ID */}
+          <div>
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+              <Users size={12} strokeWidth={2} />
+              동아리 ID <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="number"
+              value={form.clubId}
+              onChange={(e) => setField("clubId", e.target.value)}
+              placeholder="소속 동아리 ID"
+              className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors ${
+                errors.clubId
+                  ? "border-red-300 bg-red-50"
+                  : "border-gray-200 focus:border-green-400"
+              }`}
+            />
+            {errors.clubId && (
+              <p className="mt-1 text-xs text-red-500">{errors.clubId}</p>
+            )}
+          </div>
+
+          {/* 제목 */}
+          <div>
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+              <FileText size={12} strokeWidth={2} />
+              제목 <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="text"
+              value={form.title}
+              onChange={(e) => setField("title", e.target.value)}
+              placeholder="예) 간지톤 같이 나갈 기획자 구해요"
+              maxLength={100}
+              className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors ${
+                errors.title
+                  ? "border-red-300 bg-red-50"
+                  : "border-gray-200 focus:border-green-400"
+              }`}
+            />
+            {errors.title && (
+              <p className="mt-1 text-xs text-red-500">{errors.title}</p>
+            )}
+          </div>
+
+          {/* 대회명 */}
+          <div>
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+              <FileText size={12} strokeWidth={2} />
+              대회명 <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="text"
+              value={form.contestName}
+              onChange={(e) => setField("contestName", e.target.value)}
+              placeholder="예) 간지톤"
+              className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors ${
+                errors.contestName
+                  ? "border-red-300 bg-red-50"
+                  : "border-gray-200 focus:border-green-400"
+              }`}
+            />
+            {errors.contestName && (
+              <p className="mt-1 text-xs text-red-500">{errors.contestName}</p>
+            )}
+          </div>
+
+          {/* 대회 날짜 */}
+          <div>
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+              <CalendarDays size={12} strokeWidth={2} />
+              대회 날짜 <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="date"
+              value={form.contestDate}
+              min={today}
+              onChange={(e) => setField("contestDate", e.target.value)}
+              className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors ${
+                errors.contestDate
+                  ? "border-red-300 bg-red-50"
+                  : "border-gray-200 focus:border-green-400"
+              }`}
+            />
+            {errors.contestDate && (
+              <p className="mt-1 text-xs text-red-500">{errors.contestDate}</p>
+            )}
+          </div>
+
+          {/* 모집 마감일 */}
+          <div>
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+              <CalendarDays size={12} strokeWidth={2} />
+              모집 마감일 <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="date"
+              value={form.deadline}
+              min={today}
+              onChange={(e) => setField("deadline", e.target.value)}
+              className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors ${
+                errors.deadline
+                  ? "border-red-300 bg-red-50"
+                  : "border-gray-200 focus:border-green-400"
+              }`}
+            />
+            {errors.deadline && (
+              <p className="mt-1 text-xs text-red-500">{errors.deadline}</p>
+            )}
+          </div>
+
+          {/* 내용 */}
+          <div>
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+              <FileText size={12} strokeWidth={2} />
+              내용 <span className="text-red-400">*</span>
+            </label>
+            <textarea
+              value={form.content}
+              onChange={(e) => setField("content", e.target.value)}
+              placeholder="모집 내용, 우대 조건 등을 자유롭게 작성해주세요"
+              rows={4}
+              className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors resize-none ${
+                errors.content
+                  ? "border-red-300 bg-red-50"
+                  : "border-gray-200 focus:border-green-400"
+              }`}
+            />
+            {errors.content && (
+              <p className="mt-1 text-xs text-red-500">{errors.content}</p>
+            )}
+          </div>
+
+          {/* 이미지 URL */}
+          <div>
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+              <Image size={12} strokeWidth={2} />
+              이미지 URL
+              <span className="text-gray-400 font-normal">(선택)</span>
+            </label>
+            <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2 focus-within:border-green-400 transition-colors">
+              <Link
+                size={12}
+                strokeWidth={2}
+                className="text-gray-400 shrink-0"
+              />
+              <input
+                type="text"
+                value={form.imageUrl}
+                onChange={(e) => setField("imageUrl", e.target.value)}
+                placeholder="https://example.com/image.png"
+                className="flex-1 text-sm outline-none bg-transparent"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-gray-100">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+          >
+            취소
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="px-4 py-2 text-sm text-white bg-green-500 rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer font-medium"
+          >
+            {loading ? "등록 중..." : "모집 등록"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── 프로젝트 모집 모달 ───────────────────────────────────────────────────────
 function CreateProjectModal({ onClose, onSuccess }) {
   const [form, setForm] = useState({
     title: "",
     imageUrl: "",
+    writerStack: "",
     positions: "",
     content: "",
     deadline: "",
@@ -202,6 +443,7 @@ function CreateProjectModal({ onClose, onSuccess }) {
     const payload = {
       title: form.title.trim(),
       imageUrl: form.imageUrl.trim() || undefined,
+      writerStack: form.writerStack.trim() || undefined,
       positions: form.positions.trim(),
       content: form.content.trim(),
       deadline: form.deadline,
@@ -212,7 +454,7 @@ function CreateProjectModal({ onClose, onSuccess }) {
     try {
       const res = await fetch(`${API_BASE_URL}/api/project-recruitments`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...authHeader() },
         body: JSON.stringify(payload),
       });
       const data = await res.json();
@@ -228,7 +470,6 @@ function CreateProjectModal({ onClose, onSuccess }) {
     }
   }
 
-  // 오늘 날짜 (deadline min값)
   const today = new Date().toISOString().slice(0, 10);
 
   return (
@@ -240,7 +481,6 @@ function CreateProjectModal({ onClose, onSuccess }) {
       }}
     >
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
-        {/* 헤더 */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <div>
             <h2 className="text-base font-semibold text-gray-900">
@@ -258,9 +498,7 @@ function CreateProjectModal({ onClose, onSuccess }) {
           </button>
         </div>
 
-        {/* 바디 */}
         <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4">
-          {/* API 에러 */}
           {apiError && (
             <div className="flex items-start gap-2 bg-red-50 border border-red-100 rounded-lg px-3 py-2.5">
               <AlertCircle
@@ -272,7 +510,6 @@ function CreateProjectModal({ onClose, onSuccess }) {
             </div>
           )}
 
-          {/* 제목 */}
           <div>
             <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
               <FileText size={12} strokeWidth={2} />
@@ -284,15 +521,31 @@ function CreateProjectModal({ onClose, onSuccess }) {
               onChange={(e) => setField("title", e.target.value)}
               placeholder="예) 포폴용 앱 프로젝트 같이하실분"
               maxLength={100}
-              className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors
-                ${errors.title ? "border-red-300 bg-red-50" : "border-gray-200 focus:border-indigo-400"}`}
+              className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors ${
+                errors.title
+                  ? "border-red-300 bg-red-50"
+                  : "border-gray-200 focus:border-indigo-400"
+              }`}
             />
             {errors.title && (
               <p className="mt-1 text-xs text-red-500">{errors.title}</p>
             )}
           </div>
 
-          {/* 모집 포지션 */}
+          <div>
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+              <FileText size={12} strokeWidth={2} />내 스택/분야
+              <span className="text-gray-400 font-normal">(선택)</span>
+            </label>
+            <input
+              type="text"
+              value={form.writerStack}
+              onChange={(e) => setField("writerStack", e.target.value)}
+              placeholder="예) 백엔드, 프론트엔드, 디자인"
+              className="w-full text-sm px-3 py-2 rounded-lg border border-gray-200 focus:border-indigo-400 outline-none transition-colors"
+            />
+          </div>
+
           <div>
             <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
               <Users size={12} strokeWidth={2} />
@@ -303,15 +556,17 @@ function CreateProjectModal({ onClose, onSuccess }) {
               value={form.positions}
               onChange={(e) => setField("positions", e.target.value)}
               placeholder="예) 프론트 2명, 백엔드 1명"
-              className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors
-                ${errors.positions ? "border-red-300 bg-red-50" : "border-gray-200 focus:border-indigo-400"}`}
+              className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors ${
+                errors.positions
+                  ? "border-red-300 bg-red-50"
+                  : "border-gray-200 focus:border-indigo-400"
+              }`}
             />
             {errors.positions && (
               <p className="mt-1 text-xs text-red-500">{errors.positions}</p>
             )}
           </div>
 
-          {/* 마감일 */}
           <div>
             <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
               <CalendarDays size={12} strokeWidth={2} />
@@ -322,15 +577,17 @@ function CreateProjectModal({ onClose, onSuccess }) {
               value={form.deadline}
               min={today}
               onChange={(e) => setField("deadline", e.target.value)}
-              className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors
-                ${errors.deadline ? "border-red-300 bg-red-50" : "border-gray-200 focus:border-indigo-400"}`}
+              className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors ${
+                errors.deadline
+                  ? "border-red-300 bg-red-50"
+                  : "border-gray-200 focus:border-indigo-400"
+              }`}
             />
             {errors.deadline && (
               <p className="mt-1 text-xs text-red-500">{errors.deadline}</p>
             )}
           </div>
 
-          {/* 내용 */}
           <div>
             <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
               <FileText size={12} strokeWidth={2} />
@@ -341,15 +598,17 @@ function CreateProjectModal({ onClose, onSuccess }) {
               onChange={(e) => setField("content", e.target.value)}
               placeholder="프로젝트 소개, 기술 스택, 우대 조건 등을 자유롭게 작성해주세요"
               rows={5}
-              className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors resize-none
-                ${errors.content ? "border-red-300 bg-red-50" : "border-gray-200 focus:border-indigo-400"}`}
+              className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors resize-none ${
+                errors.content
+                  ? "border-red-300 bg-red-50"
+                  : "border-gray-200 focus:border-indigo-400"
+              }`}
             />
             {errors.content && (
               <p className="mt-1 text-xs text-red-500">{errors.content}</p>
             )}
           </div>
 
-          {/* 이미지 URL (선택) */}
           <div>
             <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
               <Image size={12} strokeWidth={2} />
@@ -373,7 +632,6 @@ function CreateProjectModal({ onClose, onSuccess }) {
           </div>
         </div>
 
-        {/* 푸터 */}
         <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-gray-100">
           <button
             onClick={onClose}
@@ -394,27 +652,107 @@ function CreateProjectModal({ onClose, onSuccess }) {
   );
 }
 
+// ─── 스켈레톤 ─────────────────────────────────────────────────────────────────
+function SkeletonList() {
+  return (
+    <div className="flex flex-col gap-3">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div
+          key={i}
+          className="bg-white rounded-2xl px-6 py-5 h-24 animate-pulse"
+        />
+      ))}
+    </div>
+  );
+}
+function SkeletonGrid() {
+  return (
+    <div className="grid grid-cols-2 gap-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="bg-white rounded-2xl p-5 h-44 animate-pulse" />
+      ))}
+    </div>
+  );
+}
+
 // ─── 메인 ─────────────────────────────────────────────────────────────────────
 export default function CooperationPage() {
   const [tab, setTab] = useState("club");
+  const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
-  const [showModal, setShowModal] = useState(false);
+  const [showClubModal, setShowClubModal] = useState(false);
+  const [showProjectModal, setShowProjectModal] = useState(false);
   const navigate = useNavigate();
+
+  const [clubPosts, setClubPosts] = useState([]);
+  const [clubLoading, setClubLoading] = useState(false);
+  const [clubError, setClubError] = useState("");
+
+  const [projectPosts, setProjectPosts] = useState([]);
+  const [projectLoading, setProjectLoading] = useState(false);
+  const [projectError, setProjectError] = useState("");
 
   const isClub = tab === "club";
 
-  const filteredClub = CLUB_POSTS.filter(
-    (p) =>
-      !search || p.title.includes(search) || p.description.includes(search),
-  );
-  const filteredProject = PROJECT_POSTS.filter(
-    (p) =>
-      !search || p.title.includes(search) || p.description.includes(search),
-  );
+  const fetchClubPosts = useCallback(async (keyword = "") => {
+    setClubLoading(true);
+    setClubError("");
+    try {
+      const params = new URLSearchParams({ page: 0, size: 20 });
+      if (keyword) params.set("keyword", keyword);
+      const res = await fetch(
+        `${API_BASE_URL}/api/club-collaborations?${params}`,
+        {
+          headers: { ...authHeader() },
+        }
+      );
+      const data = await res.json();
+      if (data.success) setClubPosts(data.data.content ?? []);
+      else setClubError(data.message || "목록을 불러오지 못했습니다.");
+    } catch {
+      setClubError("네트워크 오류가 발생했습니다.");
+    } finally {
+      setClubLoading(false);
+    }
+  }, []);
 
-  function handleSuccess(newPost) {
-    setShowModal(false);
-    console.log("등록된 모집글:", newPost);
+  const fetchProjectPosts = useCallback(async (keyword = "") => {
+    setProjectLoading(true);
+    setProjectError("");
+    try {
+      const params = new URLSearchParams({ page: 0, size: 20 });
+      if (keyword) params.set("keyword", keyword);
+      const res = await fetch(
+        `${API_BASE_URL}/api/project-recruitments?${params}`,
+        {
+          headers: { ...authHeader() },
+        }
+      );
+      const data = await res.json();
+      if (data.success) setProjectPosts(data.data.content ?? []);
+      else setProjectError(data.message || "목록을 불러오지 못했습니다.");
+    } catch {
+      setProjectError("네트워크 오류가 발생했습니다.");
+    } finally {
+      setProjectLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isClub) fetchClubPosts("");
+    else fetchProjectPosts("");
+  }, [tab]);
+
+  function handleSearch() {
+    setSearch(searchInput);
+    if (isClub) fetchClubPosts(searchInput);
+    else fetchProjectPosts(searchInput);
+  }
+
+  function handleTabChange(newTab) {
+    setTab(newTab);
+    setSearchInput("");
+    setSearch("");
   }
 
   return (
@@ -423,7 +761,7 @@ export default function CooperationPage() {
         {/* 탭 */}
         <div className="grid grid-cols-2 bg-slate-200 rounded-full p-1 gap-1">
           <button
-            onClick={() => setTab("club")}
+            onClick={() => handleTabChange("club")}
             className={[
               "rounded-full py-2.5 text-sm font-semibold transition-all duration-200 cursor-pointer",
               isClub
@@ -434,7 +772,7 @@ export default function CooperationPage() {
             동아리 협업모집
           </button>
           <button
-            onClick={() => setTab("project")}
+            onClick={() => handleTabChange("project")}
             className={[
               "rounded-full py-2.5 text-sm font-semibold transition-all duration-200 cursor-pointer",
               !isClub
@@ -451,31 +789,62 @@ export default function CooperationPage() {
           <input
             type="text"
             placeholder="검색어를 입력하세요..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleSearch();
+            }}
             className="flex-1 text-sm text-gray-700 placeholder-gray-400 outline-none bg-transparent"
           />
-          <Search size={17} className="text-gray-400 shrink-0" />
+          <button onClick={handleSearch} className="cursor-pointer">
+            <Search size={17} className="text-gray-400 shrink-0" />
+          </button>
         </div>
 
         {/* 카드 목록 */}
         {isClub ? (
-          <div className="flex flex-col gap-3">
-            {filteredClub.map((post) => (
-              <ClubPostCard
-                key={post.id}
-                post={post}
-                onClick={() => navigate(`/post/club/${post.id}`)}
-              />
-            ))}
+          clubLoading ? (
+            <SkeletonList />
+          ) : clubError ? (
+            <div className="flex flex-col items-center py-12 gap-2">
+              <AlertCircle size={20} className="text-red-300" />
+              <p className="text-sm text-gray-400">{clubError}</p>
+            </div>
+          ) : clubPosts.length === 0 ? (
+            <div className="flex flex-col items-center py-12">
+              <p className="text-sm text-gray-400">모집글이 없습니다</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {clubPosts.map((post) => (
+                <ClubPostCard
+                  key={post.collabId}
+                  post={post}
+                  onClick={() => navigate(`/cooperation/club/${post.collabId}`)}
+                />
+              ))}
+            </div>
+          )
+        ) : projectLoading ? (
+          <SkeletonGrid />
+        ) : projectError ? (
+          <div className="flex flex-col items-center py-12 gap-2">
+            <AlertCircle size={20} className="text-red-300" />
+            <p className="text-sm text-gray-400">{projectError}</p>
+          </div>
+        ) : projectPosts.length === 0 ? (
+          <div className="flex flex-col items-center py-12">
+            <p className="text-sm text-gray-400">모집글이 없습니다</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
-            {filteredProject.map((post) => (
+            {projectPosts.map((post) => (
               <ProjectPostCard
-                key={post.id}
+                key={post.projectRecruitmentId}
                 post={post}
-                onClick={() => navigate(`/post/project/${post.id}`)}
+                onClick={() =>
+                  navigate(`/cooperation/project/${post.projectRecruitmentId}`)
+                }
               />
             ))}
           </div>
@@ -484,9 +853,9 @@ export default function CooperationPage() {
         {/* CTA 버튼 */}
         <div className="flex justify-center mt-2">
           <button
-            onClick={() => {
-              if (!isClub) setShowModal(true);
-            }}
+            onClick={() =>
+              isClub ? setShowClubModal(true) : setShowProjectModal(true)
+            }
             className={[
               "flex items-center gap-2 px-12 py-3.5 rounded-full text-white font-bold text-sm shadow-lg hover:opacity-90 transition-opacity duration-150 cursor-pointer",
               isClub ? "bg-green-500" : "bg-indigo-600",
@@ -498,11 +867,22 @@ export default function CooperationPage() {
         </div>
       </main>
 
-      {/* 모집 모달 */}
-      {showModal && (
+      {showClubModal && (
+        <CreateClubCollabModal
+          onClose={() => setShowClubModal(false)}
+          onSuccess={() => {
+            setShowClubModal(false);
+            fetchClubPosts(search);
+          }}
+        />
+      )}
+      {showProjectModal && (
         <CreateProjectModal
-          onClose={() => setShowModal(false)}
-          onSuccess={handleSuccess}
+          onClose={() => setShowProjectModal(false)}
+          onSuccess={() => {
+            setShowProjectModal(false);
+            fetchProjectPosts(search);
+          }}
         />
       )}
     </div>
