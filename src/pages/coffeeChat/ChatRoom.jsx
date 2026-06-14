@@ -128,7 +128,7 @@ function EmptyState() {
 }
 
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────────────
-export default function ChatRoom({ room }) {
+export default function ChatRoom({ room, onMessage }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -226,8 +226,11 @@ export default function ChatRoom({ room }) {
 
         return [...prev, msg];
       });
+
+      // 부모(CoffeeChatPage)에게 알림 -> 목록 업데이트용
+      if (onMessage) onMessage(msg);
     },
-    [myUserId]
+    [myUserId, onMessage]
   );
 
   const { sendMessage } = useChatSocket(
@@ -291,14 +294,19 @@ export default function ChatRoom({ room }) {
         );
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
+        const newMsg = data.data;
+
         // 낙관적 메시지를 실제 응답으로 교체
         setMessages((prev) =>
           prev.map((m) =>
             m._optimistic && m.chatMessageId === optimistic.chatMessageId
-              ? { ...data.data, _optimistic: false }
+              ? { ...newMsg, _optimistic: false }
               : m
           )
         );
+
+        // 부모에게 알림
+        if (onMessage) onMessage(newMsg);
       } catch (e) {
         console.error("[ChatRoom] 전송 실패", e);
         // 실패 시 낙관적 메시지 제거

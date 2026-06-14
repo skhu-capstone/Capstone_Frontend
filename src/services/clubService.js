@@ -110,3 +110,33 @@ export const uploadPostImage = async (postId, file) => {
   );
   return response.data.data;
 };
+
+export const toggleLike = async (postId) => {
+  const accessToken = localStorage.getItem("accessToken");
+
+  const response = await axios.post(
+    `${BASE_URL}/api/posts/${postId}/likes`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  return response.data.data;
+};
+
+export const createComment = async (postId, content) => {
+  const accessToken = localStorage.getItem("accessToken");
+
+  const response = await axios.post(
+    `${BASE_URL}/api/posts/${postId}/comments`,
+    { content },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  return response.data.data;
+};

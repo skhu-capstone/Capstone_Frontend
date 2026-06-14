@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { Search, Coffee, Loader2, AlertCircle } from "lucide-react";
 import ChatRoom from "./ChatRoom";
@@ -171,6 +171,32 @@ export default function CoffeeChatPage() {
     );
   };
 
+  // ── 새 메시지 수신 시 목록 업데이트 ──────────────────────────────────────
+  const handleNewMessage = useCallback((msg) => {
+    setRooms((prev) => {
+      const isExist = prev.some(
+        (r) => Number(r.chatRoomId) === Number(msg.chatRoomId)
+      );
+      if (!isExist) return prev;
+
+      const next = prev.map((r) => {
+        if (Number(r.chatRoomId) === Number(msg.chatRoomId)) {
+          return {
+            ...r,
+            lastMessage: msg.content,
+            lastMessageAt: msg.createdAt,
+          };
+        }
+        return r;
+      });
+
+      // 최신 메시지 순으로 정렬
+      return [...next].sort(
+        (a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt)
+      );
+    });
+  }, []);
+
   const filtered = rooms.filter(
     (r) => r.targetUserName.includes(search) || r.lastMessage?.includes(search)
   );
@@ -261,7 +287,7 @@ export default function CoffeeChatPage() {
 
       {/* ── 우측 채팅창 (70%) ────────────────────────────────────────────── */}
       <div className="flex flex-col" style={{ width: "70%" }}>
-        <ChatRoom room={selectedRoom} />
+        <ChatRoom room={selectedRoom} onMessage={handleNewMessage} />
       </div>
     </div>
   );

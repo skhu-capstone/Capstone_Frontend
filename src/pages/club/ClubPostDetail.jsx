@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   Heart,
@@ -7,10 +7,13 @@ import {
   ChevronRight,
   Send,
 } from "lucide-react";
-import { deleteClubPost } from "../../services/clubService";
-import { useMutation } from "@tanstack/react-query";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { 
+  deleteClubPost, 
+  getClubPostDetail, 
+  toggleLike, 
+  createComment 
+} from "../../services/clubService";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 // ─── 이미지 캐러셀 ────────────────────────────────────────────────────────────
 function ImageCarousel({ images }) {
@@ -112,150 +115,124 @@ export default function ClubPostDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const queryClient = useQueryClient();
   const commentInputRef = useRef(null);
-
-  const [post, setPost] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(0);
-  const [likeLoading, setLikeLoading] = useState(false);
-
-  const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState("");
-  const [commentLoading, setCommentLoading] = useState(false);
-  const [commentError, setCommentError] = useState("");
 
-  // 게시물 삭제 (진원 추가)
+  // ── 게시글 조회 (React Query) ──────────────────────────────────────────
+  const { 
+    data: post, 
+    isLoading, 
+    isError, 
+    error 
+  } = useQuery({
+    queryKey: ["clubPostDetail", id],
+    queryFn: async () => {
+      console.log(`[ClubPostDetail] Fetching data for post ID: ${id}`);
+      const data = await getClubPostDetail(id);
+      console.log("[ClubPostDetail] API Response Data:", data);
+      console.log("[ClubPostDetail] API Response Keys:", Object.keys(data));
+      return data;
+    },
+    enabled: !!id,
+    refetchOnWindowFocus: true,
+  });
+
+  // ── 좋아요 토글 (React Query) ──────────────────────────────────────────
+  const likeMutation = useMutation({
+    mutationFn: async () => {
+      console.log("[ClubPostDetail] Toggling like for ID:", id);
+      const res = await toggleLike(id);
+      console.log("[ClubPostDetail] Toggle like API Response:", res);
+      return res;
+    },
+    onSuccess: (data) => {
+      // 서버 응답으로 캐시 즉시 업데이트
+      queryClient.setQueryData(["clubPostDetail", id], (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          liked: data.liked ?? data.isLiked ?? !old.liked,
+          likeCount: data.likeCount ?? data.likes ?? old.likeCount,
+        };
+      });
+      // 혹시 모르니 서버에서 다시 불러오기 예약
+      queryClient.invalidateQueries({ queryKey: ["clubPostDetail", id] });
+    },
+    onError: (err) => {
+      console.error("[ClubPostDetail] Like mutation error:", err);
+    }
+  });
+
+  // ── 댓글 작성 (React Query) ────────────────────────────────────────────
+  const commentMutation = useMutation({
+    mutationFn: async (content) => {
+      console.log("[ClubPostDetail] Submitting comment for ID:", id);
+      const res = await createComment(id, content);
+      console.log("[ClubPostDetail] Create comment API Response:", res);
+      return res;
+    },
+    onSuccess: (newComment) => {
+      setCommentText("");
+      // 캐시 즉시 업데이트
+      queryClient.setQueryData(["clubPostDetail", id], (old) => {
+        if (!old) return old;
+        const currentComments = old.comments || old.postComments || [];
+        return {
+          ...old,
+          comments: [...currentComments, newComment],
+        };
+      });
+      // 서버에서 다시 불러오기 예약
+      queryClient.invalidateQueries({ queryKey: ["clubPostDetail", id] });
+      commentInputRef.current?.focus();
+    },
+    onError: (err) => {
+      console.error("[ClubPostDetail] Comment mutation error:", err);
+    }
+  });
+
+  // ── 게시글 삭제 (React Query) ──────────────────────────────────────────
   const deleteMutation = useMutation({
     mutationFn: deleteClubPost,
-
     onSuccess: () => {
       alert("게시글이 삭제되었습니다.");
+      queryClient.invalidateQueries({ queryKey: ["clubPosts"] });
       navigate("/club/main");
     },
-
-    onError: (error) => {
-      console.error(error);
-
-      if (error.response?.status === 403) {
+    onError: (err) => {
+      console.error(err);
+      if (err.response?.status === 403) {
         alert("게시글을 삭제할 권한이 없습니다.");
-        return;
+      } else {
+        alert("게시글 삭제에 실패했습니다.");
       }
-
-      alert("게시글 삭제에 실패했습니다.");
     },
   });
 
   const handleDeletePost = () => {
-    const confirmed = window.confirm("정말 게시글을 삭제하시겠습니까?");
-
-    if (!confirmed) return;
-
-    deleteMutation.mutate(id);
+    if (window.confirm("정말 게시글을 삭제하시겠습니까?")) {
+      deleteMutation.mutate(id);
+    }
   };
 
-  // ── 게시글 조회 ──────────────────────────────────────────────────────────
-  useEffect(() => {
-    async function fetchPost() {
-      setLoading(true);
-      setError("");
-      try {
-        const token = localStorage.getItem("accessToken");
-        const res = await fetch(`${API_BASE_URL}/api/posts/${id}`, {
-          headers: {
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-        });
-        const data = await res.json();
-        if (data.success) {
-          setPost(data.data);
-          setLikeCount(data.data.likeCount ?? 0);
-          setLiked(data.data.liked ?? false);
-          setComments(data.data.comments ?? []);
-        } else {
-          setError(data.message || "게시글을 찾을 수 없어요.");
-        }
-      } catch {
-        setError("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchPost();
-  }, [id]);
+  const handleLike = () => {
+    likeMutation.mutate();
+  };
 
-  // ── 좋아요 토글 ──────────────────────────────────────────────────────────
-  async function handleLike() {
-    if (likeLoading) return;
-    const prevLiked = liked;
-    const prevCount = likeCount;
-    setLiked(!liked);
-    setLikeCount((c) => (liked ? c - 1 : c + 1));
-    setLikeLoading(true);
-    try {
-      const token = localStorage.getItem("accessToken");
-      const res = await fetch(`${API_BASE_URL}/api/posts/${id}/likes`, {
-        method: "POST",
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
-      const data = await res.json();
-      if (data.success) {
-        setLiked(data.data.liked);
-        setLikeCount(data.data.likeCount);
-      } else {
-        setLiked(prevLiked);
-        setLikeCount(prevCount);
-      }
-    } catch {
-      setLiked(prevLiked);
-      setLikeCount(prevCount);
-    } finally {
-      setLikeLoading(false);
-    }
-  }
-
-  // ── 댓글 작성 ────────────────────────────────────────────────────────────
-  async function handleCommentSubmit() {
+  const handleCommentSubmit = () => {
     const trimmed = commentText.trim();
-    if (!trimmed || commentLoading) return;
+    if (!trimmed || commentMutation.isPending) return;
+    commentMutation.mutate(trimmed);
+  };
 
-    setCommentLoading(true);
-    setCommentError("");
-    try {
-      const token = localStorage.getItem("accessToken");
-      const res = await fetch(`${API_BASE_URL}/api/posts/${id}/comments`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ content: trimmed }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setComments((prev) => [...prev, data.data]);
-        setCommentText("");
-        commentInputRef.current?.focus();
-      } else {
-        setCommentError(data.message || "댓글 작성에 실패했습니다.");
-      }
-    } catch {
-      setCommentError("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
-    } finally {
-      setCommentLoading(false);
-    }
-  }
-
-  function handleKeyDown(e) {
+  const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
+      if (e.nativeEvent.isComposing) return;
       e.preventDefault();
       handleCommentSubmit();
     }
-  }
+  };
 
   function formatDate(iso) {
     if (!iso) return "";
@@ -264,20 +241,15 @@ export default function ClubPostDetail() {
 
   const handleBack = () => {
     if (location.key !== "default") navigate(-1);
-    else navigate("/club");
+    else navigate("/club/main");
   };
 
-  if (loading)
-    return (
-      <div className="min-h-screen bg-slate-50">
-        <Skeleton />
-      </div>
-    );
+  if (isLoading) return <Skeleton />;
 
-  if (error) {
+  if (isError || !post) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-3">
-        <p className="text-gray-400 text-sm">{error}</p>
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-3 px-4 text-center">
+        <p className="text-gray-400 text-sm">{error?.message || "게시글을 찾을 수 없어요."}</p>
         <button
           onClick={handleBack}
           className="text-sm text-indigo-500 hover:text-indigo-700 transition-colors cursor-pointer"
@@ -287,6 +259,11 @@ export default function ClubPostDetail() {
       </div>
     );
   }
+
+  // 필드명 유연하게 대응
+  const comments = post.comments || post.postComments || [];
+  const liked = post.liked ?? post.isLiked ?? false;
+  const likeCount = post.likeCount ?? post.likes ?? 0;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -316,7 +293,7 @@ export default function ClubPostDetail() {
               <button
                 onClick={handleDeletePost}
                 disabled={deleteMutation.isPending}
-                className="text-xs font-medium text-red-500 hover:text-red-700 disabled:text-gray-400 disabled:cursor-not-allowed"
+                className="text-xs font-medium text-red-500 hover:text-red-700 disabled:text-gray-400 disabled:cursor-not-allowed cursor-pointer"
               >
                 {deleteMutation.isPending ? "삭제 중" : "삭제"}
               </button>
@@ -336,14 +313,14 @@ export default function ClubPostDetail() {
           <div className="flex items-center gap-4 pt-1 border-t border-gray-100">
             <button
               onClick={handleLike}
-              disabled={likeLoading}
+              disabled={likeMutation.isPending}
               className={`flex items-center gap-1.5 text-sm transition-colors duration-150 cursor-pointer disabled:cursor-not-allowed ${liked ? "text-rose-500" : "text-gray-400 hover:text-rose-400"}`}
             >
               <Heart
                 size={16}
                 strokeWidth={1.8}
                 fill={liked ? "currentColor" : "none"}
-                className={`transition-transform duration-150 ${likeLoading ? "scale-90 opacity-60" : liked ? "scale-110" : "scale-100"}`}
+                className={`transition-transform duration-150 ${likeMutation.isPending ? "scale-90 opacity-60" : liked ? "scale-110" : "scale-100"}`}
               />
               {likeCount}
             </button>
@@ -370,38 +347,35 @@ export default function ClubPostDetail() {
             </p>
           ) : (
             <div className="flex flex-col gap-4">
-              {comments.map((c) => (
-                <CommentItem key={c.commentId} comment={c} />
+              {comments.map((c, idx) => (
+                <CommentItem key={c.commentId || idx} comment={c} />
               ))}
             </div>
           )}
 
-          {commentError && (
-            <p className="text-xs text-red-500">{commentError}</p>
+          {commentMutation.isError && (
+            <p className="text-xs text-red-500">댓글 작성에 실패했습니다.</p>
           )}
 
           <div
-            className={`flex items-center gap-2 border rounded-xl px-4 py-2.5 transition-colors ${commentLoading ? "border-gray-100 bg-gray-50" : "border-gray-200 focus-within:border-indigo-300"}`}
+            className={`flex items-center gap-2 border rounded-xl px-4 py-2.5 transition-colors ${commentMutation.isPending ? "border-gray-100 bg-gray-50" : "border-gray-200 focus-within:border-indigo-300"}`}
           >
             <input
               ref={commentInputRef}
               type="text"
               value={commentText}
-              onChange={(e) => {
-                setCommentText(e.target.value);
-                setCommentError("");
-              }}
+              onChange={(e) => setCommentText(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="댓글을 입력하세요..."
-              disabled={commentLoading}
+              disabled={commentMutation.isPending}
               className="flex-1 text-sm text-gray-700 placeholder-gray-400 outline-none bg-transparent disabled:opacity-50"
             />
             <button
               onClick={handleCommentSubmit}
-              disabled={!commentText.trim() || commentLoading}
-              className={`shrink-0 transition-colors duration-150 cursor-pointer disabled:cursor-not-allowed ${commentText.trim() && !commentLoading ? "text-indigo-600 hover:text-indigo-800" : "text-gray-300"}`}
+              disabled={!commentText.trim() || commentMutation.isPending}
+              className={`shrink-0 transition-colors duration-150 cursor-pointer disabled:cursor-not-allowed ${commentText.trim() && !commentMutation.isPending ? "text-indigo-600 hover:text-indigo-800" : "text-gray-300"}`}
             >
-              {commentLoading ? (
+              {commentMutation.isPending ? (
                 <span className="text-xs text-gray-400">등록 중...</span>
               ) : (
                 <Send size={15} strokeWidth={2} />
