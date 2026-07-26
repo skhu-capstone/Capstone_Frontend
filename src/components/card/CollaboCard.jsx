@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
 
 function CollaboCard({
-  id, // collabId 받아옴
+  id, // collabId 또는 projectRecruitmentId 받아옴
+  type = "club", // 협업 게시글 관련 props
   title = "제목", // title 받아옴
   author = "작성자", // writerName 받아옴
   time = "n시간 전", // createAt 받아서 계산하는 기능 제작 예정
@@ -14,7 +15,8 @@ function CollaboCard({
   return (
     // 전체 컨테이너
     <div
-      onClick={() => navigate(`/post/project/${id}`)}
+      // onClick이 따로 없으면 협업 타입에 맞는 상세 페이지로 이동
+      onClick={onClick ?? (() => navigate(`/cooperation/${type}/${id}`))}
       className="w-102 min-h-44 p-4 bg-white rounded-xl shadow-[0px_4px_10px_0px_rgba(0,0,0,0.05)]
       outline-1 outline-offset-1 outline-slate-100 flex flex-col gap-2.5 
       cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:-translate-y-4 hover:outline-[3px]
