@@ -14,6 +14,7 @@ import ClubPostPage from "./pages/club/ClubPostPage";
 import ClubPostCreatePage from "./pages/club/ClubPostCreatePage";
 import PostDetailPage from "./pages/cooperation/PostDetailPage";
 import ClubPostDetail from "./pages/club/ClubPostDetail";
+import PresidentPage from "./pages/club/PresidentPage";
 export default function App() {
   return (
     <>
@@ -35,6 +36,7 @@ export default function App() {
           element={<CoffeeChatUserListPage />}
         />
         <Route path="/club/post" element={<ClubPostPage />} />
+        <Route path="/club/president" element={<PresidentPage />} />
         <Route
           path="/clubs/:clubId/posts/create"
           element={<ClubPostCreatePage />}

@@ -64,6 +64,7 @@ export default function ClubMainPage() {
     .toUpperCase();
 
   const canManageClub = ["PRESIDENT", "STAFF"].includes(myRole);
+  const isPresident = myRole === "PRESIDENT";
 
   const {
     data: postsData,
@@ -162,14 +163,25 @@ export default function ClubMainPage() {
               <span className="text-gray-900">▾</span>
             </button>
 
-            {canManageClub && (
-              <button
-                onClick={() => navigate(`/clubs/${selectedClubId}/posts/create`)}
-                className="w-35 rounded-xl bg-sky-700 px-5 py-3 font-medium text-white hover:bg-sky-800"
-              >
-                게시물 작성
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              {canManageClub && (
+                <button
+                  onClick={() => navigate("/club/president")}
+                  className="h-12 rounded-xl border border-sky-700/30 bg-white px-5 text-sm font-semibold text-sky-700 hover:border-sky-700 hover:bg-sky-50"
+                >
+                  대표 관리
+                </button>
+              )}
+
+              {canManageClub && (
+                <button
+                  onClick={() => navigate(`/clubs/${selectedClubId}/posts/create`)}
+                  className="h-12 rounded-xl bg-sky-700 px-5 text-sm font-semibold text-white hover:bg-sky-800"
+                >
+                  게시물 작성
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
