@@ -10,6 +10,13 @@ export default defineConfig({
     global: "globalThis", // ← 이것만 추가
   },
   plugins: [react(), tailwindcss()],
+  optimizeDeps: {
+    exclude: [
+      "@fullcalendar/react",
+      "@fullcalendar/daygrid",
+      "@fullcalendar/interaction",
+    ],
+  },
   server: {
     proxy: {
       // /api 로 시작하는 모든 요청을 백엔드로 프록시

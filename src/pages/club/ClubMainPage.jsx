@@ -1,5 +1,6 @@
 import { useState } from "react";
 import FeedCard from "../../components/card/FeedCard";
+import ClubCalendar from "../../components/card/ClubCalendar";
 import { useQuery } from "@tanstack/react-query";
 import { getMyClubs, getClubMembers, getClubPosts } from "../../services/clubService";
 import { useNavigate } from "react-router-dom";
@@ -52,15 +53,17 @@ export default function ClubMainPage() {
 
   const roleMap = {
     PRESIDENT: "대표",
-    MANAGER: "운영진",
+    STAFF: "운영진",
     MEMBER: "부원",
   };
 
-  const myRole = members.find(
-    (member) => member.userId === loginUser?.userId
-  )?.role;
+  const loginUserId = Number(loginUser?.userId ?? loginUser?.id);
+  const myRole = members
+    .find((member) => Number(member.userId ?? member.id) === loginUserId)
+    ?.role?.trim()
+    .toUpperCase();
 
-  const canCreatePost = myRole === "PRESIDENT" || myRole === "MANAGER";
+  const canManageClub = ["PRESIDENT", "STAFF"].includes(myRole);
 
   const {
     data: postsData,
@@ -159,7 +162,7 @@ export default function ClubMainPage() {
               <span className="text-gray-900">▾</span>
             </button>
 
-            {canCreatePost && (
+            {canManageClub && (
               <button
                 onClick={() => navigate(`/clubs/${selectedClubId}/posts/create`)}
                 className="w-35 rounded-xl bg-sky-700 px-5 py-3 font-medium text-white hover:bg-sky-800"
@@ -214,10 +217,21 @@ export default function ClubMainPage() {
             >
               Members
             </button>
+
+            <button
+              onClick={() => setActiveTab("calendar")}
+              className={`px-7 py-3 text-base font-medium ${
+                activeTab === "calendar"
+                  ? "border-b-2 border-blue-600 text-blue-600"
+                  : "text-slate-900/60"
+              }`}
+            >
+              Calendar
+            </button>
           </nav>
         </header>
 
-        {/* 조건부로 렌더링 -> 피드 or 멤버 */}
+        {/* 조건부로 렌더링 -> 피드 or 멤버 or 캘린더 */}
         {activeTab === "feeds" ? (
           <section className="grid grid-cols-2 gap-10 py-7">
             {isPostsLoading ? (
@@ -238,7 +252,7 @@ export default function ClubMainPage() {
               ))
             )}
           </section>
-        ) : (
+        ) : activeTab === "members" ? (
           <section className="py-7">
             {isMembersLoading ? (
               <p>멤버 정보를 불러오는 중입니다...</p>
@@ -267,10 +281,13 @@ export default function ClubMainPage() {
               ))
             )}
           </section>
+        ) : (
+          <ClubCalendar clubId={selectedClubId} canManage={canManageClub} />
         )}
 
         {/* 페이지 이동 섹션 */}
-        <div className="flex justify-center pb-7">
+        {activeTab !== "calendar" && (
+          <div className="flex justify-center pb-7">
           <div className="flex items-center gap-1">
             <button
               onClick={handlePrevPage}
@@ -309,7 +326,8 @@ export default function ClubMainPage() {
               ›
             </button>
           </div>
-        </div>
+          </div>
+        )}
       </section>
     </main>
   );

@@ -1,0 +1,116 @@
+.club-calendar-wrap .fc {
+  color: #111827;
+  font-family: "Pretendard", sans-serif;
+}
+
+.club-calendar-wrap .fc-theme-standard td,
+.club-calendar-wrap .fc-theme-standard th,
+.club-calendar-wrap .fc-theme-standard .fc-scrollgrid {
+  border-color: #e2e8f0;
+}
+
+.club-calendar-wrap .fc .fc-toolbar {
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.club-calendar-wrap .fc .fc-toolbar-title {
+  color: #111827;
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.club-calendar-wrap .fc .fc-button {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: none;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 12px;
+  text-transform: none;
+}
+
+.club-calendar-wrap .fc .fc-button:hover,
+.club-calendar-wrap .fc .fc-button:focus {
+  border-color: #0369a1;
+  background: #f0f9ff;
+  color: #0369a1;
+  box-shadow: none;
+}
+
+.club-calendar-wrap .fc .fc-button-primary:not(:disabled).fc-button-active,
+.club-calendar-wrap .fc .fc-button-primary:not(:disabled):active {
+  border-color: #0369a1;
+  background: #0369a1;
+  color: #ffffff;
+}
+
+.club-calendar-wrap .fc .fc-col-header-cell {
+  background: #f8fafc;
+  padding: 10px 0;
+}
+
+.club-calendar-wrap .fc .fc-col-header-cell-cushion {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.club-calendar-wrap .fc .fc-daygrid-day {
+  background: #ffffff;
+}
+
+.club-calendar-wrap .fc .fc-daygrid-day-frame {
+  min-height: 112px;
+  padding: 6px;
+}
+
+.club-calendar-wrap .fc .fc-daygrid-day-number {
+  border-radius: 999px;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 28px;
+  min-width: 28px;
+  padding: 0;
+  text-align: center;
+  text-decoration: none;
+}
+
+.club-calendar-wrap .fc .fc-day-other {
+  background: #f8fafc;
+}
+
+.club-calendar-wrap .fc .fc-day-other .fc-daygrid-day-number {
+  color: #cbd5e1;
+}
+
+.club-calendar-wrap .fc .fc-day-today {
+  background: #eff6ff;
+}
+
+.club-calendar-wrap .fc .fc-day-today .fc-daygrid-day-number {
+  background: #0369a1;
+  color: #ffffff;
+}
+
+.club-calendar-wrap .fc .fc-event {
+  border: 0;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 6px;
+}
+
+.club-calendar-wrap .fc .fc-daygrid-more-link {
+  color: #0369a1;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
