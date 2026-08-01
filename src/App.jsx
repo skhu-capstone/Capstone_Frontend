@@ -15,6 +15,9 @@ import ClubPostCreatePage from "./pages/club/ClubPostCreatePage";
 import PostDetailPage from "./pages/cooperation/PostDetailPage";
 import ClubPostDetail from "./pages/club/ClubPostDetail";
 import PresidentPage from "./pages/club/PresidentPage";
+import ClubApplicationPage from "./pages/club/ClubApplicationPage";
+import ClubCreationPage from "./pages/club/ClubCreationPage";
+import ClubDetailPage from "./pages/club/ClubDetailPage";
 export default function App() {
   return (
     <>
@@ -25,6 +28,9 @@ export default function App() {
         <Route path="/cooperation" element={<CooperationPage />} />
         <Route path="/coffee-chat" element={<CoffeeChatPage />} />
         <Route path="/club/main" element={<ClubMainPage />} />
+        <Route path="/club/apply" element={<ClubApplicationPage />} />
+        <Route path="/club/apply/:clubId" element={<ClubDetailPage />} />
+        <Route path="/club/create" element={<ClubCreationPage />} />
         <Route path="/my-page" element={<MyPage />} />
         <Route path="/email-verify" element={<EmailVerifyPage />} />
         <Route

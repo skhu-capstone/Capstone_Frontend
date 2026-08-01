@@ -598,7 +598,7 @@ export default function ClubMainPage({ clubId = 1 }) {
                 <PostCard
                   key={post.postId}
                   post={post}
-                  onClick={() => navigate(`/club/${post.postId}`)}
+                  onClick={() => navigate(`/club/posts/${post.postId}`)}
                 />
               ))}
             </div>

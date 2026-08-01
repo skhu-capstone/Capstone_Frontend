@@ -7,7 +7,10 @@ import {
   ChevronRight,
   Send,
 } from "lucide-react";
-import { deleteClubPost } from "../../services/clubService";
+import {
+  deleteClubPost,
+  toggleClubPostLike,
+} from "../../services/clubService";
 import { useMutation } from "@tanstack/react-query";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -195,22 +198,11 @@ export default function ClubPostDetail() {
     setLikeCount((c) => (liked ? c - 1 : c + 1));
     setLikeLoading(true);
     try {
-      const token = localStorage.getItem("accessToken");
-      const res = await fetch(`${API_BASE_URL}/api/posts/${id}/likes`, {
-        method: "POST",
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
-      const data = await res.json();
-      if (data.success) {
-        setLiked(data.data.liked);
-        setLikeCount(data.data.likeCount);
-      } else {
-        setLiked(prevLiked);
-        setLikeCount(prevCount);
-      }
-    } catch {
+      const data = await toggleClubPostLike(id);
+      setLiked(data.liked);
+      setLikeCount(data.likeCount);
+    } catch (error) {
+      console.error("Failed to toggle post like:", error);
       setLiked(prevLiked);
       setLikeCount(prevCount);
     } finally {

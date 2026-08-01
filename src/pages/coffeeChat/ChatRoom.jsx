@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Send, Coffee, Loader2, AlertCircle } from "lucide-react";
 import { useChatSocket } from "../../hooks/useChatSocket";
 
@@ -129,6 +130,7 @@ function EmptyState() {
 
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────────────
 export default function ChatRoom({ room }) {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -331,32 +333,39 @@ export default function ChatRoom({ room }) {
   return (
     <div className="flex-1 flex flex-col bg-white min-h-0">
       {/* 채팅방 헤더 */}
-      <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-3 shrink-0 bg-white">
-        {(() => {
-          const [bg, text] = avatarColor(room.targetUserName);
-          return (
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold shrink-0"
-              style={{ background: bg, color: text }}
-            >
-              {room.targetProfileImage ? (
-                <img
-                  src={room.targetProfileImage}
-                  alt={room.targetUserName}
-                  className="w-full h-full rounded-full object-cover"
-                />
-              ) : (
-                room.targetUserName?.[0] ?? "?"
-              )}
-            </div>
-          );
-        })()}
-        <div>
-          <p className="text-sm font-semibold text-gray-900">
-            {room.targetUserName}
-          </p>
-          <p className="text-xs text-gray-400">커피챗</p>
-        </div>
+      <div className="px-5 py-4 border-b border-gray-100 shrink-0 bg-white">
+        <button
+          type="button"
+          onClick={() => navigate(`/coffee-chat/profile/${room.targetUserId}`)}
+          className="flex items-center gap-3 rounded-lg text-left cursor-pointer hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
+          aria-label={`${room.targetUserName}님의 커피챗 프로필 보기`}
+        >
+          {(() => {
+            const [bg, text] = avatarColor(room.targetUserName);
+            return (
+              <div
+                className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold shrink-0"
+                style={{ background: bg, color: text }}
+              >
+                {room.targetProfileImage ? (
+                  <img
+                    src={room.targetProfileImage}
+                    alt={room.targetUserName}
+                    className="w-full h-full rounded-full object-cover"
+                  />
+                ) : (
+                  room.targetUserName?.[0] ?? "?"
+                )}
+              </div>
+            );
+          })()}
+          <div>
+            <p className="text-sm font-semibold text-gray-900">
+              {room.targetUserName}
+            </p>
+            <p className="text-xs text-gray-400">커피챗</p>
+          </div>
+        </button>
       </div>
 
       {/* 메시지 영역 */}
