@@ -35,6 +35,18 @@ export default function MainPage() {
   }, [feeds]);
   console.log(randomCoffeeChats);
 
+  // 메인 협업 목록에는 동아리 협업 글과 프로젝트 모집 글이 섞여 들어올 수 있음
+  const getCollaborationType = (collabo) => {
+    if (collabo.type === "project" || collabo.type === "PROJECT") return "project";
+    if (collabo.type === "club" || collabo.type === "CLUB") return "club";
+    return collabo.projectRecruitmentId ? "project" : "club";
+  };
+
+  // 글 타입에 따라 사용하는 상세 조회 id가 다름
+  const getCollaborationId = (collabo) => (
+    collabo.projectRecruitmentId ?? collabo.collabId
+  );
+
   return (
     <main className="min-h-screen bg-slate-50 px-14 pt-14 pb-7">
       <div className="mx-auto flex w-full max-w-332 flex-col gap-12">
@@ -63,16 +75,23 @@ export default function MainPage() {
           </h2>
 
           <div className="grid grid-cols-3 gap-x-12 gap-y-6">
-            {randomCollaborations.map((collabo) => (
-              <CollaboCard
-                key={collabo.collabId}
-                id={collabo.collabId}
-                title={collabo.title}
-                author={collabo.clubName}
-                content={collabo.content}
-                dDay={collabo.ddayText}
-              />
-            ))}
+            {randomCollaborations.map((collabo) => {
+              // 각 카드가 /cooperation/club/:id 또는 /cooperation/project/:id로 이동하도록 타입/id를 계산
+              const type = getCollaborationType(collabo);
+              const id = getCollaborationId(collabo);
+
+              return (
+                <CollaboCard
+                  key={`${type}-${id}`}
+                  id={id}
+                  type={type}
+                  title={collabo.title}
+                  author={collabo.clubName ?? collabo.writerName}
+                  content={collabo.content}
+                  dDay={collabo.ddayText ?? collabo.dDayText ?? collabo.dDay}
+                />
+              );
+            })}
           </div>
         </section>
 

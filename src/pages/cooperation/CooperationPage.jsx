@@ -427,7 +427,6 @@ function CreateProjectModal({ onClose, onSuccess }) {
   function validate() {
     const e = {};
     if (!form.title.trim()) e.title = "제목을 입력해주세요.";
-    if (!form.positions.trim()) e.positions = "모집 포지션을 입력해주세요.";
     if (!form.content.trim()) e.content = "내용을 입력해주세요.";
     if (!form.deadline) e.deadline = "마감일을 선택해주세요.";
     return e;
@@ -444,7 +443,7 @@ function CreateProjectModal({ onClose, onSuccess }) {
       title: form.title.trim(),
       imageUrl: form.imageUrl.trim() || undefined,
       writerStack: form.writerStack.trim() || undefined,
-      positions: form.positions.trim(),
+      positions: form.positions.trim() || undefined,
       content: form.content.trim(),
       deadline: form.deadline,
     };
@@ -549,22 +548,16 @@ function CreateProjectModal({ onClose, onSuccess }) {
           <div>
             <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
               <Users size={12} strokeWidth={2} />
-              모집 포지션 <span className="text-red-400">*</span>
+              모집 포지션
+              <span className="text-gray-400 font-normal">(선택)</span>
             </label>
             <input
               type="text"
               value={form.positions}
               onChange={(e) => setField("positions", e.target.value)}
               placeholder="예) 프론트 2명, 백엔드 1명"
-              className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors ${
-                errors.positions
-                  ? "border-red-300 bg-red-50"
-                  : "border-gray-200 focus:border-indigo-400"
-              }`}
+              className="w-full text-sm px-3 py-2 rounded-lg border border-gray-200 focus:border-indigo-400 outline-none transition-colors"
             />
-            {errors.positions && (
-              <p className="mt-1 text-xs text-red-500">{errors.positions}</p>
-            )}
           </div>
 
           <div>

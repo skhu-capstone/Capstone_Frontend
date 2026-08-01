@@ -7,13 +7,10 @@ import {
   ChevronRight,
   Send,
 } from "lucide-react";
-import { 
-  deleteClubPost, 
-  getClubPostDetail, 
-  toggleLike, 
-  createComment 
-} from "../../services/clubService";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { deleteClubPost, toggleClubPostLike } from "../../services/clubService";
+import { useMutation } from "@tanstack/react-query";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // ─── 이미지 캐러셀 ────────────────────────────────────────────────────────────
 function ImageCarousel({ images }) {
@@ -120,11 +117,11 @@ export default function ClubPostDetail() {
   const [commentText, setCommentText] = useState("");
 
   // ── 게시글 조회 (React Query) ──────────────────────────────────────────
-  const { 
-    data: post, 
-    isLoading, 
-    isError, 
-    error 
+  const {
+    data: post,
+    isLoading,
+    isError,
+    error,
   } = useQuery({
     queryKey: ["clubPostDetail", id],
     queryFn: async () => {
@@ -161,7 +158,7 @@ export default function ClubPostDetail() {
     },
     onError: (err) => {
       console.error("[ClubPostDetail] Like mutation error:", err);
-    }
+    },
   });
 
   // ── 댓글 작성 (React Query) ────────────────────────────────────────────
@@ -189,7 +186,7 @@ export default function ClubPostDetail() {
     },
     onError: (err) => {
       console.error("[ClubPostDetail] Comment mutation error:", err);
-    }
+    },
   });
 
   // ── 게시글 삭제 (React Query) ──────────────────────────────────────────
@@ -220,11 +217,33 @@ export default function ClubPostDetail() {
     likeMutation.mutate();
   };
 
-  const handleCommentSubmit = () => {
+  // ── 좋아요 토글 ──────────────────────────────────────────────────────────
+  async function handleLike() {
+    if (likeLoading) return;
+    const prevLiked = liked;
+    const prevCount = likeCount;
+    setLiked(!liked);
+    setLikeCount((c) => (liked ? c - 1 : c + 1));
+    setLikeLoading(true);
+    try {
+      const data = await toggleClubPostLike(id);
+      setLiked(data.liked);
+      setLikeCount(data.likeCount);
+    } catch (error) {
+      console.error("Failed to toggle post like:", error);
+      setLiked(prevLiked);
+      setLikeCount(prevCount);
+    } finally {
+      setLikeLoading(false);
+    }
+  }
+
+  // ── 댓글 작성 ────────────────────────────────────────────────────────────
+  async function handleCommentSubmit() {
     const trimmed = commentText.trim();
     if (!trimmed || commentMutation.isPending) return;
     commentMutation.mutate(trimmed);
-  };
+  }
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -249,7 +268,9 @@ export default function ClubPostDetail() {
   if (isError || !post) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-3 px-4 text-center">
-        <p className="text-gray-400 text-sm">{error?.message || "게시글을 찾을 수 없어요."}</p>
+        <p className="text-gray-400 text-sm">
+          {error?.message || "게시글을 찾을 수 없어요."}
+        </p>
         <button
           onClick={handleBack}
           className="text-sm text-indigo-500 hover:text-indigo-700 transition-colors cursor-pointer"

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Send, Coffee, Loader2, AlertCircle } from "lucide-react";
 import { useChatSocket } from "../../hooks/useChatSocket";
 
@@ -128,7 +129,8 @@ function EmptyState() {
 }
 
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────────────
-export default function ChatRoom({ room, onMessage }) {
+export default function ChatRoom({ room }) {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -214,7 +216,7 @@ export default function ChatRoom({ room, onMessage }) {
           const optimisticIdx = prev.findLastIndex(
             (m) =>
               (m._optimistic || String(m.chatMessageId).startsWith("opt-")) &&
-              m.content === msg.content
+              m.content === msg.content,
           );
 
           if (optimisticIdx !== -1) {
@@ -230,12 +232,12 @@ export default function ChatRoom({ room, onMessage }) {
       // 부모(CoffeeChatPage)에게 알림 -> 목록 업데이트용
       if (onMessage) onMessage(msg);
     },
-    [myUserId, onMessage]
+    [myUserId, onMessage],
   );
 
   const { sendMessage } = useChatSocket(
     room?.chatRoomId ?? null,
-    handleIncoming
+    handleIncoming,
   );
 
   // ── 스크롤 하단 고정 ────────────────────────────────────────────────────
@@ -290,7 +292,7 @@ export default function ChatRoom({ room, onMessage }) {
               Authorization: token ? `Bearer ${token}` : "",
             },
             body: JSON.stringify({ content }),
-          }
+          },
         );
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
@@ -301,8 +303,8 @@ export default function ChatRoom({ room, onMessage }) {
           prev.map((m) =>
             m._optimistic && m.chatMessageId === optimistic.chatMessageId
               ? { ...newMsg, _optimistic: false }
-              : m
-          )
+              : m,
+          ),
         );
 
         // 부모에게 알림
@@ -311,7 +313,7 @@ export default function ChatRoom({ room, onMessage }) {
         console.error("[ChatRoom] 전송 실패", e);
         // 실패 시 낙관적 메시지 제거
         setMessages((prev) =>
-          prev.filter((m) => m.chatMessageId !== optimistic.chatMessageId)
+          prev.filter((m) => m.chatMessageId !== optimistic.chatMessageId),
         );
         setInput(content); // 입력값 복원
       }
@@ -340,39 +342,43 @@ export default function ChatRoom({ room, onMessage }) {
   return (
     <div className="flex-1 flex flex-col bg-white min-h-0">
       {/* 채팅방 헤더 */}
-      <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-3 shrink-0 bg-white">
-        {(() => {
-          const [bg, text] = avatarColor(room.targetUserName);
-          return (
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold shrink-0"
-              style={{ background: bg, color: text }}
-            >
-              {room.targetProfileImage ? (
-                <img
-                  src={room.targetProfileImage}
-                  alt={room.targetUserName}
-                  className="w-full h-full rounded-full object-cover"
-                />
-              ) : (
-                room.targetUserName?.[0] ?? "?"
-              )}
-            </div>
-          );
-        })()}
-        <div>
-          <p className="text-sm font-semibold text-gray-900">
-            {room.targetUserName}
-          </p>
-          <p className="text-xs text-gray-400">커피챗</p>
-        </div>
+      <div className="px-5 py-4 border-b border-gray-100 shrink-0 bg-white">
+        <button
+          type="button"
+          onClick={() => navigate(`/coffee-chat/profile/${room.targetUserId}`)}
+          className="flex items-center gap-3 rounded-lg text-left cursor-pointer hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
+          aria-label={`${room.targetUserName}님의 커피챗 프로필 보기`}
+        >
+          {(() => {
+            const [bg, text] = avatarColor(room.targetUserName);
+            return (
+              <div
+                className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold shrink-0"
+                style={{ background: bg, color: text }}
+              >
+                {room.targetProfileImage ? (
+                  <img
+                    src={room.targetProfileImage}
+                    alt={room.targetUserName}
+                    className="w-full h-full rounded-full object-cover"
+                  />
+                ) : (
+                  (room.targetUserName?.[0] ?? "?")
+                )}
+              </div>
+            );
+          })()}
+          <div>
+            <p className="text-sm font-semibold text-gray-900">
+              {room.targetUserName}
+            </p>
+            <p className="text-xs text-gray-400">커피챗</p>
+          </div>
+        </button>
       </div>
 
       {/* 메시지 영역 */}
-      <div
-        ref={scrollAreaRef}
-        className="flex-1 overflow-y-auto py-4 min-h-0"
-      >
+      <div ref={scrollAreaRef} className="flex-1 overflow-y-auto py-4 min-h-0">
         {loading && (
           <div className="flex items-center justify-center py-12">
             <Loader2 size={20} className="text-gray-300 animate-spin" />
@@ -402,7 +408,9 @@ export default function ChatRoom({ room, onMessage }) {
             // 연속 메시지면 아바타 숨기기 (상대방 메시지만)
             const showAvatar =
               !isMine &&
-              (!prev || Number(prev.senderId) !== Number(msg.senderId) || showDateDivider);
+              (!prev ||
+                Number(prev.senderId) !== Number(msg.senderId) ||
+                showDateDivider);
 
             return (
               <div key={msg.chatMessageId}>
@@ -431,7 +439,7 @@ export default function ChatRoom({ room, onMessage }) {
               e.target.style.height = "auto";
               e.target.style.height = `${Math.min(
                 e.target.scrollHeight,
-                120
+                120,
               )}px`;
             }}
             onKeyDown={handleKeyDown}

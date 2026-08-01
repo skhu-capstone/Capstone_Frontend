@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { createElement, useState, useRef, useEffect } from "react";
 import {
   Home,
   Users,
@@ -10,6 +10,7 @@ import {
   Menu,
   X,
   ChevronDown,
+  ClipboardCheck,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -21,11 +22,9 @@ const NAV_ITEMS = [
   {
     label: "동아리",
     icon: Users,
-    href: "/club",
-    isDropdown: true,
-    subItems: [
-      { label: "내 동아리", href: "/club/main" },
-      { label: "전체 게시판", href: "/club/post" },
+    children: [
+      { label: "동아리 신청", icon: ClipboardCheck, href: "/club/apply" },
+      { label: "동아리 생성", icon: Plus, href: "/club/create" },
     ],
   },
   { label: "협업/모집", icon: Globe, href: "/cooperation" },
@@ -35,15 +34,16 @@ const NAV_ITEMS = [
 
 export default function Header() {
   const [profileOpen, setProfileOpen] = useState(false);
+  const [clubMenuOpen, setClubMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [clubDropdownOpen, setClubDropdownOpen] = useState(false);
   const profileRef = useRef(null);
-  const clubRef = useRef(null);
+  const clubMenuRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
   // 로그인된 유저 정보 (email, name, profileImage, isVerified 등)
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   const queryClient = useQueryClient();
 
@@ -53,19 +53,13 @@ export default function Header() {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
         setProfileOpen(false);
       }
-      if (clubRef.current && !clubRef.current.contains(e.target)) {
-        setClubDropdownOpen(false);
+      if (clubMenuRef.current && !clubMenuRef.current.contains(e.target)) {
+        setClubMenuOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  // 라우트 변경 시 메뉴 닫기
-  useEffect(() => {
-    setMobileMenuOpen(false);
-    setClubDropdownOpen(false);
-  }, [location.pathname]);
 
   const handleAddAccount = () => {
     setProfileOpen(false);
@@ -103,53 +97,72 @@ export default function Header() {
         <div className="hidden md:flex justify-end pr-2">
           <div className="bg-white rounded-2xl px-2 py-1.5">
             <nav className="flex items-center gap-1">
-              {NAV_ITEMS.map((item) => {
-                const { label, icon: Icon, href, isDropdown, subItems } = item;
-                // 홈("/")은 정확히 일치할 때만, 나머지는 해당 경로로 시작할 때 활성화
-                const isActive =
-                  href === "/"
-                    ? location.pathname === "/"
-                    : location.pathname.startsWith(href);
+              {NAV_ITEMS.map(({ label, icon: Icon, href, children }) => {
+                const isActive = children
+                  ? children.some(
+                      (item) =>
+                        location.pathname === item.href ||
+                        location.pathname.startsWith(`${item.href}/`),
+                    )
+                  : location.pathname === href;
 
-                if (isDropdown) {
+                if (children) {
                   return (
-                    <div key={label} className="relative" ref={clubRef}>
+                    <div key={label} className="relative" ref={clubMenuRef}>
                       <button
-                        onClick={() => setClubDropdownOpen((prev) => !prev)}
+                        type="button"
+                        onClick={() => setClubMenuOpen((open) => !open)}
+                        aria-expanded={clubMenuOpen}
+                        aria-haspopup="menu"
                         style={{ color: isActive ? "#432DD7" : "#4A5565" }}
                         className={[
-                          "flex items-center gap-1 px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors duration-150 cursor-pointer",
+                          "flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors duration-150 cursor-pointer",
                           isActive
                             ? "font-medium"
                             : "font-normal hover:bg-gray-100",
                         ].join(" ")}
                       >
-                        <Icon
-                          size={18}
-                          strokeWidth={2}
-                          className="opacity-90 shrink-0"
-                        />
-                        <span>{label}</span>
+                        {createElement(Icon, {
+                          size: 18,
+                          strokeWidth: 2,
+                          className: "opacity-90 shrink-0",
+                        })}
+                        {label}
                         <ChevronDown
                           size={14}
-                          className={`transition-transform duration-200 ${clubDropdownOpen ? "rotate-180" : ""}`}
+                          className={`transition-transform ${clubMenuOpen ? "rotate-180" : ""}`}
                         />
                       </button>
 
-                      {clubDropdownOpen && (
-                        <div className="absolute left-0 mt-2 w-32 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50">
-                          {subItems.map((sub) => (
-                            <button
-                              key={sub.label}
-                              onClick={() => {
-                                navigate(sub.href);
-                                setClubDropdownOpen(false);
-                              }}
-                              className="w-full text-left px-4 py-2.5 text-xs text-gray-700 hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
-                            >
-                              {sub.label}
-                            </button>
-                          ))}
+                      {clubMenuOpen && (
+                        <div
+                          className="absolute left-0 top-full mt-2 w-40 overflow-hidden rounded-xl border border-gray-100 bg-white py-1 shadow-lg z-50"
+                          role="menu"
+                        >
+                          {children.map(
+                            ({
+                              label: childLabel,
+                              icon: ChildIcon,
+                              href: childHref,
+                            }) => (
+                              <button
+                                key={childLabel}
+                                type="button"
+                                role="menuitem"
+                                onClick={() => {
+                                  setClubMenuOpen(false);
+                                  navigate(childHref);
+                                }}
+                                className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
+                              >
+                                {createElement(ChildIcon, {
+                                  size: 16,
+                                  strokeWidth: 2,
+                                })}
+                                {childLabel}
+                              </button>
+                            ),
+                          )}
                         </div>
                       )}
                     </div>
@@ -273,37 +286,59 @@ export default function Header() {
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-white/20 bg-white/10 backdrop-blur-sm">
           <nav className="flex flex-col px-4 py-2">
-            {NAV_ITEMS.map((item) => {
-              const { label, icon: Icon, href, isDropdown, subItems } = item;
-              const isActive = location.pathname.startsWith(href);
+            {NAV_ITEMS.map(({ label, icon: Icon, href, children }) => {
+              const isActive = children
+                ? children.some(
+                    (item) =>
+                      location.pathname === item.href ||
+                      location.pathname.startsWith(`${item.href}/`),
+                  )
+                : location.pathname === href;
 
-              if (isDropdown) {
+              if (children) {
                 return (
-                  <div key={label} className="flex flex-col">
-                    <div
+                  <div key={label}>
+                    <button
+                      type="button"
+                      onClick={() => setClubMenuOpen((open) => !open)}
                       className={[
-                        "flex items-center gap-3 px-4 py-3 text-sm text-white/90 font-normal",
+                        "flex w-full items-center gap-3 px-4 py-3 rounded-xl text-sm text-left cursor-pointer",
+                        isActive
+                          ? "bg-white/30 font-semibold text-white"
+                          : "text-white/90 hover:bg-white/20",
                       ].join(" ")}
                     >
-                      <Icon size={18} strokeWidth={2} className="shrink-0" />
-                      {label}
-                    </div>
-                    <div className="flex flex-col pl-11 gap-1 pb-2">
-                      {subItems.map((sub) => (
-                        <button
-                          key={sub.label}
-                          onClick={() => handleNavClick(sub.href)}
-                          className={[
-                            "px-4 py-2 rounded-xl text-xs transition-colors duration-150 text-left cursor-pointer",
-                            location.pathname === sub.href
-                              ? "bg-white/30 font-semibold text-white"
-                              : "text-white/80 hover:bg-white/20 font-normal",
-                          ].join(" ")}
-                        >
-                          {sub.label}
-                        </button>
-                      ))}
-                    </div>
+                      {createElement(Icon, { size: 18, strokeWidth: 2 })}
+                      <span className="flex-1">{label}</span>
+                      <ChevronDown
+                        size={16}
+                        className={`transition-transform ${clubMenuOpen ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                    {clubMenuOpen && (
+                      <div className="ml-7 flex flex-col border-l border-white/30 pl-2">
+                        {children.map(
+                          ({
+                            label: childLabel,
+                            icon: ChildIcon,
+                            href: childHref,
+                          }) => (
+                            <button
+                              key={childLabel}
+                              type="button"
+                              onClick={() => handleNavClick(childHref)}
+                              className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-left text-sm text-white/90 hover:bg-white/20 cursor-pointer"
+                            >
+                              {createElement(ChildIcon, {
+                                size: 16,
+                                strokeWidth: 2,
+                              })}
+                              {childLabel}
+                            </button>
+                          ),
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               }
