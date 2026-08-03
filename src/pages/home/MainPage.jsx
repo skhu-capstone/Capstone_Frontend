@@ -61,7 +61,7 @@ export default function MainPage() {
                 key={coffeeChat.coffeeChatProfileId}
                 id={coffeeChat.coffeeChatProfileId}
                 name={coffeeChat.name}
-                profileImage={coffeeChat.profileImageUrl}
+                profileImage={coffeeChat.profileImageUrl ?? coffeeChat.profileImage}
                 interestTopics={coffeeChat.interestTopics}
                 meetingType={coffeeChat.meetingType}
               />
