@@ -1,8 +1,9 @@
 import { useState } from "react";
 import FeedCard from "../../components/card/FeedCard";
 import ClubCalendar from "../../components/card/ClubCalendar";
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { getMyClubs, getClubMembers, getClubPosts } from "../../services/clubService";
+import { getCoffeeChatProfile } from "../../services/coffeeChatProfileService";
 import { useNavigate } from "react-router-dom";
 
 export default function ClubMainPage() {
@@ -19,6 +20,31 @@ export default function ClubMainPage() {
       : `/uploads${url}`;
     return `${import.meta.env.VITE_API_BASE_URL}${fixedUrl}`;
   };
+
+  const getProfileImageUrl = (url) => {
+    if (!url) return "";
+    if (url.startsWith("http") || url.startsWith("blob:")) return url;
+
+    const fixedUrl = url.startsWith("/") ? url : `/${url}`;
+    return `${import.meta.env.VITE_API_BASE_URL}${fixedUrl}`;
+  };
+
+  const getMemberProfileImage = (member, coffeeChatProfilesByUserId) => {
+    const coffeeChatProfile =
+      coffeeChatProfilesByUserId[Number(member.userId ?? member.id)]
+        ?.coffeeChatProfile;
+
+    return getProfileImageUrl(
+      coffeeChatProfile?.profileImage ??
+        coffeeChatProfile?.profileImageUrl ??
+        member.coffeeChatProfileImage ??
+        member.coffeeChatProfileImageUrl ??
+        member.coffeeChatProfile?.profileImage ??
+        member.coffeeChatProfile?.profileImageUrl
+    );
+  };
+
+  const getMemberInitial = (name = "") => name.trim().slice(0, 1) || "?";
 
   const {
     data: clubs = [],
@@ -51,6 +77,25 @@ export default function ClubMainPage() {
     enabled: !!selectedClubId,
   });
 
+  const coffeeChatProfileQueries = useQueries({
+    queries: members.map((member) => {
+      const memberUserId = member.userId ?? member.id;
+
+      return {
+        queryKey: ["coffeeChatProfile", memberUserId],
+        queryFn: () => getCoffeeChatProfile(memberUserId),
+        enabled: !!memberUserId,
+      };
+    }),
+  });
+
+  const coffeeChatProfilesByUserId = Object.fromEntries(
+    members.map((member, index) => [
+      Number(member.userId ?? member.id),
+      coffeeChatProfileQueries[index]?.data,
+    ])
+  );
+
   const roleMap = {
     PRESIDENT: "대표",
     STAFF: "운영진",
@@ -64,7 +109,6 @@ export default function ClubMainPage() {
     .toUpperCase();
 
   const canManageClub = ["PRESIDENT", "STAFF"].includes(myRole);
-  const isPresident = myRole === "PRESIDENT";
 
   const {
     data: postsData,
@@ -186,16 +230,32 @@ export default function ClubMainPage() {
 
           <div className="flex items-center gap-3">
             <div className="flex items-center">
-              {previewMembers.map((member, index) => (
-                <img
-                  key={member.userId}
-                  src={member.profileImage || "https://placehold.co/48x48"}
-                  alt="멤버 프로필"
-                  className={`h-8 w-8 rounded-full border-2 border-slate-50 object-cover ${
-                    index !== 0 ? "-ml-2" : ""
-                  }`}
-                />
-              ))}
+              {previewMembers.map((member, index) => {
+                const profileImage = getMemberProfileImage(
+                  member,
+                  coffeeChatProfilesByUserId
+                );
+
+                return profileImage ? (
+                  <img
+                    key={member.userId}
+                    src={profileImage}
+                    alt="멤버 프로필"
+                    className={`h-8 w-8 rounded-full border-2 border-slate-50 object-cover ${
+                      index !== 0 ? "-ml-2" : ""
+                    }`}
+                  />
+                ) : (
+                  <div
+                    key={member.userId}
+                    className={`flex h-8 w-8 items-center justify-center rounded-full border-2 border-slate-50 bg-slate-300 text-xs font-bold text-slate-600 ${
+                      index !== 0 ? "-ml-2" : ""
+                    }`}
+                  >
+                    {getMemberInitial(member.name)}
+                  </div>
+                );
+              })}
             </div>
 
             <p className="text-base text-slate-900/60">
@@ -271,26 +331,39 @@ export default function ClubMainPage() {
             ) : isMembersError ? (
               <p>멤버 정보를 불러오지 못했습니다.</p>
             ) : (
-              currentMembers.map((member) => (
-                <div
-                  key={member.userId}
-                  className="flex h-14 items-center gap-3 border-b border-slate-300"
-                >
-                  <img
-                    src={member.profileImage || "https://placehold.co/48x48"}
-                    alt={`${member.name} 프로필`}
-                    className="h-10 w-10 rounded-full object-cover"
-                  />
-                  <div className="flex flex-col">
-                    <span className="text-sm font-bold text-gray-900">
-                      {member.name}
-                    </span>
-                    <span className="text-sm text-slate-900/60">
-                      {roleMap[member.role] ?? member.role}
-                    </span>
+              currentMembers.map((member) => {
+                const profileImage = getMemberProfileImage(
+                  member,
+                  coffeeChatProfilesByUserId
+                );
+
+                return (
+                  <div
+                    key={member.userId}
+                    className="flex h-14 items-center gap-3 border-b border-slate-300"
+                  >
+                    {profileImage ? (
+                      <img
+                        src={profileImage}
+                        alt={`${member.name} 프로필`}
+                        className="h-10 w-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-300 text-sm font-bold text-slate-600">
+                        {getMemberInitial(member.name)}
+                      </div>
+                    )}
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-gray-900">
+                        {member.name}
+                      </span>
+                      <span className="text-sm text-slate-900/60">
+                        {roleMap[member.role] ?? member.role}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </section>
         ) : (

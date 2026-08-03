@@ -35,7 +35,11 @@ export default function CoffeeChatProfilePage() {
     clubName: Array.isArray(data?.clubs)
       ? data.clubs[0] ?? ""
       : data?.clubs ?? "",
-    image: data?.profileImage ?? "https://placehold.co/250x250",
+    image:
+      coffeeChatProfile?.profileImage ??
+      coffeeChatProfile?.profileImageUrl ??
+      data?.profileImage ??
+      "https://placehold.co/250x250",
   };
 
   const profile = {

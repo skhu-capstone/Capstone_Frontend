@@ -1,12 +1,24 @@
+const DEFAULT_PROFILE_IMAGE = "https://placehold.co/168x168";
+
+const getProfileImageUrl = (url) => {
+  if (!url) return DEFAULT_PROFILE_IMAGE;
+  if (url.startsWith("http") || url.startsWith("blob:")) return url;
+
+  const fixedUrl = url.startsWith("/") ? url : `/${url}`;
+  return `${import.meta.env.VITE_API_BASE_URL}${fixedUrl}`;
+};
+
 function CoffeeChatListCard({
   id, // coffeeChatProfileId 받아옴
   name = "이름", // name 받아옴
   headline = "한 줄 소개", // headline 받아옴
   interest = "관심 분야 없음", // interestTopics 받아옴
   clubName = "동아리 없음", // clubName 받아옴
-  image = "https://placehold.co/168x168", // profileImage 받아옴
+  image = DEFAULT_PROFILE_IMAGE, // profileImage 받아옴
   onClick, // 페이지 이동
 }) {
+  const profileImageUrl = getProfileImageUrl(image);
+
   return (
     <div 
       onClick={onClick}
@@ -16,7 +28,7 @@ function CoffeeChatListCard({
       hover:outline-offset-2 hover:outline-blue-700">
     
       {/* 프로필 이미지 */}
-      <img className="w-40 h-full object-cover" src={image} alt={name}/>
+      <img className="w-40 h-full object-cover" src={profileImageUrl} alt={name}/>
 
       {/* 내용 영역 */}
       <div className="flex-1 px-5 py-6 flex flex-col justify-center gap-2">

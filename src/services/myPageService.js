@@ -45,3 +45,21 @@ export const updateCoffeeChatVisibility = async (isPublic) => {
 
   return response.data.data;
 };
+
+// 프로필 이미지 변경
+export const uploadProfileImage = async ({ userId, file }) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await axios.post(
+    `${BASE_URL}/api/coffeechat/profiles/${userId}/image`,
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    }
+  );
+
+  return response.data.data;
+};

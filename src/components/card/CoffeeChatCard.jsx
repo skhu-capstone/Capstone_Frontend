@@ -1,13 +1,24 @@
 import { useNavigate } from "react-router-dom";
 
+const DEFAULT_PROFILE_IMAGE = "https://placehold.co/206x206";
+
+const getProfileImageUrl = (url) => {
+  if (!url) return DEFAULT_PROFILE_IMAGE;
+  if (url.startsWith("http") || url.startsWith("blob:")) return url;
+
+  const fixedUrl = url.startsWith("/") ? url : `/${url}`;
+  return `${import.meta.env.VITE_API_BASE_URL}${fixedUrl}`;
+};
+
 function CoffeeChatCard({
   id, // coffeeChatProfileId 받아옴
   name = "", // name 받아옴
   interestTopics = "", // interestTopics 받아옴
   meetingType = "", // meetingType 받아옴. online/offline 으로 받는다고 해서 한글로 바꾸는 작업 추가 예정
-  profileImage = "https://placehold.co/206x206", // profileImage 받아옴
+  profileImage = DEFAULT_PROFILE_IMAGE, // profileImage 받아옴
 }) {
   const navigate = useNavigate();
+  const profileImageUrl = getProfileImageUrl(profileImage);
 
   return (
     <div className="w-102 h-125.75 px-6 py-4 bg-white rounded-2xl shadow-[0px_8px_24px_rgba(0,0,0,0.08)] 
@@ -15,10 +26,10 @@ function CoffeeChatCard({
     hover:scale-[1.02] hover:-translate-y-5 hover:outline-[3px] hover:outline-offset-[-3px] hover:outline-blue-700"
     >
       <div className="flex flex-col items-center gap-7">
-        {profileImage ? (
+        {profileImageUrl ? (
           <img
             className="w-52 h-52 rounded-full object-cover"
-            src={profileImage}
+            src={profileImageUrl}
             alt={`${name} 프로필 이미지`}
             referrerPolicy="no-referrer"
           />
