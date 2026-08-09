@@ -6,12 +6,17 @@ const roleText = {
 
 const DEFAULT_PROFILE_IMAGE = "https://placehold.co/250x250";
 
-const getProfileImageUrl = (url) => {
-  if (!url) return DEFAULT_PROFILE_IMAGE;
-  if (url.startsWith("http") || url.startsWith("blob:")) return url;
+const getProfileImageUrl = (image) => {
+  if (!image) return DEFAULT_PROFILE_IMAGE;
+  if (typeof image === "string") return image;
 
-  const fixedUrl = url.startsWith("/") ? url : `/${url}`;
-  return `${import.meta.env.VITE_API_BASE_URL}${fixedUrl}`;
+  return (
+    image.profileImageUrl ??
+    image.imageUrl ??
+    image.url ??
+    image.profileImage ??
+    DEFAULT_PROFILE_IMAGE
+  );
 };
 
 function MyPageCard({

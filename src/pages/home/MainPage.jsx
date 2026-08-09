@@ -35,6 +35,21 @@ export default function MainPage() {
   }, [feeds]);
   console.log(randomCoffeeChats);
 
+  const getWriterProfileImage = (feed) => {
+    return [
+      feed.writerCoffeeChatProfileImageUrl,
+      feed.writerGoogleProfileImageUrl,
+      feed.writerProfileImageUrl,
+      feed.writerProfileImage,
+      feed.profileImageUrl,
+      feed.profileImage,
+      feed.writer?.coffeeChatProfileImageUrl,
+      feed.writer?.googleProfileImageUrl,
+      feed.writer?.profileImageUrl,
+      feed.writer?.profileImage,
+    ].find((url) => typeof url === "string" && url.trim().length > 0);
+  };
+
   // 메인 협업 목록에는 동아리 협업 글과 프로젝트 모집 글이 섞여 들어올 수 있음
   const getCollaborationType = (collabo) => {
     if (collabo.type === "project" || collabo.type === "PROJECT") return "project";
@@ -61,7 +76,7 @@ export default function MainPage() {
                 key={coffeeChat.coffeeChatProfileId}
                 id={coffeeChat.coffeeChatProfileId}
                 name={coffeeChat.name}
-                profileImage={coffeeChat.profileImageUrl ?? coffeeChat.profileImage}
+                profileImage={coffeeChat}
                 interestTopics={coffeeChat.interestTopics}
                 meetingType={coffeeChat.meetingType}
               />
@@ -107,7 +122,7 @@ export default function MainPage() {
                 id={feed.postId}
                 author={feed.writerName}
                 date={feed.createdAt}
-                profileImage=""
+                profileImage={getWriterProfileImage(feed)}
                 image={feed.imageUrls?.[0]}
                 content={feed.content}
               />

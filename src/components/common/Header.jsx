@@ -14,7 +14,8 @@ import {
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getMyPage } from "../../services/myPageService";
 
 const NAV_ITEMS = [
   { label: "홈", icon: Home, href: "/" },
@@ -42,6 +43,17 @@ export default function Header() {
 
   // 로그인된 유저 정보 (email, name, profileImage, isVerified 등)
   const { user } = useAuth();
+  const accessToken = localStorage.getItem("accessToken");
+  const { data: myPageData } = useQuery({
+    queryKey: ["myPage"],
+    queryFn: getMyPage,
+    enabled: !!user && !!accessToken,
+  });
+  const profileImageUrl =
+    myPageData?.coffeeChatProfile?.profileImageUrl ??
+    myPageData?.profileImageUrl ??
+    user?.profileImageUrl ??
+    user?.profileImage;
 
   const queryClient = useQueryClient();
 
@@ -200,10 +212,10 @@ export default function Header() {
               className="w-10 h-10 rounded-full flex items-center justify-center border border-white/50 bg-white/20 hover:bg-white/35 transition-colors duration-150 cursor-pointer"
               aria-label="프로필"
             >
-              {/* 구글 프로필 사진이 있으면 표시, 없으면 기본 아이콘 */}
-              {user?.profileImage ? (
+              {/* 수정한 프로필 사진이 있으면 표시하고, 없으면 구글 프로필 사진을 표시 */}
+              {profileImageUrl ? (
                 <img
-                  src={user.profileImage}
+                  src={profileImageUrl}
                   alt="프로필"
                   className="w-full h-full rounded-full object-cover"
                   referrerPolicy="no-referrer"

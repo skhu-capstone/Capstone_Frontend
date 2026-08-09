@@ -1,7 +1,7 @@
 // 프로필 이미지 관련해서 api가 수정되면 다시 수정해야 함
 
 import { useState, useEffect } from "react";
-import { useMutation, useQuery} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import MyPageCard from "../../components/card/MyPageCard";
 import InputLabel from "../../components/card/InputLabel";
 import EditInputLabel from "../../components/card/EditInputLabel";
@@ -10,18 +10,24 @@ import { useAuth } from "../../context/AuthContext";
 
 const DEFAULT_PROFILE_IMAGE = "https://placehold.co/250x250";
 
-const getProfileImageUrl = (url) => {
-  if (!url) return DEFAULT_PROFILE_IMAGE;
-  if (url.startsWith("http") || url.startsWith("blob:")) return url;
+const getProfileImageUrl = (image) => {
+  if (!image) return DEFAULT_PROFILE_IMAGE;
+  if (typeof image === "string") return image;
 
-  const fixedUrl = url.startsWith("/") ? url : `/${url}`;
-  return `${import.meta.env.VITE_API_BASE_URL}${fixedUrl}`;
+  return (
+    image.profileImageUrl ??
+    image.imageUrl ??
+    image.url ??
+    image.profileImage ??
+    DEFAULT_PROFILE_IMAGE
+  );
 };
 
 export default function MyPage() {
   const [isEditing, setIsEditing] = useState(false); // 수정
   const [isVisible, setIsVisible] = useState(false); // 커피챗 공개 여부
   const { user: authUser } = useAuth();
+  const queryClient = useQueryClient();
   const [selectedImageFile, setSelectedImageFile] = useState(null);
   const [previewImage, setPreviewImage] = useState("");
 
@@ -30,7 +36,7 @@ export default function MyPage() {
     email: "",
     schoolEmail: "",
     clubName: "",
-    image: getProfileImageUrl(authUser?.profileImage),
+    image: getProfileImageUrl(authUser?.profileImageUrl ?? authUser?.profileImage),
   });
 
   const [profile, setProfile] = useState({
@@ -40,7 +46,7 @@ export default function MyPage() {
     link: "",
     shortIntro: "",
     intro: "",
-    image: getProfileImageUrl(authUser?.profileImage),
+    image: getProfileImageUrl(authUser?.profileImageUrl ?? authUser?.profileImage),
   });
 
   const [tempProfile, setTempProfile] = useState(profile);
@@ -61,7 +67,9 @@ export default function MyPage() {
       email: data.email ?? "",
       schoolEmail: data.schoolEmail ?? "",
       clubName: data.clubs?.[0] ?? "",
-      image: getProfileImageUrl(data.profileImage || authUser?.profileImage),
+      image: getProfileImageUrl(
+        data.profileImageUrl ?? data.profileImage ?? authUser?.profileImageUrl ?? authUser?.profileImage
+      ),
     });
 
     const newProfile = {
@@ -73,8 +81,9 @@ export default function MyPage() {
       intro: coffeeChatProfile?.introduction ?? "",
       image:
         getProfileImageUrl(
-          coffeeChatProfile?.profileImage ??
-            coffeeChatProfile?.profileImageUrl ??
+          coffeeChatProfile?.profileImageUrl ??
+            coffeeChatProfile?.profileImage ??
+            authUser?.profileImageUrl ??
             authUser?.profileImage
         ),
     };
@@ -128,6 +137,7 @@ export default function MyPage() {
       setProfile((prev) => ({ ...prev, image: nextImageUrl }));
       setTempProfile((prev) => ({ ...prev, image: nextImageUrl }));
       setSelectedImageFile(null);
+      queryClient.invalidateQueries({ queryKey: ["myPage"] });
       alert("커피챗 프로필 이미지가 변경되었습니다.");
     },
     onError: (error) => {

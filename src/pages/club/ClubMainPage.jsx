@@ -1,9 +1,8 @@
 import { useState } from "react";
 import FeedCard from "../../components/card/FeedCard";
 import ClubCalendar from "../../components/card/ClubCalendar";
-import { useQueries, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { getMyClubs, getClubMembers, getClubPosts } from "../../services/clubService";
-import { getCoffeeChatProfile } from "../../services/coffeeChatProfileService";
 import { useNavigate } from "react-router-dom";
 
 export default function ClubMainPage() {
@@ -14,34 +13,28 @@ export default function ClubMainPage() {
 
   const getImageUrl = (url) => {
     if (!url) return "https://placehold.co/600x250";
-    if (url.startsWith("http")) return url;
-    const fixedUrl = url.startsWith("/uploads")
-      ? url
-      : `/uploads${url}`;
-    return `${import.meta.env.VITE_API_BASE_URL}${fixedUrl}`;
+    return url;
   };
 
-  const getProfileImageUrl = (url) => {
-    if (!url) return "";
-    if (url.startsWith("http") || url.startsWith("blob:")) return url;
-
-    const fixedUrl = url.startsWith("/") ? url : `/${url}`;
-    return `${import.meta.env.VITE_API_BASE_URL}${fixedUrl}`;
-  };
-
-  const getMemberProfileImage = (member, coffeeChatProfilesByUserId) => {
-    const coffeeChatProfile =
-      coffeeChatProfilesByUserId[Number(member.userId ?? member.id)]
-        ?.coffeeChatProfile;
-
-    return getProfileImageUrl(
-      coffeeChatProfile?.profileImage ??
-        coffeeChatProfile?.profileImageUrl ??
-        member.coffeeChatProfileImage ??
-        member.coffeeChatProfileImageUrl ??
-        member.coffeeChatProfile?.profileImage ??
-        member.coffeeChatProfile?.profileImageUrl
+  const getMemberProfileImage = (member) => {
+    return [member.coffeeChatProfileImageUrl, member.profileImage].find(
+      (url) => typeof url === "string" && url.trim().length > 0
     );
+  };
+
+  const getWriterProfileImage = (feed) => {
+    return [
+      feed.writerCoffeeChatProfileImageUrl,
+      feed.writerGoogleProfileImageUrl,
+      feed.writerProfileImageUrl,
+      feed.writerProfileImage,
+      feed.profileImageUrl,
+      feed.profileImage,
+      feed.writer?.coffeeChatProfileImageUrl,
+      feed.writer?.googleProfileImageUrl,
+      feed.writer?.profileImageUrl,
+      feed.writer?.profileImage,
+    ].find((url) => typeof url === "string" && url.trim().length > 0);
   };
 
   const getMemberInitial = (name = "") => name.trim().slice(0, 1) || "?";
@@ -77,25 +70,6 @@ export default function ClubMainPage() {
     enabled: !!selectedClubId,
   });
 
-  const coffeeChatProfileQueries = useQueries({
-    queries: members.map((member) => {
-      const memberUserId = member.userId ?? member.id;
-
-      return {
-        queryKey: ["coffeeChatProfile", memberUserId],
-        queryFn: () => getCoffeeChatProfile(memberUserId),
-        enabled: !!memberUserId,
-      };
-    }),
-  });
-
-  const coffeeChatProfilesByUserId = Object.fromEntries(
-    members.map((member, index) => [
-      Number(member.userId ?? member.id),
-      coffeeChatProfileQueries[index]?.data,
-    ])
-  );
-
   const roleMap = {
     PRESIDENT: "대표",
     STAFF: "운영진",
@@ -125,7 +99,17 @@ export default function ClubMainPage() {
     enabled: !!selectedClubId,
   });
 
-  const feeds = postsData?.content ?? [];
+  const feeds = Array.isArray(postsData)
+    ? postsData
+    : Array.isArray(postsData?.content)
+      ? postsData.content
+      : postsData
+        ? [postsData]
+        : [];
+
+  const membersByName = Object.fromEntries(
+    members.map((member) => [member.name, member])
+  );
 
   console.log(feeds);
 
@@ -231,10 +215,7 @@ export default function ClubMainPage() {
           <div className="flex items-center gap-3">
             <div className="flex items-center">
               {previewMembers.map((member, index) => {
-                const profileImage = getMemberProfileImage(
-                  member,
-                  coffeeChatProfilesByUserId
-                );
+                const profileImage = getMemberProfileImage(member);
 
                 return profileImage ? (
                   <img
@@ -317,7 +298,10 @@ export default function ClubMainPage() {
                   id={feed.postId}
                   author={feed.writerName}
                   date={feed.createdAt}
-                  profileImage="https://placehold.co/48x48"
+                  profileImage={
+                    getWriterProfileImage(feed) ??
+                    getMemberProfileImage(membersByName[feed.writerName] ?? {})
+                  }
                   image={getImageUrl(feed.imageUrls?.[0])}
                   content={feed.content}
                 />
@@ -332,10 +316,7 @@ export default function ClubMainPage() {
               <p>멤버 정보를 불러오지 못했습니다.</p>
             ) : (
               currentMembers.map((member) => {
-                const profileImage = getMemberProfileImage(
-                  member,
-                  coffeeChatProfilesByUserId
-                );
+                const profileImage = getMemberProfileImage(member);
 
                 return (
                   <div

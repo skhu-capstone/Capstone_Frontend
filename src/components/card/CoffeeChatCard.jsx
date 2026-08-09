@@ -2,12 +2,22 @@ import { useNavigate } from "react-router-dom";
 
 const DEFAULT_PROFILE_IMAGE = "https://placehold.co/206x206";
 
-const getProfileImageUrl = (url) => {
-  if (!url) return DEFAULT_PROFILE_IMAGE;
-  if (url.startsWith("http") || url.startsWith("blob:")) return url;
+const getProfileImageUrl = (image) => {
+  if (!image) return DEFAULT_PROFILE_IMAGE;
+  if (typeof image === "string") return image;
 
-  const fixedUrl = url.startsWith("/") ? url : `/${url}`;
-  return `${import.meta.env.VITE_API_BASE_URL}${fixedUrl}`;
+  return [
+    image.profileImageUrl,
+    image.coffeeChatProfileImageUrl,
+    image.googleProfileImageUrl,
+    image.googleProfileImage,
+    image.oauthProfileImageUrl,
+    image.oauthProfileImage,
+    image.imageUrl,
+    image.url,
+    image.profileImage,
+  ].find((url) => typeof url === "string" && url.trim().length > 0) ??
+    DEFAULT_PROFILE_IMAGE;
 };
 
 function CoffeeChatCard({

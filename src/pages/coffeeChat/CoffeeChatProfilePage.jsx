@@ -36,8 +36,9 @@ export default function CoffeeChatProfilePage() {
       ? data.clubs[0] ?? ""
       : data?.clubs ?? "",
     image:
-      coffeeChatProfile?.profileImage ??
       coffeeChatProfile?.profileImageUrl ??
+      coffeeChatProfile?.profileImage ??
+      data?.profileImageUrl ??
       data?.profileImage ??
       "https://placehold.co/250x250",
   };
