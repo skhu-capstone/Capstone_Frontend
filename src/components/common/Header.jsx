@@ -23,21 +23,28 @@ const NAV_ITEMS = [
     label: "동아리",
     icon: Users,
     children: [
+      { label: "내 동아리", icon: Users, href: "/club/main" },
       { label: "동아리 신청", icon: ClipboardCheck, href: "/club/apply" },
       { label: "동아리 생성", icon: Plus, href: "/club/create" },
     ],
   },
   { label: "협업/모집", icon: Globe, href: "/cooperation" },
-  { label: "커피챗", icon: Coffee, href: "/coffee-chat" },
+  { label: "커피챗", 
+    icon: Coffee,
+    children: [
+      { label: "커피챗", href: "/coffee-chat" },
+      { label: "유저 리스트", href: "/coffee-chat/user-list"},
+    ]
+  },
   { label: "마이페이지", icon: User, href: "/my-page" },
 ];
 
 export default function Header() {
   const [profileOpen, setProfileOpen] = useState(false);
-  const [clubMenuOpen, setClubMenuOpen] = useState(false);
+  const [openMenuLabel, setOpenMenuLabel] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const profileRef = useRef(null);
-  const clubMenuRef = useRef(null);
+  const navMenuRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -63,8 +70,8 @@ export default function Header() {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
         setProfileOpen(false);
       }
-      if (clubMenuRef.current && !clubMenuRef.current.contains(e.target)) {
-        setClubMenuOpen(false);
+      if (navMenuRef.current && !navMenuRef.current.contains(e.target)) {
+        setOpenMenuLabel(null);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -89,6 +96,7 @@ export default function Header() {
 
   const handleNavClick = (href) => {
     setMobileMenuOpen(false);
+    setOpenMenuLabel(null);
     navigate(href);
   };
 
@@ -104,7 +112,7 @@ export default function Header() {
         </div>
 
         {/* 데스크탑 네비 (md 이상에서만 표시) */}
-        <div className="hidden md:flex justify-end pr-2">
+        <div className="hidden md:flex justify-end pr-2" ref={navMenuRef}>
           <div className="bg-white rounded-2xl px-2 py-1.5">
             <nav className="flex items-center gap-1">
               {NAV_ITEMS.map(({ label, icon: Icon, href, children }) => {
@@ -118,11 +126,15 @@ export default function Header() {
 
                 if (children) {
                   return (
-                    <div key={label} className="relative" ref={clubMenuRef}>
+                    <div key={label} className="relative">
                       <button
                         type="button"
-                        onClick={() => setClubMenuOpen((open) => !open)}
-                        aria-expanded={clubMenuOpen}
+                        onClick={() =>
+                          setOpenMenuLabel((openLabel) =>
+                            openLabel === label ? null : label
+                          )
+                        }
+                        aria-expanded={openMenuLabel === label}
                         aria-haspopup="menu"
                         style={{ color: isActive ? "#432DD7" : "#4A5565" }}
                         className={[
@@ -138,11 +150,11 @@ export default function Header() {
                         {label}
                         <ChevronDown
                           size={14}
-                          className={`transition-transform ${clubMenuOpen ? "rotate-180" : ""}`}
+                          className={`transition-transform ${openMenuLabel === label ? "rotate-180" : ""}`}
                         />
                       </button>
 
-                      {clubMenuOpen && (
+                      {openMenuLabel === label && (
                         <div className="absolute left-0 top-full mt-2 w-40 overflow-hidden rounded-xl border border-gray-100 bg-white py-1 shadow-lg z-50" role="menu">
                           {children.map(({ label: childLabel, icon: ChildIcon, href: childHref }) => (
                             <button
@@ -150,12 +162,12 @@ export default function Header() {
                               type="button"
                               role="menuitem"
                               onClick={() => {
-                                setClubMenuOpen(false);
+                                setOpenMenuLabel(null);
                                 navigate(childHref);
                               }}
                               className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
                             >
-                              {createElement(ChildIcon, { size: 16, strokeWidth: 2 })}
+                              {createElement(ChildIcon ?? Icon, { size: 16, strokeWidth: 2 })}
                               {childLabel}
                             </button>
                           ))}
@@ -291,7 +303,11 @@ export default function Header() {
                   <div key={label}>
                     <button
                       type="button"
-                      onClick={() => setClubMenuOpen((open) => !open)}
+                      onClick={() =>
+                        setOpenMenuLabel((openLabel) =>
+                          openLabel === label ? null : label
+                        )
+                      }
                       className={[
                         "flex w-full items-center gap-3 px-4 py-3 rounded-xl text-sm text-left cursor-pointer",
                         isActive ? "bg-white/30 font-semibold text-white" : "text-white/90 hover:bg-white/20",
@@ -299,9 +315,9 @@ export default function Header() {
                     >
                       {createElement(Icon, { size: 18, strokeWidth: 2 })}
                       <span className="flex-1">{label}</span>
-                      <ChevronDown size={16} className={`transition-transform ${clubMenuOpen ? "rotate-180" : ""}`} />
+                      <ChevronDown size={16} className={`transition-transform ${openMenuLabel === label ? "rotate-180" : ""}`} />
                     </button>
-                    {clubMenuOpen && (
+                    {openMenuLabel === label && (
                       <div className="ml-7 flex flex-col border-l border-white/30 pl-2">
                         {children.map(({ label: childLabel, icon: ChildIcon, href: childHref }) => (
                           <button
@@ -310,7 +326,7 @@ export default function Header() {
                             onClick={() => handleNavClick(childHref)}
                             className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-left text-sm text-white/90 hover:bg-white/20 cursor-pointer"
                           >
-                            {createElement(ChildIcon, { size: 16, strokeWidth: 2 })}
+                            {createElement(ChildIcon ?? Icon, { size: 16, strokeWidth: 2 })}
                             {childLabel}
                           </button>
                         ))}
