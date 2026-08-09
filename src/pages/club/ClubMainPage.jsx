@@ -82,6 +82,7 @@ export default function ClubMainPage() {
     ?.role?.trim()
     .toUpperCase();
 
+  const isPresident = myRole === "PRESIDENT";
   const canManageClub = ["PRESIDENT", "STAFF"].includes(myRole);
 
   const {
@@ -192,9 +193,9 @@ export default function ClubMainPage() {
             </button>
 
             <div className="flex items-center gap-3">
-              {canManageClub && (
+              {isPresident && (
                 <button
-                  onClick={() => navigate("/club/president")}
+                  onClick={() => navigate(`/club/president/${selectedClubId}`)}
                   className="h-12 rounded-xl border border-sky-700/30 bg-white px-5 text-sm font-semibold text-sky-700 hover:border-sky-700 hover:bg-sky-50"
                 >
                   대표 관리

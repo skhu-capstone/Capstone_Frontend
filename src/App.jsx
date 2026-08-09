@@ -42,7 +42,7 @@ export default function App() {
           element={<CoffeeChatUserListPage />}
         />
         <Route path="/club/post" element={<ClubPostPage />} />
-        <Route path="/club/president" element={<PresidentPage />} />
+        <Route path="/club/president/:clubId" element={<PresidentPage />} />
         <Route
           path="/clubs/:clubId/posts/create"
           element={<ClubPostCreatePage />}
