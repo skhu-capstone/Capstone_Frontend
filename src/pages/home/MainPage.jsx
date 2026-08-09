@@ -74,7 +74,7 @@ export default function MainPage() {
             {randomCoffeeChats.map((coffeeChat) => (
               <CoffeeChatCard
                 key={coffeeChat.coffeeChatProfileId}
-                id={coffeeChat.coffeeChatProfileId}
+                id={coffeeChat.userId}
                 name={coffeeChat.name}
                 profileImage={coffeeChat}
                 interestTopics={coffeeChat.interestTopics}

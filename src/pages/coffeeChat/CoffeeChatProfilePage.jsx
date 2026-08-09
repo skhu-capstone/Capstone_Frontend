@@ -4,6 +4,8 @@ import InputLabel from "../../components/card/InputLabel";
 import { useQuery } from "@tanstack/react-query";
 import { getCoffeeChatProfile } from "../../services/coffeeChatProfileService";
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
+
 export default function CoffeeChatProfilePage() {
   const navigate = useNavigate();
   const { userId } = useParams();
@@ -14,9 +16,38 @@ export default function CoffeeChatProfilePage() {
     enabled: !!userId, // userId가 있을 때만 호출하기 (이상한 값 방지)
   })
 
-  // 추후 채팅 페이지 나오면 변겨할 예정
-  const handleChatClick = () => {
-    navigate("/");
+  const handleChatClick = async () => {
+    if (!userId) {
+      navigate("/coffee-chat");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("accessToken");
+      const response = await fetch(`${API_BASE}/api/chat/rooms`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+        body: JSON.stringify({ targetUserId: Number(userId) }),
+      });
+      const result = await response.json();
+
+      if (response.ok && result.success && result.data?.chatRoomId) {
+        navigate("/coffee-chat", {
+          state: {
+            roomId: result.data.chatRoomId,
+          },
+        });
+        return;
+      }
+
+      navigate("/coffee-chat");
+    } catch (error) {
+      console.error("[CoffeeChatProfilePage] 채팅방 생성 실패", error);
+      navigate("/coffee-chat");
+    }
   };
 
   if (isLoading) {
