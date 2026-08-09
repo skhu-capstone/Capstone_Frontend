@@ -51,16 +51,18 @@ export default function Header() {
   // 로그인된 유저 정보 (email, name, profileImage, isVerified 등)
   const { user } = useAuth();
   const accessToken = localStorage.getItem("accessToken");
+  const isLoggedIn = !!user && !!accessToken;
   const { data: myPageData } = useQuery({
     queryKey: ["myPage"],
     queryFn: getMyPage,
-    enabled: !!user && !!accessToken,
+    enabled: isLoggedIn,
   });
-  const profileImageUrl =
-    myPageData?.coffeeChatProfile?.profileImageUrl ??
-    myPageData?.profileImageUrl ??
-    user?.profileImageUrl ??
-    user?.profileImage;
+  const profileImageUrl = isLoggedIn
+    ? myPageData?.coffeeChatProfile?.profileImageUrl ??
+      myPageData?.profileImageUrl ??
+      user?.profileImageUrl ??
+      user?.profileImage
+    : null;
 
   const queryClient = useQueryClient();
 
@@ -225,7 +227,7 @@ export default function Header() {
               aria-label="프로필"
             >
               {/* 수정한 프로필 사진이 있으면 표시하고, 없으면 구글 프로필 사진을 표시 */}
-              {profileImageUrl ? (
+              {isLoggedIn && profileImageUrl ? (
                 <img
                   src={profileImageUrl}
                   alt="프로필"
@@ -239,10 +241,10 @@ export default function Header() {
 
             {profileOpen && (
               <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden z-50">
-                <div className="px-4 py-3 border-b border-gray-100">
-                  {/* 로그인된 경우 이름 + 이메일, 아닌 경우 안내 문구 */}
-                  {user ? (
-                    <>
+                {isLoggedIn ? (
+                  <>
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      {/* 로그인된 경우 이름 + 이메일 표시 */}
                       {user.name && (
                         <p className="text-xs text-gray-500 mb-0.5">
                           {user.name}
@@ -251,34 +253,40 @@ export default function Header() {
                       <p className="text-sm font-medium text-gray-800 truncate">
                         {user.email}
                       </p>
-                    </>
-                  ) : (
-                    <p className="text-sm text-gray-400">로그인 정보 없음</p>
-                  )}
-                </div>
+                    </div>
 
-                <button
-                  onClick={handleAddAccount}
-                  className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150 border-b border-gray-100 cursor-pointer"
-                >
-                  <span className="w-5 h-5 rounded-full border border-gray-400 flex items-center justify-center shrink-0">
-                    <Plus
-                      size={12}
-                      strokeWidth={2.5}
-                      className="text-gray-500"
-                    />
-                  </span>
-                  다른 계정으로 로그인
-                </button>
+                    <button
+                      onClick={handleAddAccount}
+                      className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150 border-b border-gray-100 cursor-pointer"
+                    >
+                      <span className="w-5 h-5 rounded-full border border-gray-400 flex items-center justify-center shrink-0">
+                        <Plus
+                          size={12}
+                          strokeWidth={2.5}
+                          className="text-gray-500"
+                        />
+                      </span>
+                      다른 계정으로 로그인
+                    </button>
 
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-2.5 px-4 py-3 text-sm transition-colors duration-150 hover:bg-gray-50 cursor-pointer"
-                  style={{ color: "#432DD7" }}
-                >
-                  <LogOut size={15} strokeWidth={2} />
-                  로그아웃
-                </button>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2.5 px-4 py-3 text-sm transition-colors duration-150 hover:bg-gray-50 cursor-pointer"
+                      style={{ color: "#432DD7" }}
+                    >
+                      <LogOut size={15} strokeWidth={2} />
+                      로그아웃
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={handleAddAccount}
+                    className="w-full flex items-center gap-2.5 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
+                  >
+                    <User size={15} strokeWidth={2} />
+                    로그인
+                  </button>
+                )}
               </div>
             )}
           </div>
