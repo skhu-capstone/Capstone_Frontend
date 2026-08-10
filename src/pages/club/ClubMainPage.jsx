@@ -1,15 +1,22 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import FeedCard from "../../components/card/FeedCard";
 import ClubCalendar from "../../components/card/ClubCalendar";
 import { useQuery } from "@tanstack/react-query";
 import { getMyClubs, getClubMembers, getClubPosts } from "../../services/clubService";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+
+const VALID_TABS = ["feeds", "members", "calendar"];
 
 export default function ClubMainPage() {
-  const [activeTab, setActiveTab] = useState("feeds"); // 탭 상태
   const [currentFeedPage, setCurrentFeedPage] = useState(1); // 피드 페이지 번호
   const [currentMemberPage, setCurrentMemberPage] = useState(1); // 멤버 페이지 번호
+  const [isClubMenuOpen, setIsClubMenuOpen] = useState(false);
+  const clubMenuRef = useRef(null);
   const navigate = useNavigate();
+  const { clubId } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const activeTab = VALID_TABS.includes(tabParam) ? tabParam : "feeds";
 
   const getImageUrl = (url) => {
     if (!url) return "https://placehold.co/600x250";
@@ -48,17 +55,49 @@ export default function ClubMainPage() {
     queryFn: getMyClubs,
   });
 
-  // 동아리 존재 여부
   const hasClub = clubs.length > 0;
+  const routeClubId = Number(clubId);
+  const hasRouteClubId = Number.isFinite(routeClubId);
 
-  // 첫 번째로 속한 동아리를 메인으로
-  const selectedClub = clubs[0];
+  const selectedClub = hasRouteClubId
+    ? clubs.find((club) => Number(club.clubId) === routeClubId)
+    : clubs[0];
 
   const selectedClubId = selectedClub?.clubId;
-  const loginUser = JSON.parse(localStorage.getItem("user"));
+  const loginUser = parseStoredUser();
 
-  console.log("selectedClub", selectedClub);
-  console.log("selectedClubId", selectedClubId);
+  useEffect(() => {
+    if (isLoading || !hasClub) return;
+
+    if (!hasRouteClubId) {
+      navigate(`/club/main/${clubs[0].clubId}?tab=${activeTab}`, { replace: true });
+      return;
+    }
+
+  }, [activeTab, clubs, hasClub, hasRouteClubId, isLoading, navigate]);
+
+  useEffect(() => {
+    setCurrentFeedPage(1);
+    setCurrentMemberPage(1);
+    setIsClubMenuOpen(false);
+  }, [selectedClubId]);
+
+  useEffect(() => {
+    if (tabParam && !VALID_TABS.includes(tabParam)) {
+      setSearchParams({ tab: "feeds" }, { replace: true });
+    }
+  }, [setSearchParams, tabParam]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (clubMenuRef.current && !clubMenuRef.current.contains(event.target)) {
+        setIsClubMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const {
     data: members = [],
@@ -112,8 +151,6 @@ export default function ClubMainPage() {
     members.map((member) => [member.name, member])
   );
 
-  console.log(feeds);
-
   const totalFeedPages = postsData?.totalPages ?? 0;
 
   if (isLoading) {
@@ -132,11 +169,54 @@ export default function ClubMainPage() {
             소속된 동아리가 없습니다. 동아리에 참여하거나 만들어보세요!
           </h1>
           <div className="flex items-center gap-8">
-            <button className="h-18 w-62.5 rounded-[20px] bg-zinc-400 text-2xl font-bold text-white">
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="h-18 w-62.5 rounded-[20px] bg-zinc-400 text-2xl font-bold text-white"
+            >
               메인으로 돌아가기
             </button>
-            <button className="h-18 w-62.5 rounded-[20px] bg-blue-600 text-2xl font-bold text-white">
+            <button
+              type="button"
+              onClick={() => navigate("/club/create")}
+              className="h-18 w-62.5 rounded-[20px] bg-blue-600 text-2xl font-bold text-white"
+            >
               동아리 생성하기
+            </button>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  if (!selectedClub) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-slate-50 px-12">
+        <section className="flex max-w-xl flex-col items-center gap-8 rounded-2xl bg-white px-12 py-14 text-center shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)]">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              접근할 수 없는 동아리입니다.
+            </h1>
+            <p className="mt-4 text-base leading-7 text-slate-900/60">
+              존재하지 않는 동아리이거나, 현재 계정으로 가입되어 있지 않은
+              동아리입니다.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate(`/club/main/${clubs[0].clubId}`, { replace: true })}
+              className="h-12 rounded-xl bg-sky-700 px-5 text-sm font-semibold text-white hover:bg-sky-800"
+            >
+              내 동아리로 이동
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/club/apply")}
+              className="h-12 rounded-xl border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              동아리 신청하기
             </button>
           </div>
         </section>
@@ -180,17 +260,74 @@ export default function ClubMainPage() {
     }
   };
 
+  const handleSelectClub = (nextClubId) => {
+    setIsClubMenuOpen(false);
+    navigate(`/club/main/${nextClubId}?tab=${activeTab}`);
+  };
+
+  const handleTabChange = (nextTab) => {
+    setSearchParams({ tab: nextTab });
+  };
+
   return (
     <main className="min-h-screen bg-slate-50 px-12 py-12">
       <section className="mx-auto flex w-full max-w-330 flex-col">
         <header className="flex flex-col gap-7 border-b border-slate-300 pb-4">
           <div className="flex w-full items-center justify-between">
-            <button className="flex w-fit items-center gap-1">
-              <h1 className="text-4xl font-bold leading-10 text-gray-900">
-                {selectedClub.clubName}
-              </h1>
-              <span className="text-gray-900">▾</span>
-            </button>
+            <div className="relative" ref={clubMenuRef}>
+              <button
+                type="button"
+                onClick={() => setIsClubMenuOpen((prev) => !prev)}
+                className="flex w-fit items-center gap-1 rounded-xl py-1 pr-2 hover:bg-slate-100"
+                aria-expanded={isClubMenuOpen}
+                aria-haspopup="menu"
+              >
+                <h1 className="text-4xl font-bold leading-10 text-gray-900">
+                  {selectedClub.clubName}
+                </h1>
+                <span
+                  className={`text-gray-900 transition-transform ${isClubMenuOpen ? "rotate-180" : ""}`}
+                >
+                  ▾
+                </span>
+              </button>
+
+              {isClubMenuOpen && (
+                <div
+                  className="absolute left-0 top-full z-40 mt-3 max-h-80 w-72 overflow-y-auto rounded-xl border border-slate-200 bg-white py-2 shadow-lg"
+                  role="menu"
+                >
+                  {clubs.map((club) => {
+                    const isSelected = Number(club.clubId) === Number(selectedClubId);
+
+                    return (
+                      <button
+                        key={club.clubId}
+                        type="button"
+                        role="menuitem"
+                        onClick={() => handleSelectClub(club.clubId)}
+                        className={`flex w-full flex-col px-4 py-3 text-left hover:bg-slate-50 ${
+                          isSelected ? "bg-sky-50" : ""
+                        }`}
+                      >
+                        <span
+                          className={`text-sm font-bold ${
+                            isSelected ? "text-sky-700" : "text-gray-900"
+                          }`}
+                        >
+                          {club.clubName}
+                        </span>
+                        {club.category && (
+                          <span className="mt-1 text-xs text-slate-900/50">
+                            {club.category}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
             <div className="flex items-center gap-3">
               {isPresident && (
@@ -251,7 +388,7 @@ export default function ClubMainPage() {
 
           <nav className="flex">
             <button
-              onClick={() => setActiveTab("feeds")}
+              onClick={() => handleTabChange("feeds")}
               className={`px-7 py-3 text-base font-medium ${
                 activeTab === "feeds"
                   ? "border-b-2 border-blue-600 text-blue-600"
@@ -262,7 +399,7 @@ export default function ClubMainPage() {
             </button>
 
             <button
-              onClick={() => setActiveTab("members")}
+              onClick={() => handleTabChange("members")}
               className={`px-7 py-3 text-base font-medium ${
                 activeTab === "members"
                   ? "border-b-2 border-blue-600 text-blue-600"
@@ -273,7 +410,7 @@ export default function ClubMainPage() {
             </button>
 
             <button
-              onClick={() => setActiveTab("calendar")}
+              onClick={() => handleTabChange("calendar")}
               className={`px-7 py-3 text-base font-medium ${
                 activeTab === "calendar"
                   ? "border-b-2 border-blue-600 text-blue-600"
@@ -292,11 +429,16 @@ export default function ClubMainPage() {
               <p>게시글을 불러오는 중입니다...</p>
             ) : isPostsError ? (
               <p>게시글을 불러오지 못했습니다.</p>
+            ) : feeds.length === 0 ? (
+              <div className="col-span-2 flex min-h-80 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white text-base font-medium text-slate-900/50">
+                아직 작성된 게시글이 없습니다.
+              </div>
             ) : (
               feeds.map((feed) => (
                 <FeedCard
                   key={feed.postId}
                   id={feed.postId}
+                  clubId={selectedClubId}
                   author={feed.writerName}
                   date={feed.createdAt}
                   profileImage={
@@ -315,6 +457,10 @@ export default function ClubMainPage() {
               <p>멤버 정보를 불러오는 중입니다...</p>
             ) : isMembersError ? (
               <p>멤버 정보를 불러오지 못했습니다.</p>
+            ) : members.length === 0 ? (
+              <div className="flex min-h-80 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white text-base font-medium text-slate-900/50">
+                아직 표시할 멤버가 없습니다.
+              </div>
             ) : (
               currentMembers.map((member) => {
                 const profileImage = getMemberProfileImage(member);
@@ -353,7 +499,7 @@ export default function ClubMainPage() {
         )}
 
         {/* 페이지 이동 섹션 */}
-        {activeTab !== "calendar" && (
+        {activeTab !== "calendar" && totalPages > 1 && (
           <div className="flex justify-center pb-7">
           <div className="flex items-center gap-1">
             <button
@@ -399,3 +545,12 @@ export default function ClubMainPage() {
     </main>
   );
 }
+
+const parseStoredUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem("user"));
+  } catch {
+    localStorage.removeItem("user");
+    return null;
+  }
+};

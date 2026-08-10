@@ -595,11 +595,13 @@ export default function ClubMainPage({ clubId = 1 }) {
           (filteredPosts.length > 0 ? (
             <div className="grid grid-cols-3 gap-2">
               {filteredPosts.map((post) => (
-                <PostCard
-                  key={post.postId}
-                  post={post}
-                  onClick={() => navigate(`/club/posts/${post.postId}`)}
-                />
+	                <PostCard
+	                  key={post.postId}
+	                  post={post}
+	                  onClick={() =>
+	                    navigate(`/clubs/${post.clubId ?? clubId}/posts/${post.postId}`)
+	                  }
+	                />
               ))}
             </div>
           ) : (

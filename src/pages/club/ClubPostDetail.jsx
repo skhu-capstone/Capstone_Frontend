@@ -112,7 +112,8 @@ function CommentItem({ comment }) {
 
 // ─── 메인 ─────────────────────────────────────────────────────────────────────
 export default function ClubPostDetail() {
-  const { id } = useParams();
+  const { clubId, postId, id } = useParams();
+  const currentPostId = postId ?? id;
   const navigate = useNavigate();
   const location = useLocation();
   const commentInputRef = useRef(null);
@@ -136,7 +137,7 @@ export default function ClubPostDetail() {
 
     onSuccess: () => {
       alert("게시글이 삭제되었습니다.");
-      navigate("/club/main");
+      navigate(clubId ? `/club/main/${clubId}` : "/club/main");
     },
 
     onError: (error) => {
@@ -156,7 +157,7 @@ export default function ClubPostDetail() {
 
     if (!confirmed) return;
 
-    deleteMutation.mutate(id);
+    deleteMutation.mutate(currentPostId);
   };
 
   // ── 게시글 조회 ──────────────────────────────────────────────────────────
@@ -166,7 +167,7 @@ export default function ClubPostDetail() {
       setError("");
       try {
         const token = localStorage.getItem("accessToken");
-        const res = await fetch(`${API_BASE_URL}/api/posts/${id}`, {
+        const res = await fetch(`${API_BASE_URL}/api/posts/${currentPostId}`, {
           headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
@@ -187,7 +188,7 @@ export default function ClubPostDetail() {
       }
     }
     fetchPost();
-  }, [id]);
+  }, [currentPostId]);
 
   // ── 좋아요 토글 ──────────────────────────────────────────────────────────
   async function handleLike() {
@@ -198,7 +199,7 @@ export default function ClubPostDetail() {
     setLikeCount((c) => (liked ? c - 1 : c + 1));
     setLikeLoading(true);
     try {
-      const data = await toggleClubPostLike(id);
+      const data = await toggleClubPostLike(currentPostId);
       setLiked(data.liked);
       setLikeCount(data.likeCount);
     } catch (error) {
@@ -219,7 +220,7 @@ export default function ClubPostDetail() {
     setCommentError("");
     try {
       const token = localStorage.getItem("accessToken");
-      const res = await fetch(`${API_BASE_URL}/api/posts/${id}/comments`, {
+      const res = await fetch(`${API_BASE_URL}/api/posts/${currentPostId}/comments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -256,7 +257,7 @@ export default function ClubPostDetail() {
 
   const handleBack = () => {
     if (location.key !== "default") navigate(-1);
-    else navigate("/club");
+    else navigate(clubId ? `/club/main/${clubId}` : "/club/main");
   };
 
   if (loading)

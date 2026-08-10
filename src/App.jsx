@@ -28,6 +28,7 @@ export default function App() {
         <Route path="/cooperation" element={<CooperationPage />} />
         <Route path="/coffee-chat" element={<CoffeeChatPage />} />
         <Route path="/club/main" element={<ClubMainPage />} />
+        <Route path="/club/main/:clubId" element={<ClubMainPage />} />
         <Route path="/club/apply" element={<ClubApplicationPage />} />
         <Route path="/club/apply/:clubId" element={<ClubDetailPage />} />
         <Route path="/club/create" element={<ClubCreationPage />} />
@@ -46,6 +47,10 @@ export default function App() {
         <Route
           path="/clubs/:clubId/posts/create"
           element={<ClubPostCreatePage />}
+        />
+        <Route
+          path="/clubs/:clubId/posts/:postId"
+          element={<ClubPostDetail />}
         />
         {/* 추가 라우트는 여기에 */}
         <Route path="/cooperation/:type/:id" element={<PostDetailPage />} />
