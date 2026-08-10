@@ -2,9 +2,11 @@ import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
+import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { setAuthenticatedUser } = useAuth();
 
   const loginMutation = useMutation({
     mutationFn: async (googleAccessToken) => {
@@ -18,12 +20,10 @@ export default function LoginPage() {
     },
 
     onSuccess: (userData) => {
-      localStorage.setItem("accessToken", userData.accessToken);
-      localStorage.setItem("refreshToken", userData.refreshToken);
-      localStorage.setItem("user", JSON.stringify(userData));
+      setAuthenticatedUser(userData);
 
       if (userData.isVerified) {
-        window.location.href = "/";
+        navigate("/");
       } else {
         navigate("/email-verify");
       }
@@ -38,7 +38,6 @@ export default function LoginPage() {
   const googleLogin = useGoogleLogin({
     onSuccess: (tokenResponse) => {
       loginMutation.mutate(tokenResponse.access_token);
-      console.log("로그인 성공");
     },
 
     onError: () => {
