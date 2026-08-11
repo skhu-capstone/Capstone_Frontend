@@ -129,7 +129,7 @@ function EmptyState() {
 }
 
 // ─── 메인 컴포넌트 ────────────────────────────────────────────────────────────
-export default function ChatRoom({ room }) {
+export default function ChatRoom({ room, onMessage }) {
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
