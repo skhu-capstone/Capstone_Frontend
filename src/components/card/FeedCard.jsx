@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 
 function FeedCard({
   id, // postId 받아옴
+  clubId,
   author = "", // writer.userName 받아옴
   date = "", // createdAt 받아옴
   image = "https://placehold.co/600x250",// imageUrl 받아옴
@@ -9,10 +10,11 @@ function FeedCard({
   profileImage, // writer.profileImage 받아옴
 }) {
   const navigate = useNavigate();
+  const detailPath = clubId ? `/clubs/${clubId}/posts/${id}` : `/club/posts/${id}`;
   
   return (
     <div
-      onClick={() => navigate(`/club/posts/${id}`)}
+      onClick={() => navigate(detailPath)}
       className="w-160 h-113.75 p-5 bg-white rounded-xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.15)] 
       flex flex-col justify-start items-start gap-4 overflow-hidden transition-all duration-300
       cursor-pointer hover:scale-[1.01] hover:-translate-y-4 hover:outline-[3px] hover:outline-offset-[-3px] hover:outline-blue-500"

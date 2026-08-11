@@ -78,13 +78,24 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const setAuthenticatedUser = (userData) => {
+    setUser(userData);
+    localStorage.setItem("accessToken", userData.accessToken);
+    localStorage.setItem("refreshToken", userData.refreshToken);
+    localStorage.setItem("user", JSON.stringify(userData));
+  };
+
   const logout = () => {
     setUser(null);
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, googleLogin, logout }}>
+    <AuthContext.Provider
+      value={{ user, loading, googleLogin, setAuthenticatedUser, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -7,8 +7,12 @@ import {
   ChevronRight,
   Send,
 } from "lucide-react";
-import { deleteClubPost, toggleClubPostLike } from "../../services/clubService";
-import { useMutation } from "@tanstack/react-query";
+import {
+  deleteClubPost,
+  getClubPostDetail,
+  toggleClubPostLike,
+} from "../../services/clubService";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -109,7 +113,8 @@ function CommentItem({ comment }) {
 
 // ─── 메인 ─────────────────────────────────────────────────────────────────────
 export default function ClubPostDetail() {
-  const { id } = useParams();
+  const { clubId, postId, id } = useParams();
+  const currentPostId = postId ?? id;
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
@@ -123,29 +128,18 @@ export default function ClubPostDetail() {
     isError,
     error,
   } = useQuery({
-    queryKey: ["clubPostDetail", id],
-    queryFn: async () => {
-      console.log(`[ClubPostDetail] Fetching data for post ID: ${id}`);
-      const data = await getClubPostDetail(id);
-      console.log("[ClubPostDetail] API Response Data:", data);
-      console.log("[ClubPostDetail] API Response Keys:", Object.keys(data));
-      return data;
-    },
-    enabled: !!id,
+    queryKey: ["clubPostDetail", currentPostId],
+    queryFn: () => getClubPostDetail(currentPostId),
+    enabled: !!currentPostId,
     refetchOnWindowFocus: true,
   });
 
   // ── 좋아요 토글 (React Query) ──────────────────────────────────────────
   const likeMutation = useMutation({
-    mutationFn: async () => {
-      console.log("[ClubPostDetail] Toggling like for ID:", id);
-      const res = await toggleLike(id);
-      console.log("[ClubPostDetail] Toggle like API Response:", res);
-      return res;
-    },
+    mutationFn: () => toggleClubPostLike(currentPostId),
     onSuccess: (data) => {
       // 서버 응답으로 캐시 즉시 업데이트
-      queryClient.setQueryData(["clubPostDetail", id], (old) => {
+      queryClient.setQueryData(["clubPostDetail", currentPostId], (old) => {
         if (!old) return old;
         return {
           ...old,
@@ -154,7 +148,9 @@ export default function ClubPostDetail() {
         };
       });
       // 혹시 모르니 서버에서 다시 불러오기 예약
-      queryClient.invalidateQueries({ queryKey: ["clubPostDetail", id] });
+      queryClient.invalidateQueries({
+        queryKey: ["clubPostDetail", currentPostId],
+      });
     },
     onError: (err) => {
       console.error("[ClubPostDetail] Like mutation error:", err);
@@ -164,15 +160,28 @@ export default function ClubPostDetail() {
   // ── 댓글 작성 (React Query) ────────────────────────────────────────────
   const commentMutation = useMutation({
     mutationFn: async (content) => {
-      console.log("[ClubPostDetail] Submitting comment for ID:", id);
-      const res = await createComment(id, content);
-      console.log("[ClubPostDetail] Create comment API Response:", res);
-      return res;
+      const token = localStorage.getItem("accessToken");
+      const res = await fetch(
+        `${API_BASE_URL}/api/posts/${currentPostId}/comments`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ content }),
+        },
+      );
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "댓글 작성에 실패했습니다.");
+      }
+      return data.data;
     },
     onSuccess: (newComment) => {
       setCommentText("");
       // 캐시 즉시 업데이트
-      queryClient.setQueryData(["clubPostDetail", id], (old) => {
+      queryClient.setQueryData(["clubPostDetail", currentPostId], (old) => {
         if (!old) return old;
         const currentComments = old.comments || old.postComments || [];
         return {
@@ -181,7 +190,9 @@ export default function ClubPostDetail() {
         };
       });
       // 서버에서 다시 불러오기 예약
-      queryClient.invalidateQueries({ queryKey: ["clubPostDetail", id] });
+      queryClient.invalidateQueries({
+        queryKey: ["clubPostDetail", currentPostId],
+      });
       commentInputRef.current?.focus();
     },
     onError: (err) => {
@@ -195,7 +206,7 @@ export default function ClubPostDetail() {
     onSuccess: () => {
       alert("게시글이 삭제되었습니다.");
       queryClient.invalidateQueries({ queryKey: ["clubPosts"] });
-      navigate("/club/main");
+      navigate(clubId ? `/club/main/${clubId}` : "/club/main");
     },
     onError: (err) => {
       console.error(err);
@@ -209,34 +220,15 @@ export default function ClubPostDetail() {
 
   const handleDeletePost = () => {
     if (window.confirm("정말 게시글을 삭제하시겠습니까?")) {
-      deleteMutation.mutate(id);
+      deleteMutation.mutate(currentPostId);
     }
   };
 
   const handleLike = () => {
-    likeMutation.mutate();
-  };
-
-  // ── 좋아요 토글 ──────────────────────────────────────────────────────────
-  async function handleLike() {
-    if (likeLoading) return;
-    const prevLiked = liked;
-    const prevCount = likeCount;
-    setLiked(!liked);
-    setLikeCount((c) => (liked ? c - 1 : c + 1));
-    setLikeLoading(true);
-    try {
-      const data = await toggleClubPostLike(id);
-      setLiked(data.liked);
-      setLikeCount(data.likeCount);
-    } catch (error) {
-      console.error("Failed to toggle post like:", error);
-      setLiked(prevLiked);
-      setLikeCount(prevCount);
-    } finally {
-      setLikeLoading(false);
+    if (!likeMutation.isPending) {
+      likeMutation.mutate();
     }
-  }
+  };
 
   // ── 댓글 작성 ────────────────────────────────────────────────────────────
   async function handleCommentSubmit() {
@@ -260,7 +252,7 @@ export default function ClubPostDetail() {
 
   const handleBack = () => {
     if (location.key !== "default") navigate(-1);
-    else navigate("/club/main");
+    else navigate(clubId ? `/club/main/${clubId}` : "/club/main");
   };
 
   if (isLoading) return <Skeleton />;

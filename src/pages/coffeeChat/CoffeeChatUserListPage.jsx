@@ -74,7 +74,7 @@ export default function CoffeeChatUserListPage() {
                 headline={user.headline}
                 interest={user.interestTopics}
                 clubName={user.clubs}
-                image={user.profileImage}
+                image={user}
                 onClick={() => navigate(`/coffee-chat/profile/${user.userId}`)}
               />
             ))}
