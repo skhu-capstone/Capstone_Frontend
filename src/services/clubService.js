@@ -104,7 +104,7 @@ export const getClubPosts = async ({ clubId, page = 0, size = 4 }) => {
     },
   });
   return response.data.data;
-}
+};
 
 // ai 사용
 export const createClubPost = async ({
@@ -135,13 +135,11 @@ export const createClubPost = async ({
 export const getClubPostDetail = async (postId) => {
   const accessToken = localStorage.getItem("accessToken");
 
-  const response = await axios.get(
-    `${BASE_URL}/api/posts/${postId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      }
-    })
+  const response = await axios.get(`${BASE_URL}/api/posts/${postId}`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
   return response.data.data;
 };
 
@@ -164,14 +162,11 @@ export const toggleClubPostLike = async (postId) => {
 export const deleteClubPost = async (postId) => {
   const accessToken = localStorage.getItem("accessToken");
 
-  const response = await axios.delete(
-    `${BASE_URL}/api/posts/${postId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
-  );
+  const response = await axios.delete(`${BASE_URL}/api/posts/${postId}`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
 
   return response.data;
 };
@@ -188,8 +183,8 @@ export const uploadPostImage = async (postId, file) => {
     {
       headers: {
         Authorization: `Bearer ${accessToken}`,
-      }
-    }
+      },
+    },
   );
   return response.data.data;
 };

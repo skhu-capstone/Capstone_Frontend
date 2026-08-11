@@ -216,7 +216,7 @@ export default function ChatRoom({ room }) {
           const optimisticIdx = prev.findLastIndex(
             (m) =>
               (m._optimistic || String(m.chatMessageId).startsWith("opt-")) &&
-              m.content === msg.content
+              m.content === msg.content,
           );
 
           if (optimisticIdx !== -1) {
@@ -228,13 +228,16 @@ export default function ChatRoom({ room }) {
 
         return [...prev, msg];
       });
+
+      // 부모(CoffeeChatPage)에게 알림 -> 목록 업데이트용
+      if (onMessage) onMessage(msg);
     },
-    [myUserId]
+    [myUserId, onMessage],
   );
 
   const { sendMessage } = useChatSocket(
     room?.chatRoomId ?? null,
-    handleIncoming
+    handleIncoming,
   );
 
   // ── 스크롤 하단 고정 ────────────────────────────────────────────────────
@@ -289,23 +292,28 @@ export default function ChatRoom({ room }) {
               Authorization: token ? `Bearer ${token}` : "",
             },
             body: JSON.stringify({ content }),
-          }
+          },
         );
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
+        const newMsg = data.data;
+
         // 낙관적 메시지를 실제 응답으로 교체
         setMessages((prev) =>
           prev.map((m) =>
             m._optimistic && m.chatMessageId === optimistic.chatMessageId
-              ? { ...data.data, _optimistic: false }
-              : m
-          )
+              ? { ...newMsg, _optimistic: false }
+              : m,
+          ),
         );
+
+        // 부모에게 알림
+        if (onMessage) onMessage(newMsg);
       } catch (e) {
         console.error("[ChatRoom] 전송 실패", e);
         // 실패 시 낙관적 메시지 제거
         setMessages((prev) =>
-          prev.filter((m) => m.chatMessageId !== optimistic.chatMessageId)
+          prev.filter((m) => m.chatMessageId !== optimistic.chatMessageId),
         );
         setInput(content); // 입력값 복원
       }
@@ -315,6 +323,7 @@ export default function ChatRoom({ room }) {
   };
 
   const handleKeyDown = (e) => {
+    if (e.nativeEvent.isComposing) return;
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -354,7 +363,7 @@ export default function ChatRoom({ room }) {
                     className="w-full h-full rounded-full object-cover"
                   />
                 ) : (
-                  room.targetUserName?.[0] ?? "?"
+                  (room.targetUserName?.[0] ?? "?")
                 )}
               </div>
             );
@@ -369,10 +378,7 @@ export default function ChatRoom({ room }) {
       </div>
 
       {/* 메시지 영역 */}
-      <div
-        ref={scrollAreaRef}
-        className="flex-1 overflow-y-auto py-4 min-h-0"
-      >
+      <div ref={scrollAreaRef} className="flex-1 overflow-y-auto py-4 min-h-0">
         {loading && (
           <div className="flex items-center justify-center py-12">
             <Loader2 size={20} className="text-gray-300 animate-spin" />
@@ -402,7 +408,9 @@ export default function ChatRoom({ room }) {
             // 연속 메시지면 아바타 숨기기 (상대방 메시지만)
             const showAvatar =
               !isMine &&
-              (!prev || Number(prev.senderId) !== Number(msg.senderId) || showDateDivider);
+              (!prev ||
+                Number(prev.senderId) !== Number(msg.senderId) ||
+                showDateDivider);
 
             return (
               <div key={msg.chatMessageId}>
@@ -431,7 +439,7 @@ export default function ChatRoom({ room }) {
               e.target.style.height = "auto";
               e.target.style.height = `${Math.min(
                 e.target.scrollHeight,
-                120
+                120,
               )}px`;
             }}
             onKeyDown={handleKeyDown}

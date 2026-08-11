@@ -4,8 +4,6 @@ import SockJS from "sockjs-client";
 
 const WS_URL = import.meta.env.VITE_WS_URL || "/ws";
 
-console.log("WS_URL =", WS_URL);
-
 /**
  * STOMP over SockJS 채팅 훅
  * @param {number|null} chatRoomId  - 현재 열려 있는 채팅방 ID
