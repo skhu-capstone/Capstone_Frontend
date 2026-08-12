@@ -75,7 +75,7 @@ export default function LoginPage() {
         {/* 구글 로그인 버튼 - 여기는 살짝 달라질 수도 있음 */}
         <button
           className="w-full h-12 rounded-full border border-zinc-900 flex items-center justify-center
-          relative hover:bg-slate-100 transition"
+          relative hover:bg-slate-100 transition cursor-pointer"
           onClick={() => googleLogin()}
         >
           <img
