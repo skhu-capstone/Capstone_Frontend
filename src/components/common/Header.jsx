@@ -41,6 +41,21 @@ const NAV_ITEMS = [
   { label: "마이페이지", icon: User, href: "/my-page" },
 ];
 
+const isUsableAccessToken = (token) => {
+  if (!token) return false;
+
+  const [, payload] = token.split(".");
+  if (!payload) return true;
+
+  try {
+    const decoded = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
+    if (!decoded.exp) return true;
+    return decoded.exp * 1000 > Date.now();
+  } catch {
+    return true;
+  }
+};
+
 export default function Header() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [openMenuLabel, setOpenMenuLabel] = useState(null);
@@ -51,9 +66,10 @@ export default function Header() {
   const location = useLocation();
   const queryClient = useQueryClient();
 
-  const { user, logout } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
   const accessToken = localStorage.getItem("accessToken");
-  const isLoggedIn = !!user && !!accessToken;
+  const hasUsableToken = isUsableAccessToken(accessToken);
+  const isLoggedIn = !authLoading && !!user && hasUsableToken;
 
   const { data: myPageData } = useQuery({
     queryKey: ["myPage"],
@@ -81,6 +97,15 @@ export default function Header() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    const latestToken = localStorage.getItem("accessToken");
+
+    if (!authLoading && user && !isUsableAccessToken(latestToken)) {
+      logout();
+      queryClient.clear();
+    }
+  }, [location.pathname, authLoading, user, logout, queryClient]);
 
   const handleAddAccount = () => {
     setProfileOpen(false);
