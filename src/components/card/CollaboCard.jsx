@@ -17,25 +17,25 @@ function CollaboCard({
     <div
       // onClick이 따로 없으면 협업 타입에 맞는 상세 페이지로 이동
       onClick={onClick ?? (() => navigate(`/cooperation/${type}/${id}`))}
-      className="w-102 min-h-44 p-4 bg-white rounded-xl shadow-[0px_4px_10px_0px_rgba(0,0,0,0.05)]
+      className="w-full min-h-44 p-4 bg-white rounded-xl shadow-[0px_4px_10px_0px_rgba(0,0,0,0.05)]
       outline-1 outline-offset-1 outline-slate-100 flex flex-col gap-2.5 
       cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:-translate-y-4 hover:outline-[3px]
       hover:outline-offset-[-3px] hover:outline-blue-700"
     >
       {/* 제목 */}
-      <h3 className="text-black text-2xl font-semibold font-pretendard">
+      <h3 className="text-xl font-semibold text-black break-words font-pretendard md:text-2xl">
         {title}
       </h3>
 
       {/* 작성자, 시간 */}
       <div className="flex justify-end">
-        <span className="text-black text-base font-normal font-pretendard">
+        <span className="text-right text-sm font-normal text-black font-pretendard md:text-base">
           {author} · {time}
         </span>
       </div>
 
       {/* 내용 */}
-      <p className="text-black text-base font-normal font-pretendard line-clamp-2">
+      <p className="text-sm font-normal text-black font-pretendard line-clamp-2 md:text-base">
         {content}
       </p>
 
