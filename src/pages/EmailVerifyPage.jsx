@@ -2,9 +2,14 @@ import { useRef, useState } from "react";
 import { sendSchoolEmailCode, verifySchoolEmailCode, resendSchoolEmailCode } from "../services/authService";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
 
 export default function EmailVerifyPage() {
   const navigate = useNavigate();
+  const { user, loading: authLoading, setAuthenticatedUser } = useAuth();
+  const accessToken = localStorage.getItem("accessToken");
+  const isAuthenticated = !!user && !!accessToken;
 
   const [schoolEmail, setSchoolEmail] = useState("");
   const [code, setCode] = useState(["", "", "", "", ""]);
@@ -12,8 +17,21 @@ export default function EmailVerifyPage() {
   const inputRefs = useRef([]);
 
   const isCodeComplete = code.every((digit) => digit !== "");
-  
-  const isValidSchoolEmail = schoolEmail.endsWith("@office.skhu.ac.kr");
+  const normalizedSchoolEmail = schoolEmail.trim().toLowerCase();
+  const isValidSchoolEmail = /^[a-z0-9._%+-]+@office\.skhu\.ac\.kr$/.test(
+    normalizedSchoolEmail
+  );
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    if (!authLoading && user?.isVerified) {
+      navigate("/", { replace: true });
+    }
+  }, [authLoading, isAuthenticated, navigate, user?.isVerified]);
 
   // 인증코드 발송
   const sendCodeMutation = useMutation({
@@ -35,6 +53,14 @@ export default function EmailVerifyPage() {
     mutationFn: verifySchoolEmailCode,
 
     onSuccess: () => {
+      if (user) {
+        setAuthenticatedUser({
+          ...user,
+          schoolEmail: normalizedSchoolEmail,
+          isVerified: true,
+        });
+      }
+
       alert("학교 이메일 인증이 완료되었습니다.");
       navigate("/");
     },
@@ -58,6 +84,7 @@ export default function EmailVerifyPage() {
   })
 
   const handleCodeChange = (index, value) => {
+    if (!isCodeSent) return;
     if (!/^\d?$/.test(value)) return;
 
     const nextCode = [...code];
@@ -70,25 +97,34 @@ export default function EmailVerifyPage() {
   };
 
   const handleCodeKeyDown = (index, e) => {
+    if (!isCodeSent) return;
     if (e.key === "Backspace" && !code[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
   };
 
   const handleSendCode = () => {
-    sendCodeMutation.mutate(schoolEmail);
+    if (!isAuthenticated) return;
+    sendCodeMutation.mutate(normalizedSchoolEmail);
   };
 
   const handleSubmit = () => {
+    if (!isAuthenticated) return;
+    if (!isCodeSent) return;
     verifyCodeMutation.mutate({
-      schoolEmail,
+      schoolEmail: normalizedSchoolEmail,
       code: code.join(""),
     })
   };
 
   const handleResendCode = () => {
-    resendCodeMutation.mutate(schoolEmail);
+    if (!isAuthenticated) return;
+    resendCodeMutation.mutate(normalizedSchoolEmail);
   };
+
+  if (authLoading) {
+    return <div className="p-10">인증 정보를 확인하는 중입니다...</div>;
+  }
 
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-8 flex justify-center">
@@ -136,15 +172,16 @@ export default function EmailVerifyPage() {
                 onKeyDown={(e) => handleCodeKeyDown(index, e)}
                 maxLength={1}
                 inputMode="numeric"
-                className="w-14 h-16 bg-blue-900/10 rounded-2xl outline-none text-center text-slate-900 text-xl placeholder:text-slate-900/40"
+                disabled={!isCodeSent}
+                className="w-14 h-16 bg-blue-900/10 rounded-2xl outline-none text-center text-slate-900 text-xl placeholder:text-slate-900/40 disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder=""
               />
             ))}
           </div>
 
-          <button
-            onClick={handleSubmit}
-            disabled={!isCodeComplete}
+            <button
+              onClick={handleSubmit}
+              disabled={!isCodeSent || !isCodeComplete}
             className="w-full h-10 mt-10 rounded-2xl bg-blue-600 text-slate-50 text-base font-medium transition
             enabled:hover:cursor-pointer disabled:opacity-50 disabled:hover:cursor-not-allowed"
           >
