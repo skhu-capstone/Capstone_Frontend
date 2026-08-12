@@ -1,6 +1,21 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState } from "react";
 
 const AuthContext = createContext(null);
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+const validateLoginUserData = (userData) => {
+  if (!userData || typeof userData !== "object") return false;
+
+  const hasUserId = userData.userId !== undefined || userData.id !== undefined;
+  const hasVerifiedStatus = typeof userData.isVerified === "boolean";
+
+  return Boolean(
+    hasUserId &&
+      hasVerifiedStatus &&
+      userData.accessToken &&
+      userData.refreshToken
+  );
+};
 
 /**
  * Google 소셜 로그인 후 백엔드 응답을 받아
@@ -23,21 +38,18 @@ const AuthContext = createContext(null);
  *   }
  */
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  // 앱 시작 시 로컬스토리지에 저장된 유저 정보 복원
-  useEffect(() => {
+  const [user, setUser] = useState(() => {
     const stored = localStorage.getItem("user");
     if (stored) {
       try {
-        setUser(JSON.parse(stored));
+        return JSON.parse(stored);
       } catch {
         localStorage.removeItem("user");
       }
     }
-    setLoading(false);
-  }, []);
+    return null;
+  });
+  const loading = false;
 
   /**
    * Google OAuth에서 받은 accessToken을 백엔드로 전송해 로그인합니다.
@@ -52,7 +64,7 @@ export function AuthProvider({ children }) {
    */
   const googleLogin = async (googleAccessToken) => {
     try {
-      const res = await fetch("/api/auth/google/login", {
+      const res = await fetch(`${BASE_URL}/api/auth/google/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ googleAccessToken }),
@@ -61,9 +73,21 @@ export function AuthProvider({ children }) {
       const json = await res.json();
 
       if (json.success && json.data) {
-        setUser(json.data);
-        localStorage.setItem("user", JSON.stringify(json.data));
-        return { success: true, code: json.code, message: json.message };
+        if (!validateLoginUserData(json.data)) {
+          return {
+            success: false,
+            code: "INVALID_LOGIN_RESPONSE",
+            message: "로그인 응답 데이터가 올바르지 않습니다.",
+          };
+        }
+
+        setAuthenticatedUser(json.data);
+        return {
+          success: true,
+          code: json.code,
+          message: json.message,
+          data: json.data,
+        };
       }
 
       // 에러 응답 (401 / 403 / 409 등)

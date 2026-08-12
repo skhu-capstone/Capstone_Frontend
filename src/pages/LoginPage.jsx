@@ -1,28 +1,33 @@
 import { useGoogleLogin } from "@react-oauth/google";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
+import { useEffect } from "react";
 import logo from "../assets/logo.png";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { setAuthenticatedUser } = useAuth();
+  const { user, loading: authLoading, googleLogin } = useAuth();
+  const accessToken = localStorage.getItem("accessToken");
+  const isAuthenticated = !!user && !!accessToken;
+
+  useEffect(() => {
+    if (authLoading || !isAuthenticated) return;
+
+    navigate(user.isVerified ? "/" : "/email-verify", { replace: true });
+  }, [authLoading, isAuthenticated, navigate, user?.isVerified]);
 
   const loginMutation = useMutation({
     mutationFn: async (googleAccessToken) => {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/auth/google/login`,
-        {
-          googleAccessToken,
-        },
-      );
-      return response.data.data;
+      const result = await googleLogin(googleAccessToken);
+      if (!result.success) {
+        throw new Error(result.message || "로그인에 실패했습니다.");
+      }
+
+      return result.data;
     },
 
     onSuccess: (userData) => {
-      setAuthenticatedUser(userData);
-
       if (userData.isVerified) {
         navigate("/");
       } else {
@@ -36,7 +41,7 @@ export default function LoginPage() {
     },
   });
 
-  const googleLogin = useGoogleLogin({
+  const startGoogleLogin = useGoogleLogin({
     onSuccess: (tokenResponse) => {
       loginMutation.mutate(tokenResponse.access_token);
     },
@@ -75,8 +80,9 @@ export default function LoginPage() {
         {/* 구글 로그인 버튼 - 여기는 살짝 달라질 수도 있음 */}
         <button
           className="w-full h-12 rounded-full border border-zinc-900 flex items-center justify-center
-          relative hover:bg-slate-100 transition cursor-pointer"
-          onClick={() => googleLogin()}
+          relative hover:bg-slate-100 transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={loginMutation.isPending}
+          onClick={() => startGoogleLogin()}
         >
           <img
             className="w-7 h-7 absolute left-3"
@@ -84,7 +90,7 @@ export default function LoginPage() {
             alt="Google"
           />
           <span className="text-black text-base font-medium">
-            Google로 로그인
+            {loginMutation.isPending ? "로그인 중..." : "Google로 로그인"}
           </span>
         </button>
 
