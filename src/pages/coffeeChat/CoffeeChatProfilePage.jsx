@@ -3,24 +3,44 @@ import MyPageCard from "../../components/card/MyPageCard";
 import InputLabel from "../../components/card/InputLabel";
 import { useQuery } from "@tanstack/react-query";
 import { getCoffeeChatProfile } from "../../services/coffeeChatProfileService";
+import { useEffect, useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
 export default function CoffeeChatProfilePage() {
   const navigate = useNavigate();
   const { userId } = useParams();
+  const targetUserId = Number(userId);
+  const isValidUserId = Number.isInteger(targetUserId) && targetUserId > 0;
+  const { user: authUser, loading: authLoading } = useAuth();
+  const accessToken = localStorage.getItem("accessToken");
+  const isAuthenticated = !!authUser && !!accessToken;
+  const currentUserId = Number(authUser?.userId ?? authUser?.id);
+  const isMyProfile = isValidUserId && currentUserId === targetUserId;
+  const [chatLoading, setChatLoading] = useState(false);
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["coffeeChatProfile", userId],
-    queryFn: () => getCoffeeChatProfile(userId),
-    enabled: !!userId, // userId가 있을 때만 호출하기 (이상한 값 방지)
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ["coffeeChatProfile", targetUserId],
+    queryFn: () => getCoffeeChatProfile(targetUserId),
+    enabled: isAuthenticated && isValidUserId, // userId가 있을 때만 호출하기 (이상한 값 방지)
   })
 
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      navigate("/login", { replace: true });
+    }
+  }, [authLoading, isAuthenticated, navigate]);
+
   const handleChatClick = async () => {
-    if (!userId) {
+    if (chatLoading) return;
+
+    if (!isValidUserId || isMyProfile) {
       navigate("/coffee-chat");
       return;
     }
+
+    setChatLoading(true);
 
     try {
       const token = localStorage.getItem("accessToken");
@@ -30,7 +50,7 @@ export default function CoffeeChatProfilePage() {
           "Content-Type": "application/json",
           Authorization: token ? `Bearer ${token}` : "",
         },
-        body: JSON.stringify({ targetUserId: Number(userId) }),
+        body: JSON.stringify({ targetUserId }),
       });
       const result = await response.json();
 
@@ -47,15 +67,31 @@ export default function CoffeeChatProfilePage() {
     } catch (error) {
       console.error("[CoffeeChatProfilePage] 채팅방 생성 실패", error);
       navigate("/coffee-chat");
+    } finally {
+      setChatLoading(false);
     }
   };
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return <div className="p-10">프로필을 불러오는 중입니다...</div>;
   }
 
+  if (!isValidUserId) {
+    return <div className="p-10">잘못된 커피챗 프로필 주소입니다.</div>;
+  }
+
   if (isError) {
-    return <div className="p-10">프로필을 불러오지 못했습니다.</div>;
+    const status = error?.response?.status;
+    const message =
+      status === 401
+        ? "로그인이 만료되었습니다. 다시 로그인해주세요."
+        : status === 403
+          ? "비공개 커피챗 프로필입니다."
+          : status === 404
+            ? "존재하지 않는 커피챗 프로필입니다."
+            : "프로필을 불러오지 못했습니다.";
+
+    return <div className="p-10">{message}</div>;
   }
 
   const coffeeChatProfile = data?.coffeeChatProfile;
@@ -91,13 +127,16 @@ export default function CoffeeChatProfilePage() {
             {user.name} 님의 프로필
           </h1>
 
-          <button
-            type="button"
-            onClick={handleChatClick}
-            className="rounded-xl bg-blue-600 px-6 py-3 text-xl font-semibold text-white transition-colors hover:bg-blue-700"
-          >
-            채팅 보내기
-          </button>
+          {!isMyProfile && (
+            <button
+              type="button"
+              onClick={handleChatClick}
+              disabled={chatLoading}
+              className="rounded-xl bg-blue-600 px-6 py-3 text-xl font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {chatLoading ? "채팅방 생성 중..." : "채팅 보내기"}
+            </button>
+          )}
         </div>
 
         <MyPageCard
