@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import MyPageCard from "../../components/card/MyPageCard";
 import InputLabel from "../../components/card/InputLabel";
 import EditInputLabel from "../../components/card/EditInputLabel";
@@ -9,6 +10,7 @@ import { getMyPage, updateCoffeeChatProfile, updateCoffeeChatVisibility, uploadP
 import { useAuth } from "../../context/AuthContext";
 
 const DEFAULT_PROFILE_IMAGE = "https://placehold.co/250x250";
+const MAX_PROFILE_IMAGE_SIZE = 5 * 1024 * 1024;
 
 const getProfileImageUrl = (image) => {
   if (!image) return DEFAULT_PROFILE_IMAGE;
@@ -24,10 +26,13 @@ const getProfileImageUrl = (image) => {
 };
 
 export default function MyPage() {
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false); // 수정
   const [isVisible, setIsVisible] = useState(false); // 커피챗 공개 여부
-  const { user: authUser } = useAuth();
+  const { user: authUser, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
+  const accessToken = localStorage.getItem("accessToken");
+  const isAuthenticated = !!authUser && !!accessToken;
   const [selectedImageFile, setSelectedImageFile] = useState(null);
   const [previewImage, setPreviewImage] = useState("");
 
@@ -55,7 +60,14 @@ export default function MyPage() {
   const { data, isLoading, isError} = useQuery({
     queryKey: ["myPage"],
     queryFn: getMyPage,
+    enabled: isAuthenticated,
   })
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      navigate("/login", { replace: true });
+    }
+  }, [authLoading, isAuthenticated, navigate]);
 
   useEffect(() => {
     if (!data) return;
@@ -111,6 +123,7 @@ export default function MyPage() {
       onSuccess: () => {
         setProfile(tempProfile);
         setIsEditing(false);
+        queryClient.invalidateQueries({ queryKey: ["myPage"] });
         alert("프로필이 저장되었습니다.");
       },
 
@@ -192,6 +205,12 @@ export default function MyPage() {
       return;
     }
 
+    if (file.size > MAX_PROFILE_IMAGE_SIZE) {
+      alert("이미지는 5MB 이하만 업로드할 수 있습니다.");
+      event.target.value = "";
+      return;
+    }
+
     setSelectedImageFile(file);
   };
 
@@ -218,7 +237,7 @@ export default function MyPage() {
     setSelectedImageFile(null);
   };
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return <div className="p-10">마이페이지를 불러오는 중입니다...</div>;
   }
 
@@ -326,7 +345,8 @@ export default function MyPage() {
               <button
                 type="button"
                 onClick={handleToggleVisibility}
-                className={`relative h-8 w-16 rounded-full transition-all duration-300 ${
+                disabled={updateVisibilityMutation.isPending}
+                className={`relative h-8 w-16 rounded-full transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60 ${
                   isVisible ? "bg-blue-600" : "bg-gray-300"
                 }`}
               >
