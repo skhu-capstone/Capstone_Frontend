@@ -6,6 +6,7 @@ import {
   getClubMembers,
   uploadClubImage,
 } from "../../services/clubService";
+import { useAuth } from "../../context/AuthContext";
 import {
   approveClubJoinRequest,
   getClubJoinRequests,
@@ -17,6 +18,18 @@ import {
 } from "../../services/presidentService";
 
 const EMPTY_LIST = [];
+
+const CLUB_INFO_LIMITS = {
+  clubName: 50,
+  category: 30,
+  shortDescription: 100,
+  detailDescription: 1000,
+  regularMeetingTime: 100,
+  activityLocation: 100,
+  contact: 100,
+};
+const ALLOWED_CLUB_IMAGE_TYPES = ["image/png", "image/jpeg"];
+const MAX_CLUB_IMAGE_SIZE = 5 * 1024 * 1024;
 
 const managementTabs = [
   { key: "info", label: "동아리 정보" },
@@ -34,7 +47,12 @@ const parseStoredUser = () => {
 
 export default function PresidentPage() {
   const { clubId } = useParams();
+  const targetClubId = Number(clubId);
+  const isValidClubId = Number.isInteger(targetClubId) && targetClubId > 0;
   const queryClient = useQueryClient();
+  const { user: authUser, loading: authLoading } = useAuth();
+  const accessToken = localStorage.getItem("accessToken");
+  const isAuthenticated = !!authUser && !!accessToken;
   const [activeTab, setActiveTab] = useState("info");
   const [removedApplicantIds, setRemovedApplicantIds] = useState([]);
   const [members, setMembers] = useState([]);
@@ -51,7 +69,7 @@ export default function PresidentPage() {
     contact: "",
   });
   const [confirmAction, setConfirmAction] = useState(null);
-  const loginUser = parseStoredUser();
+  const loginUser = authUser ?? parseStoredUser();
   const loginUserId = Number(loginUser?.userId ?? loginUser?.id);
 
   const president = useMemo(
@@ -70,9 +88,9 @@ export default function PresidentPage() {
     isLoading: isJoinRequestsLoading,
     isError: isJoinRequestsError,
   } = useQuery({
-    queryKey: ["clubJoinRequests", clubId],
-    queryFn: () => getClubJoinRequests(clubId),
-    enabled: !!clubId,
+    queryKey: ["clubJoinRequests", targetClubId],
+    queryFn: () => getClubJoinRequests(targetClubId),
+    enabled: isAuthenticated && isValidClubId,
   });
 
   const {
@@ -80,9 +98,9 @@ export default function PresidentPage() {
     isLoading: isMembersLoading,
     isError: isMembersError,
   } = useQuery({
-    queryKey: ["clubMembers", clubId],
-    queryFn: () => getClubMembers(clubId),
-    enabled: !!clubId,
+    queryKey: ["clubMembers", targetClubId],
+    queryFn: () => getClubMembers(targetClubId),
+    enabled: isAuthenticated && isValidClubId,
   });
 
   const {
@@ -90,9 +108,9 @@ export default function PresidentPage() {
     isLoading: isClubDetailLoading,
     isError: isClubDetailError,
   } = useQuery({
-    queryKey: ["clubDetail", clubId],
-    queryFn: () => getClubDetail(clubId),
-    enabled: !!clubId,
+    queryKey: ["clubDetail", targetClubId],
+    queryFn: () => getClubDetail(targetClubId),
+    enabled: isAuthenticated && isValidClubId,
   });
 
   useEffect(() => {
@@ -177,37 +195,50 @@ export default function PresidentPage() {
   const updateClubInfoMutation = useMutation({
     mutationFn: async ({ clubId, clubInfo, imageFile }) => {
       let nextClubInfo = clubInfo;
+      let imageUploadFailed = false;
 
       if (imageFile) {
-        const uploadedImage = await uploadClubImage(clubId, imageFile);
-        const uploadedImageUrl =
-          typeof uploadedImage === "string"
-            ? uploadedImage
-            : uploadedImage?.imageUrl;
+        try {
+          const uploadedImage = await uploadClubImage(clubId, imageFile);
+          const uploadedImageUrl =
+            typeof uploadedImage === "string"
+              ? uploadedImage
+              : uploadedImage?.imageUrl;
 
-        if (uploadedImageUrl) {
-          nextClubInfo = {
-            ...clubInfo,
-            imageUrl: uploadedImageUrl,
-          };
+          if (uploadedImageUrl) {
+            nextClubInfo = {
+              ...clubInfo,
+              imageUrl: uploadedImageUrl,
+            };
+          }
+        } catch (error) {
+          console.error(error);
+          imageUploadFailed = true;
         }
       }
 
-      return updateClubInfo({
+      const updatedClubInfo = await updateClubInfo({
         clubId,
         clubInfo: nextClubInfo,
       });
+
+      return {
+        clubInfo: updatedClubInfo,
+        imageUploadFailed,
+      };
     },
     onSuccess: async (result, variables) => {
+      const updatedClubInfo = result.clubInfo;
+
       setClubInfo({
-        clubName: result.clubName ?? "",
-        category: result.category ?? "",
-        shortDescription: result.shortDescription ?? "",
-        detailDescription: result.detailDescription ?? "",
-        imageUrl: result.imageUrl ?? "",
-        regularMeetingTime: result.regularMeetingTime ?? "",
-        activityLocation: result.activityLocation ?? "",
-        contact: result.contact ?? "",
+        clubName: updatedClubInfo.clubName ?? "",
+        category: updatedClubInfo.category ?? "",
+        shortDescription: updatedClubInfo.shortDescription ?? "",
+        detailDescription: updatedClubInfo.detailDescription ?? "",
+        imageUrl: updatedClubInfo.imageUrl ?? "",
+        regularMeetingTime: updatedClubInfo.regularMeetingTime ?? "",
+        activityLocation: updatedClubInfo.activityLocation ?? "",
+        contact: updatedClubInfo.contact ?? "",
       });
       setClubImageFile(null);
       setClubImagePreview("");
@@ -219,7 +250,11 @@ export default function PresidentPage() {
           queryKey: ["myClubs"],
         }),
       ]);
-      alert("동아리 정보가 수정되었습니다.");
+      alert(
+        result.imageUploadFailed
+          ? "동아리 정보는 수정되었지만 이미지 업로드에 실패했습니다."
+          : "동아리 정보가 수정되었습니다."
+      );
     },
     onError: (error) => {
       console.error(error);
@@ -249,8 +284,11 @@ export default function PresidentPage() {
 
   const rejectJoinRequestMutation = useMutation({
     mutationFn: rejectClubJoinRequest,
-    onSuccess: (result, variables) => {
+    onSuccess: async (result, variables) => {
       setRemovedApplicantIds((prev) => [...prev, variables.applicantUserId]);
+      await queryClient.invalidateQueries({
+        queryKey: ["clubJoinRequests", variables.clubId],
+      });
       alert("가입 신청을 거절했습니다.");
     },
     onError: (error) => {
@@ -277,31 +315,61 @@ export default function PresidentPage() {
     },
   });
 
-  const handleApprove = (applicant) => {
-    if (!clubId) {
+	  const handleApprove = (applicant) => {
+    if (!isAuthenticated) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+
+    if (!isCurrentUserPresident) {
+      alert("대표만 가입 신청을 승인할 수 있습니다.");
+      return;
+    }
+
+    if (!isValidClubId) {
       alert("동아리 정보를 찾을 수 없습니다.");
       return;
     }
 
     approveJoinRequestMutation.mutate({
-      clubId,
+      clubId: targetClubId,
       applicantUserId: applicant.id,
     });
   };
 
-  const handleReject = (applicantId) => {
-    if (!clubId) {
+	  const handleReject = (applicantId) => {
+    if (!isAuthenticated) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+
+    if (!isCurrentUserPresident) {
+      alert("대표만 가입 신청을 거절할 수 있습니다.");
+      return;
+    }
+
+    if (!isValidClubId) {
       alert("동아리 정보를 찾을 수 없습니다.");
       return;
     }
 
     rejectJoinRequestMutation.mutate({
-      clubId,
+      clubId: targetClubId,
       applicantUserId: applicantId,
     });
   };
 
-  const handleRoleChange = (targetUserId, nextRole) => {
+	  const handleRoleChange = (targetUserId, nextRole) => {
+    if (!isAuthenticated) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+
+    if (!isCurrentUserPresident) {
+      alert("대표만 멤버 역할을 변경할 수 있습니다.");
+      return;
+    }
+
     const targetMember = members.find(
       (member) => Number(member.userId ?? member.id) === Number(targetUserId)
     );
@@ -323,37 +391,48 @@ export default function PresidentPage() {
       return;
     }
 
-    if (!clubId) {
+    if (!isValidClubId) {
       alert("동아리 정보를 찾을 수 없습니다.");
       return;
     }
 
     updateMemberRoleMutation.mutate({
-      clubId,
+      clubId: targetClubId,
       targetUserId,
       role: nextRole,
     });
   };
 
-  const transferPresident = (targetUserId) => {
+	  const transferPresident = (targetUserId) => {
+    if (!isAuthenticated) {
+      alert("로그인이 필요합니다.");
+      setConfirmAction(null);
+      return;
+    }
+
     if (!isCurrentUserPresident) {
       alert("대표만 대표 권한을 이전할 수 있습니다.");
       setConfirmAction(null);
       return;
     }
 
-    if (!clubId) {
+    if (!isValidClubId) {
       alert("동아리 정보를 찾을 수 없습니다.");
       return;
     }
 
     transferPresidentMutation.mutate({
-      clubId,
+      clubId: targetClubId,
       newPresidentUserId: targetUserId,
     });
   };
 
-  const requestRemoveMember = (member) => {
+	  const requestRemoveMember = (member) => {
+    if (!isAuthenticated) return;
+    if (!isCurrentUserPresident) {
+      alert("대표만 멤버를 내보낼 수 있습니다.");
+      return;
+    }
     if (Number(member.userId ?? member.id) === loginUserId) return;
     if (member.role === "PRESIDENT") return;
 
@@ -366,20 +445,32 @@ export default function PresidentPage() {
     });
   };
 
-  const removeMember = (targetUserId) => {
+	  const removeMember = (targetUserId) => {
+    if (!isAuthenticated) {
+      alert("로그인이 필요합니다.");
+      setConfirmAction(null);
+      return;
+    }
+
+    if (!isCurrentUserPresident) {
+      alert("대표만 멤버를 내보낼 수 있습니다.");
+      setConfirmAction(null);
+      return;
+    }
+
     const targetMember = members.find(
       (member) => Number(member.userId ?? member.id) === Number(targetUserId)
     );
     if (!targetMember || targetMember.role === "PRESIDENT") return;
     if (Number(targetUserId) === loginUserId) return;
 
-    if (!clubId) {
+    if (!isValidClubId) {
       alert("동아리 정보를 찾을 수 없습니다.");
       return;
     }
 
     removeMemberMutation.mutate({
-      clubId,
+      clubId: targetClubId,
       targetUserId,
     });
   };
@@ -391,35 +482,91 @@ export default function PresidentPage() {
     }));
   };
 
-  const handleClubImageChange = (file) => {
-    setClubImageFile(file);
-
+  const handleClubImageChange = (event) => {
+    const file = event.target.files?.[0] ?? null;
+  
     if (!file) {
+      setClubImageFile(null);
       setClubImagePreview("");
       return;
     }
+
+    if (!ALLOWED_CLUB_IMAGE_TYPES.includes(file.type)) {
+      alert("PNG 또는 JPG 이미지만 업로드할 수 있습니다.");
+      event.target.value = "";
+      setClubImageFile(null);
+      setClubImagePreview("");
+      return;
+    }
+
+    if (file.size > MAX_CLUB_IMAGE_SIZE) {
+      alert("이미지는 5MB 이하만 업로드할 수 있습니다.");
+      event.target.value = "";
+      setClubImageFile(null);
+      setClubImagePreview("");
+      return;
+    }
+
+    setClubImageFile(file);
 
     const reader = new FileReader();
     reader.onload = () => setClubImagePreview(String(reader.result));
     reader.readAsDataURL(file);
   };
 
-  const handleClubInfoSubmit = () => {
-    if (!clubId) {
+	  const handleClubInfoSubmit = () => {
+    if (!isAuthenticated) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+
+    if (!isValidClubId) {
       alert("동아리 정보를 찾을 수 없습니다.");
       return;
     }
 
+    const trimmedClubInfo = Object.fromEntries(
+      Object.entries(clubInfo).map(([key, value]) => [
+        key,
+        typeof value === "string" ? value.trim() : value,
+      ])
+    );
+
+    if (!trimmedClubInfo.clubName) {
+      alert("동아리명을 입력해주세요.");
+      return;
+    }
+
+    const invalidField = Object.entries(CLUB_INFO_LIMITS).find(
+      ([key, limit]) => (trimmedClubInfo[key]?.length ?? 0) > limit
+    );
+
+    if (invalidField) {
+      const [field, limit] = invalidField;
+      const labelMap = {
+        clubName: "동아리명",
+        category: "카테고리",
+        shortDescription: "한 줄 소개",
+        detailDescription: "상세 소개",
+        regularMeetingTime: "정기 모임",
+        activityLocation: "활동 장소",
+        contact: "연락처",
+      };
+
+      alert(`${labelMap[field]}은 ${limit}자 이하로 입력해주세요.`);
+      return;
+    }
+
     updateClubInfoMutation.mutate({
-      clubId,
-      clubInfo,
+      clubId: targetClubId,
+      clubInfo: trimmedClubInfo,
       imageFile: clubImageFile,
     });
   };
 
   const renderClubInfoPanel = () => (
     <Panel title="동아리 정보 수정" hideTitle>
-      {!clubId ? (
+      {!isValidClubId ? (
         <EmptyText>동아리 정보를 찾을 수 없습니다.</EmptyText>
       ) : isClubDetailLoading ? (
         <EmptyText>동아리 정보를 불러오는 중입니다.</EmptyText>
@@ -436,6 +583,7 @@ export default function PresidentPage() {
               onChange={(event) =>
                 handleClubInfoChange("clubName", event.target.value)
               }
+              maxLength={CLUB_INFO_LIMITS.clubName}
               className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-sky-700"
             />
           </label>
@@ -448,6 +596,7 @@ export default function PresidentPage() {
                 onChange={(event) =>
                   handleClubInfoChange("category", event.target.value)
                 }
+                maxLength={CLUB_INFO_LIMITS.category}
                 className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-sky-700"
               />
             </label>
@@ -478,10 +627,8 @@ export default function PresidentPage() {
                 </div>
                 <input
                   type="file"
-                  accept="image/*"
-                  onChange={(event) =>
-                    handleClubImageChange(event.target.files?.[0] ?? null)
-                  }
+                  accept="image/png, image/jpeg"
+                  onChange={handleClubImageChange}
                   className="hidden"
                 />
               </label>
@@ -495,6 +642,7 @@ export default function PresidentPage() {
               onChange={(event) =>
                 handleClubInfoChange("shortDescription", event.target.value)
               }
+              maxLength={CLUB_INFO_LIMITS.shortDescription}
               className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-sky-700"
             />
           </label>
@@ -506,6 +654,7 @@ export default function PresidentPage() {
               onChange={(event) =>
                 handleClubInfoChange("detailDescription", event.target.value)
               }
+              maxLength={CLUB_INFO_LIMITS.detailDescription}
               className="min-h-44 resize-none rounded-xl border border-slate-200 px-4 py-3 text-sm leading-6 outline-none focus:border-sky-700"
             />
           </label>
@@ -520,6 +669,7 @@ export default function PresidentPage() {
                 onChange={(event) =>
                   handleClubInfoChange("regularMeetingTime", event.target.value)
                 }
+                maxLength={CLUB_INFO_LIMITS.regularMeetingTime}
                 className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-sky-700"
               />
             </label>
@@ -533,6 +683,7 @@ export default function PresidentPage() {
                 onChange={(event) =>
                   handleClubInfoChange("activityLocation", event.target.value)
                 }
+                maxLength={CLUB_INFO_LIMITS.activityLocation}
                 className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-sky-700"
               />
             </label>
@@ -544,6 +695,7 @@ export default function PresidentPage() {
                 onChange={(event) =>
                   handleClubInfoChange("contact", event.target.value)
                 }
+                maxLength={CLUB_INFO_LIMITS.contact}
                 className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-sky-700"
               />
             </label>
@@ -563,7 +715,7 @@ export default function PresidentPage() {
 
   const renderApplicantsPanel = () => (
     <Panel title="가입 신청자" hideTitle>
-      {!clubId ? (
+      {!isValidClubId ? (
         <EmptyText>동아리 정보를 찾을 수 없습니다.</EmptyText>
       ) : isJoinRequestsLoading ? (
         <EmptyText>가입 신청자를 불러오는 중입니다.</EmptyText>
@@ -626,7 +778,7 @@ export default function PresidentPage() {
 
   const renderMembersPanel = () => (
     <Panel title="멤버 관리" hideTitle className="flex min-h-130 flex-col">
-      {!clubId ? (
+      {!isValidClubId ? (
         <EmptyText>동아리 정보를 찾을 수 없습니다.</EmptyText>
       ) : isMembersLoading ? (
         <EmptyText>멤버 정보를 불러오는 중입니다.</EmptyText>
@@ -666,10 +818,11 @@ export default function PresidentPage() {
                   <div className="flex items-center gap-3">
                     <select
                       value={member.role}
-                      disabled={
-                        isSelf ||
-                        updateMemberRoleMutation.isPending ||
-                        transferPresidentMutation.isPending
+	                      disabled={
+	                        !isCurrentUserPresident ||
+	                        isSelf ||
+	                        updateMemberRoleMutation.isPending ||
+	                        transferPresidentMutation.isPending
                       }
                       onChange={(event) =>
                         handleRoleChange(memberId, event.target.value)
@@ -685,9 +838,12 @@ export default function PresidentPage() {
 
                     <button
                       onClick={() => requestRemoveMember(member)}
-                      disabled={
-                        isSelf || isPresident || removeMemberMutation.isPending
-                      }
+	                      disabled={
+	                        !isCurrentUserPresident ||
+	                        isSelf ||
+	                        isPresident ||
+	                        removeMemberMutation.isPending
+	                      }
                       className="rounded-xl px-4 py-2 text-sm font-semibold text-red-500 hover:bg-red-50 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent"
                     >
                       내보내기
@@ -701,6 +857,33 @@ export default function PresidentPage() {
       )}
     </Panel>
   );
+
+  if (authLoading) {
+    return (
+      <AccessMessage
+        title="로그인 상태를 확인하는 중입니다"
+        description="대표 관리 페이지 접근 권한을 확인하고 있습니다."
+      />
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <AccessMessage
+        title="로그인이 필요합니다"
+        description="대표 관리 페이지는 로그인 후 이용할 수 있습니다."
+      />
+    );
+  }
+
+  if (!isValidClubId) {
+    return (
+      <AccessMessage
+        title="잘못된 동아리 주소입니다"
+        description="대표 관리 페이지를 표시할 동아리 정보를 확인할 수 없습니다."
+      />
+    );
+  }
 
   if (!isMembersLoading && isMembersError) {
     return (
@@ -824,7 +1007,7 @@ function ConfirmModal({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
       onClick={(event) => {
-        if (event.target === event.currentTarget) onClose();
+        if (event.target === event.currentTarget && !isPending) onClose();
       }}
     >
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">

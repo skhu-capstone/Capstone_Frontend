@@ -2,14 +2,22 @@ import axios from "axios";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// 동아리 가입 신청자 목록 조회
-export const getClubJoinRequests = async (clubId) => {
+const getAuthHeaders = () => {
   const accessToken = localStorage.getItem("accessToken");
 
+  if (!accessToken) {
+    throw new Error("로그인이 필요합니다.");
+  }
+
+  return {
+    Authorization: `Bearer ${accessToken}`,
+  };
+};
+
+// 동아리 가입 신청자 목록 조회
+export const getClubJoinRequests = async (clubId) => {
   const response = await axios.get(`${BASE_URL}/api/clubs/${clubId}/join`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
+    headers: getAuthHeaders(),
   });
 
   return response.data.data;
@@ -17,15 +25,11 @@ export const getClubJoinRequests = async (clubId) => {
 
 // 동아리 가입 신청 승인
 export const approveClubJoinRequest = async ({ clubId, applicantUserId }) => {
-  const accessToken = localStorage.getItem("accessToken");
-
   const response = await axios.patch(
     `${BASE_URL}/api/clubs/${clubId}/join/${applicantUserId}/approve`,
     null,
     {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers: getAuthHeaders(),
     }
   );
 
@@ -34,14 +38,12 @@ export const approveClubJoinRequest = async ({ clubId, applicantUserId }) => {
 
 // 동아리 정보 수정
 export const updateClubInfo = async ({ clubId, clubInfo }) => {
-  const accessToken = localStorage.getItem("accessToken");
-
   const response = await axios.patch(
     `${BASE_URL}/api/clubs/${clubId}`,
     clubInfo,
     {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        ...getAuthHeaders(),
         "Content-Type": "application/json",
       },
     }
@@ -52,8 +54,6 @@ export const updateClubInfo = async ({ clubId, clubInfo }) => {
 
 // 동아리 대표 권한 이전
 export const transferClubPresident = async ({ clubId, newPresidentUserId }) => {
-  const accessToken = localStorage.getItem("accessToken");
-
   const response = await axios.patch(
     `${BASE_URL}/api/clubs/${clubId}/president`,
     {
@@ -61,7 +61,7 @@ export const transferClubPresident = async ({ clubId, newPresidentUserId }) => {
     },
     {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        ...getAuthHeaders(),
         "Content-Type": "application/json",
       },
     }
@@ -72,8 +72,6 @@ export const transferClubPresident = async ({ clubId, newPresidentUserId }) => {
 
 // 동아리 멤버 역할 변경
 export const updateClubMemberRole = async ({ clubId, targetUserId, role }) => {
-  const accessToken = localStorage.getItem("accessToken");
-
   const response = await axios.patch(
     `${BASE_URL}/api/clubs/${clubId}/members/${targetUserId}/role`,
     {
@@ -81,7 +79,7 @@ export const updateClubMemberRole = async ({ clubId, targetUserId, role }) => {
     },
     {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        ...getAuthHeaders(),
         "Content-Type": "application/json",
       },
     }
@@ -92,15 +90,11 @@ export const updateClubMemberRole = async ({ clubId, targetUserId, role }) => {
 
 // 동아리 가입 신청 거절
 export const rejectClubJoinRequest = async ({ clubId, applicantUserId }) => {
-  const accessToken = localStorage.getItem("accessToken");
-
   const response = await axios.patch(
     `${BASE_URL}/api/clubs/${clubId}/join/${applicantUserId}/reject`,
     null,
     {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers: getAuthHeaders(),
     }
   );
 
@@ -109,14 +103,10 @@ export const rejectClubJoinRequest = async ({ clubId, applicantUserId }) => {
 
 // 동아리 멤버 내보내기
 export const removeClubMember = async ({ clubId, targetUserId }) => {
-  const accessToken = localStorage.getItem("accessToken");
-
   const response = await axios.delete(
     `${BASE_URL}/api/clubs/${clubId}/members/${targetUserId}`,
     {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers: getAuthHeaders(),
     }
   );
 
