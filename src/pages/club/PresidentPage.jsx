@@ -58,6 +58,7 @@ export default function PresidentPage() {
   const [members, setMembers] = useState([]);
   const [clubImageFile, setClubImageFile] = useState(null);
   const [clubImagePreview, setClubImagePreview] = useState("");
+  const [hasClubImageError, setHasClubImageError] = useState(false);
   const [clubInfo, setClubInfo] = useState({
     clubName: "",
     category: "",
@@ -132,6 +133,7 @@ export default function PresidentPage() {
     });
     setClubImageFile(null);
     setClubImagePreview("");
+    setHasClubImageError(false);
   }, [clubDetail]);
 
   const applicants = useMemo(
@@ -199,11 +201,7 @@ export default function PresidentPage() {
 
       if (imageFile) {
         try {
-          const uploadedImage = await uploadClubImage(clubId, imageFile);
-          const uploadedImageUrl =
-            typeof uploadedImage === "string"
-              ? uploadedImage
-              : uploadedImage?.imageUrl;
+          const uploadedImageUrl = await uploadClubImage(clubId, imageFile);
 
           if (uploadedImageUrl) {
             nextClubInfo = {
@@ -488,6 +486,7 @@ export default function PresidentPage() {
     if (!file) {
       setClubImageFile(null);
       setClubImagePreview("");
+      setHasClubImageError(false);
       return;
     }
 
@@ -496,6 +495,7 @@ export default function PresidentPage() {
       event.target.value = "";
       setClubImageFile(null);
       setClubImagePreview("");
+      setHasClubImageError(false);
       return;
     }
 
@@ -504,10 +504,12 @@ export default function PresidentPage() {
       event.target.value = "";
       setClubImageFile(null);
       setClubImagePreview("");
+      setHasClubImageError(false);
       return;
     }
 
     setClubImageFile(file);
+    setHasClubImageError(false);
 
     const reader = new FileReader();
     reader.onload = () => setClubImagePreview(String(reader.result));
@@ -606,15 +608,16 @@ export default function PresidentPage() {
                 대표 이미지
               </span>
               <label className="flex cursor-pointer items-center gap-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-3 hover:border-sky-400 hover:bg-sky-50/50">
-                {clubImagePreview || clubInfo.imageUrl ? (
+                {(clubImagePreview || clubInfo.imageUrl) && !hasClubImageError ? (
                   <img
                     src={clubImagePreview || clubInfo.imageUrl}
                     alt="동아리 대표 이미지 미리보기"
                     className="h-20 w-28 shrink-0 rounded-lg object-cover"
+                    onError={() => setHasClubImageError(true)}
                   />
                 ) : (
                   <div className="flex h-20 w-28 shrink-0 items-center justify-center rounded-lg bg-white text-sm font-semibold text-slate-400">
-                    이미지
+                    이미지 없음
                   </div>
                 )}
                 <div className="min-w-0">

@@ -1,24 +1,7 @@
-import { useState } from "react";
+import { getProfileImageUrl } from "../../utils/imageUtils";
+import SafeImage from "../common/SafeImage";
 
 const DEFAULT_PROFILE_IMAGE = "https://placehold.co/168x168";
-
-const getProfileImageUrl = (image) => {
-  if (!image) return DEFAULT_PROFILE_IMAGE;
-  if (typeof image === "string") return image;
-
-  return [
-    image.profileImageUrl,
-    image.coffeeChatProfileImageUrl,
-    image.googleProfileImageUrl,
-    image.googleProfileImage,
-    image.oauthProfileImageUrl,
-    image.oauthProfileImage,
-    image.imageUrl,
-    image.url,
-    image.profileImage,
-  ].find((url) => typeof url === "string" && url.trim().length > 0) ??
-    DEFAULT_PROFILE_IMAGE;
-};
 
 function CoffeeChatListCard({
   name = "이름", // name 받아옴
@@ -29,11 +12,6 @@ function CoffeeChatListCard({
   onClick, // 페이지 이동
   disabled = false,
 }) {
-  const [hasImageError, setHasImageError] = useState(false);
-  const profileImageUrl = hasImageError
-    ? DEFAULT_PROFILE_IMAGE
-    : getProfileImageUrl(image);
-
   return (
     <div 
       onClick={disabled ? undefined : onClick}
@@ -45,11 +23,13 @@ function CoffeeChatListCard({
       }`}>
     
       {/* 프로필 이미지 */}
-      <img
+      <SafeImage
         className="w-40 h-full object-cover"
-        src={profileImageUrl}
+        src={image}
+        fallbackSrc={DEFAULT_PROFILE_IMAGE}
+        getSrc={getProfileImageUrl}
         alt={name}
-        onError={() => setHasImageError(true)}
+        fallback={<div className="h-full w-40 shrink-0 bg-zinc-300" />}
       />
 
       {/* 내용 영역 */}

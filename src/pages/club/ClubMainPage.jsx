@@ -1,9 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import FeedCard from "../../components/card/FeedCard";
 import ClubCalendar from "../../components/card/ClubCalendar";
+import SafeImage from "../../components/common/SafeImage";
 import { useQuery } from "@tanstack/react-query";
 import { getMyClubs, getClubMembers, getClubPosts } from "../../services/clubService";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import {
+  DEFAULT_FEED_IMAGE,
+  getContentImageUrl,
+  getProfileImageUrl,
+} from "../../utils/imageUtils";
 
 const VALID_TABS = ["feeds", "members", "calendar"];
 
@@ -19,29 +25,36 @@ export default function ClubMainPage() {
   const activeTab = VALID_TABS.includes(tabParam) ? tabParam : "feeds";
 
   const getImageUrl = (url) => {
-    if (!url) return "https://placehold.co/600x250";
-    return url;
+    return getContentImageUrl(url, DEFAULT_FEED_IMAGE);
   };
 
   const getMemberProfileImage = (member) => {
-    return [member.coffeeChatProfileImageUrl, member.profileImage].find(
-      (url) => typeof url === "string" && url.trim().length > 0
+    return getProfileImageUrl(
+      {
+        coffeeChatProfileImageUrl: member.coffeeChatProfileImageUrl,
+        profileImage: member.profileImage,
+      },
+      ""
     );
   };
 
   const getWriterProfileImage = (feed) => {
-    return [
-      feed.writerCoffeeChatProfileImageUrl,
-      feed.writerGoogleProfileImageUrl,
-      feed.writerProfileImageUrl,
-      feed.writerProfileImage,
-      feed.profileImageUrl,
-      feed.profileImage,
-      feed.writer?.coffeeChatProfileImageUrl,
-      feed.writer?.googleProfileImageUrl,
-      feed.writer?.profileImageUrl,
-      feed.writer?.profileImage,
-    ].find((url) => typeof url === "string" && url.trim().length > 0);
+    return getProfileImageUrl(
+      {
+        coffeeChatProfileImageUrl:
+          feed.writerCoffeeChatProfileImageUrl ??
+          feed.writer?.coffeeChatProfileImageUrl,
+        googleProfileImageUrl:
+          feed.writerGoogleProfileImageUrl ?? feed.writer?.googleProfileImageUrl,
+        profileImageUrl:
+          feed.writerProfileImageUrl ??
+          feed.profileImageUrl ??
+          feed.writer?.profileImageUrl,
+        profileImage:
+          feed.writerProfileImage ?? feed.profileImage ?? feed.writer?.profileImage,
+      },
+      ""
+    );
   };
 
   const getMemberInitial = (name = "") => name.trim().slice(0, 1) || "?";
@@ -470,17 +483,17 @@ export default function ClubMainPage() {
                     key={member.userId}
                     className="flex h-14 items-center gap-3 border-b border-slate-300"
                   >
-                    {profileImage ? (
-                      <img
-                        src={profileImage}
-                        alt={`${member.name} 프로필`}
-                        className="h-10 w-10 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-300 text-sm font-bold text-slate-600">
-                        {getMemberInitial(member.name)}
-                      </div>
-                    )}
+                    <SafeImage
+                      src={profileImage}
+                      alt={`${member.name} 프로필`}
+                      className="h-10 w-10 rounded-full object-cover"
+                      referrerPolicy="no-referrer"
+                      fallback={
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-300 text-sm font-bold text-slate-600">
+                          {getMemberInitial(member.name)}
+                        </div>
+                      }
+                    />
                     <div className="flex flex-col">
                       <span className="text-sm font-bold text-gray-900">
                         {member.name}

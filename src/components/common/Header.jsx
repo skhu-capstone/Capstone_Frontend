@@ -16,6 +16,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../../context/AuthContext";
 import { getMyPage } from "../../services/myPageService";
+import { getProfileImageUrl } from "../../utils/imageUtils";
 import logo from "../../assets/logo.png";
 
 const NAV_ITEMS = [
@@ -60,6 +61,7 @@ export default function Header() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [openMenuLabel, setOpenMenuLabel] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [failedProfileImageUrl, setFailedProfileImageUrl] = useState("");
   const profileRef = useRef(null);
   const navMenuRef = useRef(null);
   const navigate = useNavigate();
@@ -78,10 +80,15 @@ export default function Header() {
   });
 
   const profileImageUrl = isLoggedIn
-    ? myPageData?.coffeeChatProfile?.profileImageUrl ??
-      myPageData?.profileImageUrl ??
-      user?.profileImageUrl ??
-      user?.profileImage
+    ? getProfileImageUrl(
+        {
+          coffeeChatProfileImageUrl: myPageData?.coffeeChatProfile?.profileImageUrl,
+          coffeeChatProfileImage: myPageData?.coffeeChatProfile?.profileImage,
+          profileImageUrl: myPageData?.profileImageUrl ?? user?.profileImageUrl,
+          profileImage: myPageData?.profileImage ?? user?.profileImage,
+        },
+        ""
+      )
     : null;
 
   useEffect(() => {
@@ -269,12 +276,15 @@ export default function Header() {
               className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-white/50 bg-white/20 transition-colors duration-150 hover:bg-white/35"
               aria-label="프로필"
             >
-              {isLoggedIn && profileImageUrl ? (
+              {isLoggedIn &&
+              profileImageUrl &&
+              profileImageUrl !== failedProfileImageUrl ? (
                 <img
                   src={profileImageUrl}
                   alt="프로필"
                   className="h-full w-full rounded-full object-cover"
                   referrerPolicy="no-referrer"
+                  onError={() => setFailedProfileImageUrl(profileImageUrl)}
                 />
               ) : (
                 <User size={20} strokeWidth={2} color="white" />

@@ -13,21 +13,40 @@ import {
   toggleClubPostLike,
 } from "../../services/clubService";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  DEFAULT_FEED_IMAGE,
+  getContentImageUrl,
+  isValidImageUrl,
+} from "../../utils/imageUtils";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // ─── 이미지 캐러셀 ────────────────────────────────────────────────────────────
 function ImageCarousel({ images }) {
   const [idx, setIdx] = useState(0);
-  if (!images || images.length === 0) return null;
+  const [brokenImageIndexes, setBrokenImageIndexes] = useState([]);
+  const validImages = Array.isArray(images)
+    ? images.filter(isValidImageUrl)
+    : [];
+
+  if (validImages.length === 0) return null;
+
+  const imageUrl = brokenImageIndexes.includes(idx)
+    ? DEFAULT_FEED_IMAGE
+    : getContentImageUrl(validImages[idx], DEFAULT_FEED_IMAGE);
 
   return (
     <div className="relative w-full rounded-2xl overflow-hidden bg-slate-200">
       <img
-        src={images[idx] || null}
+        src={imageUrl}
         alt={`이미지 ${idx + 1}`}
         className="w-full object-cover"
         style={{ maxHeight: 420 }}
+        onError={() =>
+          setBrokenImageIndexes((prev) =>
+            prev.includes(idx) ? prev : [...prev, idx]
+          )
+        }
       />
       {idx > 0 && (
         <button
@@ -37,7 +56,7 @@ function ImageCarousel({ images }) {
           <ChevronLeft size={18} strokeWidth={2} className="text-white" />
         </button>
       )}
-      {idx < images.length - 1 && (
+      {idx < validImages.length - 1 && (
         <button
           onClick={() => setIdx((i) => i + 1)}
           className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 transition-colors cursor-pointer"
@@ -45,10 +64,10 @@ function ImageCarousel({ images }) {
           <ChevronRight size={18} strokeWidth={2} className="text-white" />
         </button>
       )}
-      {images.length > 1 && (
+      {validImages.length > 1 && (
         <>
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-            {images.map((_, i) => (
+            {validImages.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setIdx(i)}
@@ -57,7 +76,7 @@ function ImageCarousel({ images }) {
             ))}
           </div>
           <span className="absolute top-3 right-3 text-xs text-white bg-black/40 rounded-full px-2 py-0.5">
-            {idx + 1} / {images.length}
+            {idx + 1} / {validImages.length}
           </span>
         </>
       )}

@@ -12,6 +12,7 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
+import { isValidImageUrl } from "../../utils/imageUtils";
 
 const POSTS_PER_PAGE = 6;
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -97,7 +98,10 @@ function SortDropdown({ value, onChange }) {
 // ─── 게시물 카드 ──────────────────────────────────────────────────────────────
 function PostCard({ post, onClick }) {
   const [hovered, setHovered] = useState(false);
-  const imageUrl = post.imageUrls?.[0] || null;
+  const [hasImageError, setHasImageError] = useState(false);
+  const imageUrl = isValidImageUrl(post.imageUrls?.[0])
+    ? post.imageUrls[0]
+    : null;
   const likeCount = post.likeCount ?? 0;
   const commentCount = post.commentCount ?? 0;
 
@@ -108,12 +112,13 @@ function PostCard({ post, onClick }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {imageUrl ? (
+      {imageUrl && !hasImageError ? (
         <img
           src={imageUrl}
           alt={post.clubName}
           className="w-full h-full object-cover transition-transform duration-300"
           style={{ transform: hovered ? "scale(1.04)" : "scale(1)" }}
+          onError={() => setHasImageError(true)}
         />
       ) : (
         <div className="w-full h-full flex items-center justify-center bg-slate-100">
@@ -263,13 +268,17 @@ export default function ClubPostPage() {
           (filteredPosts.length > 0 ? (
             <div className="grid grid-cols-3 gap-2">
               {filteredPosts.map((post) => (
-	                <PostCard
-	                  key={post.postId}
-	                  post={post}
-	                  onClick={() =>
-	                    navigate(`/clubs/${post.clubId ?? clubId}/posts/${post.postId}`)
-	                  }
-	                />
+		                <PostCard
+		                  key={post.postId}
+		                  post={post}
+		                  onClick={() =>
+		                    navigate(
+                          post.clubId
+                            ? `/clubs/${post.clubId}/posts/${post.postId}`
+                            : `/club/posts/${post.postId}`
+                        )
+		                  }
+		                />
               ))}
             </div>
           ) : (

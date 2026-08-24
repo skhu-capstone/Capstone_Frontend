@@ -37,9 +37,8 @@ function InfoItem({ icon: Icon, label, value }) {
 export default function ClubDetailPage() {
   const { clubId } = useParams();
   const navigate = useNavigate();
-
   const [joinMessage, setJoinMessage] = useState("");
-
+  const [hasImageError, setHasImageError] = useState(false);
   const numericClubId = Number(clubId);
 
   const {
@@ -49,9 +48,7 @@ export default function ClubDetailPage() {
     refetch,
   } = useQuery({
     queryKey: ["clubDetail", numericClubId],
-
     queryFn: () => getClubDetail(numericClubId),
-
     enabled: Number.isInteger(numericClubId) && numericClubId > 0,
   });
 
@@ -147,11 +144,12 @@ export default function ClubDetailPage() {
 
         <article className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
           <div className="relative aspect-[21/8] min-h-56 overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100">
-            {club.imageUrl ? (
+            {club.imageUrl && !hasImageError ? (
               <img
                 src={club.imageUrl}
                 alt={`${club.clubName} 대표 이미지`}
                 className="h-full w-full object-cover"
+                onError={() => setHasImageError(true)}
               />
             ) : (
               <div className="flex h-full items-center justify-center text-blue-300">

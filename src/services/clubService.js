@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getUploadedImageUrl } from "../utils/imageUtils";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -72,7 +73,7 @@ export const uploadClubImage = async (clubId, file) => {
     },
   );
 
-  return response.data.data;
+  return getUploadedImageUrl(response.data.data);
 };
 
 // 동아리 가입 신청
@@ -202,6 +203,5 @@ export const uploadPostImage = async (postId, file) => {
       headers: getAuthHeaders(),
     },
   );
-
-  return response.data.data;
+  return getUploadedImageUrl(response.data.data);
 };

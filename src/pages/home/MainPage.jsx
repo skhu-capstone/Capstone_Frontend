@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getMain } from "../../services/mainService";
 import { useAuth } from "../../context/AuthContext";
 import { useMemo } from "react";
+import { getProfileImageUrl } from "../../utils/imageUtils";
 
 const getRandomSortValue = () => {
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
@@ -94,18 +95,22 @@ export default function MainPage() {
   );
 
   const getWriterProfileImage = (feed) => {
-    return [
-      feed.writerCoffeeChatProfileImageUrl,
-      feed.writerGoogleProfileImageUrl,
-      feed.writerProfileImageUrl,
-      feed.writerProfileImage,
-      feed.profileImageUrl,
-      feed.profileImage,
-      feed.writer?.coffeeChatProfileImageUrl,
-      feed.writer?.googleProfileImageUrl,
-      feed.writer?.profileImageUrl,
-      feed.writer?.profileImage,
-    ].find((url) => typeof url === "string" && url.trim().length > 0);
+    return getProfileImageUrl(
+      {
+        coffeeChatProfileImageUrl:
+          feed.writerCoffeeChatProfileImageUrl ??
+          feed.writer?.coffeeChatProfileImageUrl,
+        googleProfileImageUrl:
+          feed.writerGoogleProfileImageUrl ?? feed.writer?.googleProfileImageUrl,
+        profileImageUrl:
+          feed.writerProfileImageUrl ??
+          feed.profileImageUrl ??
+          feed.writer?.profileImageUrl,
+        profileImage:
+          feed.writerProfileImage ?? feed.profileImage ?? feed.writer?.profileImage,
+      },
+      ""
+    );
   };
 
   // 메인 협업 목록에는 동아리 협업 글과 프로젝트 모집 글이 섞여 들어올 수 있음
