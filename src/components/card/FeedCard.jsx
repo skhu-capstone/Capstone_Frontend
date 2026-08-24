@@ -1,11 +1,13 @@
 import { useNavigate } from "react-router-dom";
+import { DEFAULT_FEED_IMAGE, getContentImageUrl } from "../../utils/imageUtils";
+import SafeImage from "../common/SafeImage";
 
 function FeedCard({
   id, // postId 받아옴
   clubId,
   author = "", // writer.userName 받아옴
   date = "", // createdAt 받아옴
-  image = "https://placehold.co/600x250",// imageUrl 받아옴
+  image = DEFAULT_FEED_IMAGE,// imageUrl 받아옴
   content = "", // content 받아옴
   profileImage, // writer.profileImage 받아옴
 }) {
@@ -25,17 +27,13 @@ function FeedCard({
     >
       <div className="flex justify-center items-center gap-4">
         {/* 프로필 이미지 */}
-        {profileImage ? (
-          <img
-            src={profileImage}
-            alt={`${author} 프로필 이미지`}
-            className="w-12 h-12 rounded-full object-cover"
-            referrerPolicy="no-referrer"
-          />
-        ) : (
-          <div className="w-12 h-12 bg-zinc-300 rounded-full shrink-0" />
-          // 일단은 프로필 이미지가 없으면 회색원 처리했고 디폴트 이미지로 카톡처럼 사람 실루엣 사진 적용할 예정
-        )}
+        <SafeImage
+          src={profileImage}
+          alt={`${author} 프로필 이미지`}
+          className="w-12 h-12 rounded-full object-cover"
+          referrerPolicy="no-referrer"
+          fallback={<div className="w-12 h-12 bg-zinc-300 rounded-full shrink-0" />}
+        />
 
         <div className="min-w-0 h-12 flex flex-col justify-start items-start">
           {/* 작성자 */}
@@ -50,9 +48,11 @@ function FeedCard({
       </div>
 
       {/* 피드 이미지 -> 여기서 이미지 없으면 어떻게 할지 생각해야 할듯. 필수요소 설정? */}
-      <img
+      <SafeImage
         className="h-52 w-full self-stretch rounded-xl object-cover md:h-64"
         src={image}
+        fallbackSrc={DEFAULT_FEED_IMAGE}
+        getSrc={getContentImageUrl}
         alt="피드 이미지"
       />
 

@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getCoffeeChatProfile } from "../../services/coffeeChatProfileService";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { getProfileImageUrl } from "../../utils/imageUtils";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
@@ -102,12 +103,12 @@ export default function CoffeeChatProfilePage() {
     clubName: Array.isArray(data?.clubs)
       ? data.clubs[0] ?? ""
       : data?.clubs ?? "",
-    image:
-      coffeeChatProfile?.profileImageUrl ??
-      coffeeChatProfile?.profileImage ??
-      data?.profileImageUrl ??
-      data?.profileImage ??
-      "https://placehold.co/250x250",
+    image: getProfileImageUrl({
+      coffeeChatProfileImageUrl: coffeeChatProfile?.profileImageUrl,
+      coffeeChatProfileImage: coffeeChatProfile?.profileImage,
+      profileImageUrl: data?.profileImageUrl,
+      profileImage: data?.profileImage,
+    }),
   };
 
   const profile = {

@@ -1,5 +1,3 @@
-// 프로필 이미지 관련해서 api가 수정되면 다시 수정해야 함
-
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -8,22 +6,10 @@ import InputLabel from "../../components/card/InputLabel";
 import EditInputLabel from "../../components/card/EditInputLabel";
 import { getMyPage, updateCoffeeChatProfile, updateCoffeeChatVisibility, uploadProfileImage } from "../../services/myPageService";
 import { useAuth } from "../../context/AuthContext";
+import { getProfileImageUrl } from "../../utils/imageUtils";
 
-const DEFAULT_PROFILE_IMAGE = "https://placehold.co/250x250";
 const MAX_PROFILE_IMAGE_SIZE = 5 * 1024 * 1024;
-
-const getProfileImageUrl = (image) => {
-  if (!image) return DEFAULT_PROFILE_IMAGE;
-  if (typeof image === "string") return image;
-
-  return (
-    image.profileImageUrl ??
-    image.imageUrl ??
-    image.url ??
-    image.profileImage ??
-    DEFAULT_PROFILE_IMAGE
-  );
-};
+const ALLOWED_PROFILE_IMAGE_TYPES = ["image/png", "image/jpeg"];
 
 export default function MyPage() {
   const navigate = useNavigate();
@@ -79,9 +65,10 @@ export default function MyPage() {
       email: data.email ?? "",
       schoolEmail: data.schoolEmail ?? "",
       clubName: data.clubs?.[0] ?? "",
-      image: getProfileImageUrl(
-        data.profileImageUrl ?? data.profileImage ?? authUser?.profileImageUrl ?? authUser?.profileImage
-      ),
+      image: getProfileImageUrl({
+        profileImageUrl: data.profileImageUrl ?? authUser?.profileImageUrl,
+        profileImage: data.profileImage ?? authUser?.profileImage,
+      }),
     });
 
     const newProfile = {
@@ -92,12 +79,12 @@ export default function MyPage() {
       shortIntro: coffeeChatProfile?.headline ?? "",
       intro: coffeeChatProfile?.introduction ?? "",
       image:
-        getProfileImageUrl(
-          coffeeChatProfile?.profileImageUrl ??
-            coffeeChatProfile?.profileImage ??
-            authUser?.profileImageUrl ??
-            authUser?.profileImage
-        ),
+        getProfileImageUrl({
+          coffeeChatProfileImageUrl: coffeeChatProfile?.profileImageUrl,
+          coffeeChatProfileImage: coffeeChatProfile?.profileImage,
+          profileImageUrl: authUser?.profileImageUrl,
+          profileImage: authUser?.profileImage,
+        }),
     };
 
     setProfile(newProfile);
@@ -199,8 +186,8 @@ export default function MyPage() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      alert("이미지 파일만 업로드할 수 있습니다.");
+    if (!ALLOWED_PROFILE_IMAGE_TYPES.includes(file.type)) {
+      alert("PNG 또는 JPG 이미지만 업로드할 수 있습니다.");
       event.target.value = "";
       return;
     }
@@ -277,7 +264,7 @@ export default function MyPage() {
                   커피챗 이미지 변경
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/png, image/jpeg"
                     onChange={handleImageChange}
                     className="hidden"
                   />

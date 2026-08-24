@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
@@ -12,6 +13,7 @@ import { getApprovedClubs } from "../../services/clubService";
 
 function ClubCard({ club }) {
   const navigate = useNavigate();
+  const [hasImageError, setHasImageError] = useState(false);
 
   return (
     <article
@@ -28,11 +30,12 @@ function ClubCard({ club }) {
       className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-blue-100 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
     >
       <div className="relative aspect-[16/9] overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100">
-        {club.imageUrl ? (
+        {club.imageUrl && !hasImageError ? (
           <img
             src={club.imageUrl}
             alt={`${club.clubName} 대표 이미지`}
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            onError={() => setHasImageError(true)}
           />
         ) : (
           <div className="flex h-full items-center justify-center text-blue-300">
