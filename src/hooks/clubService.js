@@ -1,4 +1,11 @@
-import api from "./api"; // 프로젝트에서 쓰는 axios instance 경로에 맞게 수정
+import api from "./api";
+
+// 동아리 생성
+export const createClub = async (payload) => {
+  const response = await api.post("/api/clubs", payload);
+
+  return response.data.data;
+};
 
 // 동아리 가입 신청
 export const requestClubJoin = async (clubId, joinMessage) => {

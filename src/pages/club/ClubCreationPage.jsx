@@ -1,26 +1,26 @@
 import { useState } from "react";
-import { AlertCircle, Loader2, Plus, Upload } from "lucide-react";
-import { createClub, uploadClubImage } from "../../services/clubService";
+import { useNavigate } from "react-router-dom";
+import { AlertCircle, Image as ImageIcon, Loader2, Plus } from "lucide-react";
+import { createClub } from "../../services/clubService";
 
 const INITIAL_FORM = {
   clubName: "",
   category: "",
   shortDescription: "",
   detailDescription: "",
+  imageUrl: "",
   regularMeetingTime: "",
   activityLocation: "",
   contact: "",
 };
 
 export default function ClubCreationPage() {
+  const navigate = useNavigate();
+
   const [form, setForm] = useState(INITIAL_FORM);
-
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState("");
-
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState("");
-
+  const [imageError, setImageError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const setField = (key, value) => {
@@ -35,23 +35,10 @@ export default function ClubCreationPage() {
     }));
 
     setApiError("");
-  };
 
-  const handleImageChange = (file) => {
-    setImageFile(file);
-
-    if (!file) {
-      setImagePreview("");
-      return;
+    if (key === "imageUrl") {
+      setImageError(false);
     }
-
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      setImagePreview(String(reader.result));
-    };
-
-    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (event) => {
@@ -68,9 +55,16 @@ export default function ClubCreationPage() {
       return;
     }
 
-    const payload = Object.fromEntries(
-      Object.entries(form).map(([key, value]) => [key, value.trim()]),
-    );
+    const payload = {
+      clubName: form.clubName.trim(),
+      category: form.category.trim(),
+      shortDescription: form.shortDescription.trim(),
+      detailDescription: form.detailDescription.trim(),
+      imageUrl: form.imageUrl.trim(),
+      regularMeetingTime: form.regularMeetingTime.trim(),
+      activityLocation: form.activityLocation.trim(),
+      contact: form.contact.trim(),
+    };
 
     setSubmitting(true);
     setApiError("");
@@ -78,22 +72,15 @@ export default function ClubCreationPage() {
     try {
       const createdClub = await createClub(payload);
 
-      if (imageFile) {
-        await uploadClubImage(createdClub.id, imageFile);
-      }
+      alert("동아리가 생성되었습니다.");
 
-      alert("동아리 생성 신청이 완료되었습니다.");
-
-      setForm(INITIAL_FORM);
-      setImageFile(null);
-      setImagePreview("");
-      setErrors({});
+      navigate(`/club/main/${createdClub.id}`);
     } catch (error) {
       console.error(error);
 
       setApiError(
         error.response?.data?.message ||
-          "동아리 생성 신청에 실패했습니다. 입력 내용을 확인해주세요.",
+          "동아리 생성에 실패했습니다. 입력 내용을 확인해주세요.",
       );
     } finally {
       setSubmitting(false);
@@ -137,7 +124,6 @@ export default function ClubCreationPage() {
   return (
     <main className="min-h-[calc(100vh-64px)] bg-slate-50 px-5 py-10 sm:px-8 sm:py-14">
       <div className="mx-auto max-w-4xl">
-        {/* 제목 */}
         <header className="mb-8">
           <div className="flex items-start gap-4">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
@@ -156,30 +142,25 @@ export default function ClubCreationPage() {
           </div>
         </header>
 
-        {/* 생성 신청 폼 */}
         <section className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
           <div className="border-b border-gray-100 px-6 py-5 sm:px-8">
-            <h2 className="text-lg font-bold text-gray-900">
-              동아리 생성 신청
-            </h2>
+            <h2 className="text-lg font-bold text-gray-900">동아리 정보</h2>
 
             <p className="mt-1 text-xs text-gray-400">
-              신청 내용은 관리자 승인 후 서비스에 노출됩니다.
+              입력한 정보로 새로운 동아리가 즉시 생성됩니다.
             </p>
           </div>
 
           <form onSubmit={handleSubmit}>
             <div className="space-y-6 px-6 py-6 sm:px-8 sm:py-8">
-              {/* API 오류 */}
               {apiError && (
                 <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
                   <AlertCircle size={17} className="mt-0.5 shrink-0" />
 
-                  {apiError}
+                  <span>{apiError}</span>
                 </div>
               )}
 
-              {/* 기본 정보 */}
               <div className="grid gap-5 sm:grid-cols-2">
                 {fields.map((field) => (
                   <label
@@ -223,7 +204,6 @@ export default function ClubCreationPage() {
                 ))}
               </div>
 
-              {/* 상세 소개 */}
               <label className="block">
                 <span className="mb-2 block text-sm font-medium text-gray-700">
                   상세 소개
@@ -243,51 +223,54 @@ export default function ClubCreationPage() {
                 />
               </label>
 
-              {/* 대표 이미지 */}
               <div>
-                <p className="mb-2 text-sm font-medium text-gray-700">
-                  대표 이미지
+                <label
+                  htmlFor="clubImageUrl"
+                  className="mb-2 block text-sm font-medium text-gray-700"
+                >
+                  대표 이미지 URL
                   <span className="ml-1 text-xs font-normal text-gray-400">
                     (선택)
                   </span>
+                </label>
+
+                <input
+                  id="clubImageUrl"
+                  type="url"
+                  value={form.imageUrl}
+                  onChange={(event) => setField("imageUrl", event.target.value)}
+                  placeholder="https://example.com/image.jpg"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm outline-none transition-colors focus:border-blue-400"
+                />
+
+                <p className="mt-2 text-xs text-gray-400">
+                  외부에서 접근 가능한 이미지 주소를 입력해주세요.
                 </p>
 
-                <label className="flex cursor-pointer items-center gap-5 rounded-xl border border-dashed border-gray-300 bg-slate-50 p-5 transition-colors hover:border-blue-300 hover:bg-blue-50/40">
-                  {imagePreview ? (
-                    <img
-                      src={imagePreview}
-                      alt="대표 이미지 미리보기"
-                      className="h-24 w-36 rounded-lg object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-24 w-36 shrink-0 items-center justify-center rounded-lg bg-white text-gray-300">
-                      <Upload size={26} />
-                    </div>
-                  )}
+                {form.imageUrl.trim() && (
+                  <div className="mt-4 overflow-hidden rounded-xl border border-gray-200 bg-slate-50">
+                    {!imageError ? (
+                      <img
+                        src={form.imageUrl.trim()}
+                        alt="동아리 대표 이미지 미리보기"
+                        onLoad={() => setImageError(false)}
+                        onError={() => setImageError(true)}
+                        className="h-64 w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-48 flex-col items-center justify-center gap-2 text-gray-400">
+                        <ImageIcon size={32} strokeWidth={1.5} />
 
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-gray-700">
-                      {imageFile?.name || "이미지를 선택해주세요"}
-                    </p>
+                        <p className="text-sm">이미지를 불러올 수 없습니다.</p>
 
-                    <p className="mt-1 text-xs text-gray-400">
-                      동아리를 대표하는 이미지를 업로드해주세요.
-                    </p>
+                        <p className="text-xs">이미지 URL을 확인해주세요.</p>
+                      </div>
+                    )}
                   </div>
-
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(event) =>
-                      handleImageChange(event.target.files?.[0] ?? null)
-                    }
-                    className="hidden"
-                  />
-                </label>
+                )}
               </div>
             </div>
 
-            {/* 버튼 */}
             <div className="flex justify-end border-t border-gray-100 px-6 py-5 sm:px-8">
               <button
                 type="submit"
@@ -296,7 +279,7 @@ export default function ClubCreationPage() {
               >
                 {submitting && <Loader2 size={16} className="animate-spin" />}
 
-                {submitting ? "신청 중..." : "생성 신청하기"}
+                {submitting ? "생성 중..." : "동아리 생성하기"}
               </button>
             </div>
           </form>
