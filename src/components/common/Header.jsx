@@ -16,6 +16,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../../context/AuthContext";
 import { getMyPage } from "../../services/myPageService";
+import { getProfileImageUrl } from "../../utils/imageUtils";
 import logo from "../../assets/logo.png";
 
 const NAV_ITEMS = [
@@ -41,19 +42,36 @@ const NAV_ITEMS = [
   { label: "마이페이지", icon: User, href: "/my-page" },
 ];
 
+const isUsableAccessToken = (token) => {
+  if (!token) return false;
+
+  const [, payload] = token.split(".");
+  if (!payload) return true;
+
+  try {
+    const decoded = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
+    if (!decoded.exp) return true;
+    return decoded.exp * 1000 > Date.now();
+  } catch {
+    return true;
+  }
+};
+
 export default function Header() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [openMenuLabel, setOpenMenuLabel] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [failedProfileImageUrl, setFailedProfileImageUrl] = useState("");
   const profileRef = useRef(null);
   const navMenuRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
 
-  const { user, logout } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
   const accessToken = localStorage.getItem("accessToken");
-  const isLoggedIn = !!user && !!accessToken;
+  const hasUsableToken = isUsableAccessToken(accessToken);
+  const isLoggedIn = !authLoading && !!user && hasUsableToken;
 
   const { data: myPageData } = useQuery({
     queryKey: ["myPage"],
@@ -62,10 +80,15 @@ export default function Header() {
   });
 
   const profileImageUrl = isLoggedIn
-    ? myPageData?.coffeeChatProfile?.profileImageUrl ??
-      myPageData?.profileImageUrl ??
-      user?.profileImageUrl ??
-      user?.profileImage
+    ? getProfileImageUrl(
+        {
+          coffeeChatProfileImageUrl: myPageData?.coffeeChatProfile?.profileImageUrl,
+          coffeeChatProfileImage: myPageData?.coffeeChatProfile?.profileImage,
+          profileImageUrl: myPageData?.profileImageUrl ?? user?.profileImageUrl,
+          profileImage: myPageData?.profileImage ?? user?.profileImage,
+        },
+        ""
+      )
     : null;
 
   useEffect(() => {
@@ -81,6 +104,15 @@ export default function Header() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    const latestToken = localStorage.getItem("accessToken");
+
+    if (!authLoading && user && !isUsableAccessToken(latestToken)) {
+      logout();
+      queryClient.clear();
+    }
+  }, [location.pathname, authLoading, user, logout, queryClient]);
 
   const handleAddAccount = () => {
     setProfileOpen(false);
@@ -244,12 +276,15 @@ export default function Header() {
               className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-white/50 bg-white/20 transition-colors duration-150 hover:bg-white/35"
               aria-label="프로필"
             >
-              {isLoggedIn && profileImageUrl ? (
+              {isLoggedIn &&
+              profileImageUrl &&
+              profileImageUrl !== failedProfileImageUrl ? (
                 <img
                   src={profileImageUrl}
                   alt="프로필"
                   className="h-full w-full rounded-full object-cover"
                   referrerPolicy="no-referrer"
+                  onError={() => setFailedProfileImageUrl(profileImageUrl)}
                 />
               ) : (
                 <User size={20} strokeWidth={2} color="white" />

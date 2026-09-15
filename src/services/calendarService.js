@@ -5,6 +5,10 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const getAuthHeaders = () => {
   const accessToken = localStorage.getItem("accessToken");
 
+  if (!accessToken) {
+    throw new Error("로그인이 필요합니다.");
+  }
+
   return {
     Authorization: `Bearer ${accessToken}`,
   };

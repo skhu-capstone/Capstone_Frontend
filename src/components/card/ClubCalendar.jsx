@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
@@ -9,6 +10,8 @@ import {
   getClubMonthlyEvents,
   updateClubEvent,
 } from "../../services/calendarService";
+import { getClubMembers } from "../../services/clubService";
+import { useAuth } from "../../context/AuthContext";
 import "./ClubCalendar.css";
 
 const emptyForm = {
@@ -19,7 +22,17 @@ const emptyForm = {
   location: "",
 };
 
+const MAX_EVENT_TITLE_LENGTH = 50;
+const MAX_EVENT_DESCRIPTION_LENGTH = 500;
+const MAX_EVENT_LOCATION_LENGTH = 100;
+
 export default function ClubCalendar({ clubId, canManage = false }) {
+  const targetClubId = Number(clubId);
+  const isValidClubId = Number.isInteger(targetClubId) && targetClubId > 0;
+  const { user: authUser, loading: authLoading } = useAuth();
+  const accessToken = localStorage.getItem("accessToken");
+  const isAuthenticated = !!authUser && !!accessToken;
+  const currentUserId = Number(authUser?.userId ?? authUser?.id);
   const [events, setEvents] = useState([]);
   const [visibleMonth, setVisibleMonth] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -32,14 +45,41 @@ export default function ClubCalendar({ clubId, canManage = false }) {
 
   const isModalOpen = modalMode === "create" || modalMode === "edit";
 
+  const { data: members = [], isLoading: isMembersLoading } = useQuery({
+    queryKey: ["clubMembers", targetClubId],
+    queryFn: () => getClubMembers(targetClubId),
+    enabled: isAuthenticated && isValidClubId,
+  });
+
+  const myRole = members
+    .find((member) => Number(member.userId ?? member.id) === currentUserId)
+    ?.role?.trim()
+    .toUpperCase();
+  const canManageCalendar =
+    canManage && ["PRESIDENT", "STAFF"].includes(myRole);
+
   useEffect(() => {
-    if (!clubId || !visibleMonth) return;
+    if (!visibleMonth || authLoading) return;
+
+    if (!isValidClubId) {
+      setEvents([]);
+      setIsError(false);
+      setIsLoading(false);
+      return;
+    }
+
+    if (!isAuthenticated) {
+      setEvents([]);
+      setIsError(false);
+      setIsLoading(false);
+      return;
+    }
 
     setIsLoading(true);
     setIsError(false);
 
     getClubMonthlyEvents({
-      clubId,
+      clubId: targetClubId,
       year: visibleMonth.year,
       month: visibleMonth.month,
     })
@@ -53,7 +93,7 @@ export default function ClubCalendar({ clubId, canManage = false }) {
       .finally(() => {
         setIsLoading(false);
       });
-  }, [clubId, visibleMonth]);
+  }, [authLoading, isAuthenticated, isValidClubId, targetClubId, visibleMonth]);
 
   const handleDatesSet = (info) => {
     const currentDate = info.view.currentStart;
@@ -71,7 +111,7 @@ export default function ClubCalendar({ clubId, canManage = false }) {
   };
 
   const openCreateModal = (selectedDate = "") => {
-    if (!canManage) return;
+    if (!isAuthenticated || !isValidClubId || !canManageCalendar) return;
 
     setSelectedEvent(null);
     setFormError("");
@@ -84,19 +124,23 @@ export default function ClubCalendar({ clubId, canManage = false }) {
   };
 
   const openEditModal = async (calendarEvent) => {
-    if (!canManage) return;
+    if (!isAuthenticated || !isValidClubId || !canManageCalendar) return;
 
     setFormError("");
-    const fallbackEvent = events.find((event) => event.id === calendarEvent.id);
-    const eventData = await getClubEventDetail({
-      clubId,
-      eventId: calendarEvent.id,
-    })
-      .then(mapServerEventToCalendarEvent)
-      .catch((error) => {
-        console.error(error);
-        return fallbackEvent;
-      });
+    let eventData = null;
+
+    try {
+      eventData = mapServerEventToCalendarEvent(
+        await getClubEventDetail({
+          clubId: targetClubId,
+          eventId: calendarEvent.id,
+        })
+      );
+    } catch (error) {
+      console.error(error);
+      setIsError(true);
+      return;
+    }
 
     if (!eventData) return;
 
@@ -130,6 +174,21 @@ export default function ClubCalendar({ clubId, canManage = false }) {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    if (!isAuthenticated) {
+      setFormError("로그인이 필요합니다.");
+      return;
+    }
+
+    if (!isValidClubId) {
+      setFormError("잘못된 동아리 정보입니다.");
+      return;
+    }
+
+    if (!canManageCalendar) {
+      setFormError("일정 관리 권한이 없습니다.");
+      return;
+    }
+
     const payload = {
       title: form.title.trim(),
       description: form.description.trim(),
@@ -143,13 +202,35 @@ export default function ClubCalendar({ clubId, canManage = false }) {
       return;
     }
 
+    if (payload.title.length > MAX_EVENT_TITLE_LENGTH) {
+      setFormError(`제목은 ${MAX_EVENT_TITLE_LENGTH}자 이하로 입력해주세요.`);
+      return;
+    }
+
+    if (payload.description.length > MAX_EVENT_DESCRIPTION_LENGTH) {
+      setFormError(
+        `메모는 ${MAX_EVENT_DESCRIPTION_LENGTH}자 이하로 입력해주세요.`
+      );
+      return;
+    }
+
+    if (payload.location.length > MAX_EVENT_LOCATION_LENGTH) {
+      setFormError(`장소는 ${MAX_EVENT_LOCATION_LENGTH}자 이하로 입력해주세요.`);
+      return;
+    }
+
+    if (form.end && form.end < form.start) {
+      setFormError("종료일은 시작일보다 빠를 수 없습니다.");
+      return;
+    }
+
     setIsSubmitting(true);
     setFormError("");
 
     try {
       if (modalMode === "create") {
         const newEvent = await createClubEvent({
-          clubId,
+          clubId: targetClubId,
           event: payload,
         });
         setEvents((prev) => [...prev, mapServerEventToCalendarEvent(newEvent)]);
@@ -157,7 +238,7 @@ export default function ClubCalendar({ clubId, canManage = false }) {
 
       if (modalMode === "edit" && selectedEvent) {
         const updatedEvent = await updateClubEvent({
-          clubId,
+          clubId: targetClubId,
           eventId: selectedEvent.id,
           event: payload,
         });
@@ -184,12 +265,30 @@ export default function ClubCalendar({ clubId, canManage = false }) {
   const handleDelete = async () => {
     if (!selectedEvent) return;
 
+    if (!isAuthenticated) {
+      setFormError("로그인이 필요합니다.");
+      return;
+    }
+
+    if (!isValidClubId) {
+      setFormError("잘못된 동아리 정보입니다.");
+      return;
+    }
+
+    if (!canManageCalendar) {
+      setFormError("일정 관리 권한이 없습니다.");
+      return;
+    }
+
+    const confirmed = window.confirm("이 일정을 삭제하시겠습니까?");
+    if (!confirmed) return;
+
     setIsSubmitting(true);
     setFormError("");
 
     try {
       await deleteClubEvent({
-        clubId,
+        clubId: targetClubId,
         eventId: selectedEvent.id,
       });
       setEvents((prev) =>
@@ -217,7 +316,7 @@ export default function ClubCalendar({ clubId, canManage = false }) {
             </p>
           </div>
 
-          {canManage && (
+          {isAuthenticated && isValidClubId && canManageCalendar && (
             <button
               type="button"
               onClick={() => openCreateModal()}
@@ -234,9 +333,21 @@ export default function ClubCalendar({ clubId, canManage = false }) {
           </p>
         )}
 
+        {isAuthenticated && isMembersLoading && (
+          <p className="mb-3 text-sm text-slate-900/50">
+            일정 관리 권한을 확인하는 중입니다.
+          </p>
+        )}
+
         {isError && (
           <p className="mb-3 text-sm text-red-500">
             일정을 불러오지 못했습니다.
+          </p>
+        )}
+
+        {!isValidClubId && (
+          <p className="mb-3 text-sm text-red-500">
+            잘못된 동아리 정보입니다.
           </p>
         )}
 
@@ -248,7 +359,7 @@ export default function ClubCalendar({ clubId, canManage = false }) {
           dayMaxEvents={3}
           displayEventTime={false}
           fixedWeekCount={false}
-          selectable={canManage}
+          selectable={canManageCalendar}
           dateClick={(info) => openCreateModal(info.dateStr)}
           datesSet={handleDatesSet}
           eventClick={(info) => openEditModal(info.event)}
@@ -357,10 +468,14 @@ function EventModal({
             type="text"
             value={form.title}
             onChange={(event) => onChange("title", event.target.value)}
+            maxLength={MAX_EVENT_TITLE_LENGTH}
             placeholder="예) 정기 회의"
             className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-sky-700"
             required
           />
+          <span className="text-right text-xs text-slate-400">
+            {form.title.length}/{MAX_EVENT_TITLE_LENGTH}
+          </span>
         </label>
 
         <div className="grid grid-cols-2 gap-4">
@@ -389,12 +504,16 @@ function EventModal({
 
         <label className="flex flex-col gap-2">
           <span className="text-sm font-semibold text-slate-700">메모</span>
-	          <textarea
-	            value={form.description}
-	            onChange={(event) => onChange("description", event.target.value)}
-	            placeholder="일정 내용을 입력하세요"
-	            className="min-h-28 resize-none rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-sky-700"
-	          />
+		          <textarea
+		            value={form.description}
+		            onChange={(event) => onChange("description", event.target.value)}
+		            maxLength={MAX_EVENT_DESCRIPTION_LENGTH}
+		            placeholder="일정 내용을 입력하세요"
+		            className="min-h-28 resize-none rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-sky-700"
+		          />
+          <span className="text-right text-xs text-slate-400">
+            {form.description.length}/{MAX_EVENT_DESCRIPTION_LENGTH}
+          </span>
         </label>
 
         <label className="flex flex-col gap-2">
@@ -403,10 +522,14 @@ function EventModal({
             type="text"
             value={form.location}
             onChange={(event) => onChange("location", event.target.value)}
+            maxLength={MAX_EVENT_LOCATION_LENGTH}
             placeholder="예) 미가엘관 M301"
             className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-sky-700"
           />
-	        </label>
+          <span className="text-right text-xs text-slate-400">
+            {form.location.length}/{MAX_EVENT_LOCATION_LENGTH}
+          </span>
+		        </label>
 
 	        {formError && (
 	          <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-500">

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getUploadedImageUrl } from "../utils/imageUtils";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -61,5 +62,5 @@ export const uploadProfileImage = async ({ userId, file }) => {
     }
   );
 
-  return response.data.data;
+  return getUploadedImageUrl(response.data.data);
 };
