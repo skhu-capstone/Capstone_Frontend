@@ -9,19 +9,22 @@ import {
   Loader2,
 } from "lucide-react";
 import { getClubs } from "../../services/clubService";
+import useMyClubs from "../../hooks/useMyClubs";
 
-function ClubCard({ club }) {
+function ClubCard({ club, isMember, membershipUnavailable }) {
   const navigate = useNavigate();
   const [hasImageError, setHasImageError] = useState(false);
 
   const goToDetail = () => {
+    if (isMember || membershipUnavailable) return;
     navigate(`/club/apply/${club.id}`);
   };
 
   return (
     <article
       role="button"
-      tabIndex={0}
+      tabIndex={isMember || membershipUnavailable ? -1 : 0}
+      aria-disabled={isMember || membershipUnavailable}
       onClick={goToDetail}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
@@ -63,14 +66,15 @@ function ClubCard({ club }) {
         <div className="mt-auto pt-5">
           <button
             type="button"
+            disabled={isMember || membershipUnavailable}
             onClick={(event) => {
               event.stopPropagation();
               goToDetail();
             }}
-            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500"
           >
-            신청하기
-            <ArrowRight size={16} />
+            {isMember ? "이미 소속된 동아리 입니다." : membershipUnavailable ? "소속 확인 중" : "신청하기"}
+            {!isMember && !membershipUnavailable && <ArrowRight size={16} />}
           </button>
         </div>
       </div>
@@ -79,6 +83,8 @@ function ClubCard({ club }) {
 }
 
 export default function ClubApplicationPage() {
+  const { clubs: myClubs, isChecking, hasError, refetch: refetchMyClubs } = useMyClubs();
+  const joinedClubIds = new Set(myClubs.map((club) => String(club.clubId)));
   const {
     data: clubData,
     isLoading,
@@ -113,6 +119,12 @@ export default function ClubApplicationPage() {
             </p>
           </div>
         </header>
+        {hasError && (
+          <p role="alert" className="mb-4 text-sm text-red-500">
+            소속 동아리를 확인하지 못했습니다.
+            <button type="button" onClick={() => refetchMyClubs()} className="ml-2 underline">다시 시도</button>
+          </p>
+        )}
 
         {isLoading && (
           <div className="flex min-h-80 flex-col items-center justify-center gap-3 rounded-2xl border border-gray-100 bg-white text-gray-400 shadow-sm">
@@ -174,7 +186,7 @@ export default function ClubApplicationPage() {
 
             <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {clubs.map((club) => (
-                <ClubCard key={club.id} club={club} />
+                <ClubCard key={club.id} club={club} isMember={joinedClubIds.has(String(club.id))} membershipUnavailable={isChecking || hasError} />
               ))}
             </section>
           </>

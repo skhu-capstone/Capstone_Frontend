@@ -12,6 +12,7 @@ import {
   Users,
 } from "lucide-react";
 import { getClubDetail, requestClubJoin } from "../../services/clubService";
+import useMyClubs from "../../hooks/useMyClubs";
 
 function InfoItem({ icon: Icon, label, value }) {
   return (
@@ -40,6 +41,9 @@ export default function ClubDetailPage() {
   const [joinMessage, setJoinMessage] = useState("");
   const [hasImageError, setHasImageError] = useState(false);
   const numericClubId = Number(clubId);
+  const { clubs: myClubs, isChecking, hasError, refetch: refetchMyClubs } = useMyClubs();
+  const isMember = myClubs.some((club) => Number(club.clubId) === numericClubId);
+  const cannotJoin = isMember || isChecking || hasError;
 
   const {
     data: club,
@@ -73,6 +77,7 @@ export default function ClubDetailPage() {
   });
 
   const handleJoin = () => {
+    if (cannotJoin || joinMutation.isPending) return;
     if (!Number.isInteger(numericClubId) || numericClubId <= 0) {
       alert("잘못된 동아리 주소입니다.");
       return;
@@ -222,22 +227,28 @@ export default function ClubDetailPage() {
                 onChange={(event) => setJoinMessage(event.target.value)}
                 placeholder="예) 웹 개발에 관심이 많고 동아리 프로젝트에 적극적으로 참여하고 싶습니다."
                 rows={5}
-                disabled={joinMutation.isPending}
+                disabled={cannotJoin || joinMutation.isPending}
                 className="mt-5 w-full resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm leading-6 outline-none transition-colors focus:border-blue-400 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
               />
 
+              {hasError && (
+                <p role="alert" className="mt-2 text-sm text-red-500">
+                  소속 동아리를 확인하지 못했습니다.
+                  <button type="button" onClick={() => refetchMyClubs()} className="ml-2 underline">다시 시도</button>
+                </p>
+              )}
               <div className="mt-4 flex justify-end">
                 <button
                   type="button"
                   onClick={handleJoin}
-                  disabled={!joinMessage.trim() || joinMutation.isPending}
+                  disabled={cannotJoin || !joinMessage.trim() || joinMutation.isPending}
                   className="flex min-w-36 cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                 >
                   {joinMutation.isPending && (
                     <Loader2 size={16} className="animate-spin" />
                   )}
 
-                  {joinMutation.isPending ? "신청 중..." : "가입 신청하기"}
+                  {isMember ? "이미 소속된 동아리 입니다." : isChecking || hasError ? "소속 확인 중" : joinMutation.isPending ? "신청 중..." : "가입 신청하기"}
                 </button>
               </div>
             </section>

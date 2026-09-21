@@ -181,6 +181,19 @@ export const toggleClubPostLike = async (postId) => {
   return response.data.data;
 };
 
+// 댓글 삭제 (작성자 권한은 서버에서 확인)
+export const deleteClubComment = async (commentId) => {
+  const response = await axios.delete(`${BASE_URL}/api/comments/${commentId}`, {
+    headers: getAuthHeaders(),
+  });
+
+  if (response.data?.success === false) {
+    throw new Error(response.data.message || "댓글 삭제에 실패했습니다.");
+  }
+
+  return response.data;
+};
+
 // 게시물 삭제
 export const deleteClubPost = async (postId) => {
   const response = await axios.delete(`${BASE_URL}/api/posts/${postId}`, {

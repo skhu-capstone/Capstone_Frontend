@@ -9,10 +9,12 @@ import {
 } from "lucide-react";
 import {
   deleteClubPost,
+  deleteClubComment,
   getClubPostDetail,
   toggleClubPostLike,
 } from "../../services/clubService";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "../../context/AuthContext";
 import {
   DEFAULT_FEED_IMAGE,
   getContentImageUrl,
@@ -102,7 +104,7 @@ function Skeleton() {
 }
 
 // ─── 댓글 아이템 ─────────────────────────────────────────────────────────────
-function CommentItem({ comment }) {
+function CommentItem({ comment, canDelete, onDelete, isDeleting, isDeletePending, deleteError }) {
   function formatDate(iso) {
     if (!iso) return "";
     return iso.slice(0, 10).replace(/-/g, ".");
@@ -121,10 +123,22 @@ function CommentItem({ comment }) {
           <span className="text-xs text-gray-400">
             {formatDate(comment.createdAt)}
           </span>
+          {canDelete && (
+            <button
+              type="button"
+              onClick={onDelete}
+              disabled={isDeletePending}
+              aria-label={`${comment.writerName ?? "사용자"}님의 댓글 삭제`}
+              className="ml-auto shrink-0 cursor-pointer text-xs text-red-500 hover:text-red-700 disabled:cursor-not-allowed disabled:text-gray-400"
+            >
+              {isDeleting ? "삭제 중..." : "삭제"}
+            </button>
+          )}
         </div>
         <p className="text-sm text-gray-700 leading-relaxed">
           {comment.content}
         </p>
+        {deleteError && <p role="alert" className="text-xs text-red-500">{deleteError}</p>}
       </div>
     </div>
   );
@@ -137,8 +151,42 @@ export default function ClubPostDetail() {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const commentInputRef = useRef(null);
   const [commentText, setCommentText] = useState("");
+
+  const deleteCommentMutation = useMutation({
+    mutationFn: deleteClubComment,
+    onSuccess: async (_, commentId) => {
+      await queryClient.cancelQueries({ queryKey: ["clubPostDetail", currentPostId] });
+      queryClient.setQueryData(["clubPostDetail", currentPostId], (old) => {
+        if (!old) return old;
+        const comments = (old.comments || old.postComments || []).filter(
+          (comment) => String(comment.commentId) !== String(commentId),
+        );
+        return { ...old, comments, ...(old.postComments ? { postComments: comments } : {}) };
+      });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["clubPostDetail", currentPostId] }),
+        queryClient.invalidateQueries({ queryKey: ["clubPosts"] }),
+      ]);
+    },
+  });
+
+  const handleDeleteComment = (commentId) => {
+    if (deleteCommentMutation.isPending) return;
+    if (window.confirm("이 댓글을 삭제하시겠습니까?")) {
+      deleteCommentMutation.mutate(commentId);
+    }
+  };
+
+  const deleteCommentError = deleteCommentMutation.isError
+    ? deleteCommentMutation.error.response?.status === 403
+      ? "본인이 작성한 댓글만 삭제할 수 있습니다."
+      : deleteCommentMutation.error.response?.status === 401
+        ? "로그인이 만료되었습니다. 다시 로그인해주세요."
+        : deleteCommentMutation.error.response?.data?.message || "댓글 삭제에 실패했습니다. 다시 시도해주세요."
+    : "";
 
   // ── 게시글 조회 (React Query) ──────────────────────────────────────────
   const {
@@ -380,7 +428,15 @@ export default function ClubPostDetail() {
           ) : (
             <div className="flex flex-col gap-4">
               {comments.map((c, idx) => (
-                <CommentItem key={c.commentId || idx} comment={c} />
+                <CommentItem
+                  key={`${currentPostId}-${c.commentId ?? idx}`}
+                  comment={c}
+                  canDelete={!!user && !!localStorage.getItem("accessToken") && c.commentId != null}
+                  onDelete={() => handleDeleteComment(c.commentId)}
+                  isDeletePending={deleteCommentMutation.isPending}
+                  isDeleting={deleteCommentMutation.isPending && deleteCommentMutation.variables === c.commentId}
+                  deleteError={deleteCommentMutation.variables === c.commentId ? deleteCommentError : ""}
+                />
               ))}
             </div>
           )}

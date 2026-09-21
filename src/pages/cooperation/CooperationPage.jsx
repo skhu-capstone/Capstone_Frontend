@@ -11,6 +11,7 @@ import {
   Link,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import useMyClubs from "../../hooks/useMyClubs";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -105,6 +106,7 @@ function ProjectPostCard({ post, onClick }) {
 
 // ─── 협업 모집 모달 ───────────────────────────────────────────────────────────
 function CreateClubCollabModal({ onClose, onSuccess }) {
+  const { clubs, isAuthenticated, isChecking, hasError, refetch } = useMyClubs();
   const [form, setForm] = useState({
     clubId: "",
     title: "",
@@ -117,6 +119,8 @@ function CreateClubCollabModal({ onClose, onSuccess }) {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
+  const selectedClubId = form.clubId || (clubs.length === 1 ? String(clubs[0].clubId) : "");
+  const selectedClub = clubs.find((club) => String(club.clubId) === selectedClubId);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -133,7 +137,7 @@ function CreateClubCollabModal({ onClose, onSuccess }) {
 
   function validate() {
     const e = {};
-    if (!form.clubId.trim()) e.clubId = "동아리 ID를 입력해주세요.";
+    if (!selectedClub) e.clubId = "소속 동아리를 선택해주세요.";
     if (!form.title.trim()) e.title = "제목을 입력해주세요.";
     if (!form.contestName.trim()) e.contestName = "대회명을 입력해주세요.";
     if (!form.contestDate) e.contestDate = "대회 날짜를 선택해주세요.";
@@ -143,6 +147,7 @@ function CreateClubCollabModal({ onClose, onSuccess }) {
   }
 
   async function handleSubmit() {
+    if (loading || isChecking || hasError || !isAuthenticated) return;
     const e = validate();
     if (Object.keys(e).length) {
       setErrors(e);
@@ -150,7 +155,7 @@ function CreateClubCollabModal({ onClose, onSuccess }) {
     }
 
     const payload = {
-      clubId: Number(form.clubId),
+      clubId: selectedClub.clubId,
       title: form.title.trim(),
       contestName: form.contestName.trim(),
       contestDate: form.contestDate,
@@ -220,23 +225,29 @@ function CreateClubCollabModal({ onClose, onSuccess }) {
             </div>
           )}
 
-          {/* 동아리 ID */}
+          {/* 소속 동아리 */}
           <div>
-            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+            <label htmlFor="collab-club" className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
               <Users size={12} strokeWidth={2} />
-              동아리 ID <span className="text-red-400">*</span>
+              소속 동아리 <span className="text-red-400">*</span>
             </label>
-            <input
-              type="number"
-              value={form.clubId}
+            <select
+              id="collab-club"
+              value={selectedClubId}
               onChange={(e) => setField("clubId", e.target.value)}
-              placeholder="소속 동아리 ID"
+              disabled={loading || isChecking || hasError || clubs.length === 0}
               className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors ${
                 errors.clubId
                   ? "border-red-300 bg-red-50"
                   : "border-gray-200 focus:border-green-400"
               }`}
-            />
+            >
+              <option value="">{isChecking ? "소속 동아리 불러오는 중..." : "동아리를 선택해주세요"}</option>
+              {clubs.map((club) => <option key={club.clubId} value={String(club.clubId)}>{club.clubName}</option>)}
+            </select>
+            {!isAuthenticated && <p className="mt-1 text-xs text-red-500">로그인 후 모집글을 등록해주세요.</p>}
+            {isAuthenticated && !isChecking && !hasError && clubs.length === 0 && <p className="mt-1 text-xs text-gray-500">소속된 동아리가 있어야 협업 모집을 등록할 수 있습니다.</p>}
+            {hasError && <p role="alert" className="mt-1 text-xs text-red-500">소속 동아리를 불러오지 못했습니다. <button type="button" onClick={() => refetch()} className="underline">다시 시도</button></p>}
             {errors.clubId && (
               <p className="mt-1 text-xs text-red-500">{errors.clubId}</p>
             )}
@@ -386,7 +397,7 @@ function CreateClubCollabModal({ onClose, onSuccess }) {
           </button>
           <button
             onClick={handleSubmit}
-            disabled={loading}
+            disabled={loading || isChecking || hasError || !isAuthenticated || !selectedClub}
             className="px-4 py-2 text-sm text-white bg-green-500 rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer font-medium"
           >
             {loading ? "등록 중..." : "모집 등록"}
