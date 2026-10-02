@@ -10,7 +10,7 @@ import {
   FileText,
   Link,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import useMyClubs from "../../hooks/useMyClubs";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -681,7 +681,8 @@ function SkeletonGrid() {
 
 // ─── 메인 ─────────────────────────────────────────────────────────────────────
 export default function CooperationPage() {
-  const [tab, setTab] = useState("club");
+  const location = useLocation();
+  const [tab, setTab] = useState(location.state?.tab === "project" ? "project" : "club");
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [showClubModal, setShowClubModal] = useState(false);
