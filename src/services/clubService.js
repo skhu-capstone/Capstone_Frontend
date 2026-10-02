@@ -89,6 +89,9 @@ export const requestClubJoin = async (clubId, joinMessage) => {
     },
   );
 
+  if (response.data?.success === false) {
+    throw new Error(response.data.message || "동아리 가입 신청에 실패했습니다.");
+  }
   return response.data.data;
 };
 
@@ -102,6 +105,9 @@ export const cancelClubJoin = async (clubId) => {
     },
   );
 
+  if (response.data?.success === false) {
+    throw new Error(response.data.message || "가입 신청 취소에 실패했습니다.");
+  }
   return response.data.data;
 };
 
@@ -164,6 +170,21 @@ export const getClubPostDetail = async (postId) => {
   const response = await axios.get(`${BASE_URL}/api/posts/${postId}`, {
     headers: getAuthHeaders(),
   });
+
+  return response.data.data;
+};
+
+// 게시글 수정 (작성자 권한은 서버에서 확인)
+export const updateClubPost = async ({ postId, title, content, imageUrls, postType }) => {
+  const response = await axios.patch(
+    `${BASE_URL}/api/posts/${postId}`,
+    { title, content, imageUrls, postType },
+    { headers: getAuthHeaders() },
+  );
+
+  if (response.data?.success === false) {
+    throw new Error(response.data.message || "게시글 수정에 실패했습니다.");
+  }
 
   return response.data.data;
 };

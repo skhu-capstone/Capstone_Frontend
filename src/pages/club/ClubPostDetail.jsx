@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   Heart,
@@ -12,9 +12,12 @@ import {
   deleteClubComment,
   getClubPostDetail,
   toggleClubPostLike,
+  updateClubPost,
+  uploadPostImage,
 } from "../../services/clubService";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../../context/AuthContext";
+import { canEditClubPost, canDeletePost } from "../../utils/postPermissions";
 import {
   DEFAULT_FEED_IMAGE,
   getContentImageUrl,
@@ -22,6 +25,149 @@ import {
 } from "../../utils/imageUtils";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+function SelectedImagePreview({ file }) {
+  const [url, setUrl] = useState("");
+  useEffect(() => {
+    const objectUrl = URL.createObjectURL(file);
+    setUrl(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [file]);
+  return url ? <img src={url} alt="새로 선택한 이미지" className="h-32 w-32 rounded-lg object-cover" /> : null;
+}
+
+function PostEditor({ post, postId, onClose }) {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const [title, setTitle] = useState(post.title ?? "");
+  const [content, setContent] = useState(post.content ?? "");
+  const [imageUrls, setImageUrls] = useState(() => [...(post.imageUrls ?? [])]);
+  const [imageFile, setImageFile] = useState(null);
+  const [imageError, setImageError] = useState("");
+  const uploadedImage = useRef(null);
+  const fileInputRef = useRef(null);
+  const updateMutation = useMutation({
+    mutationFn: async (values) => {
+      let nextImageUrls = values.imageUrls;
+      if (imageFile) {
+        if (uploadedImage.current?.file !== imageFile) {
+          const url = await uploadPostImage(postId, imageFile);
+          if (!url) throw new Error("업로드한 이미지 주소를 확인할 수 없습니다. 게시글을 새로고침해 확인해주세요.");
+          uploadedImage.current = { file: imageFile, url };
+        }
+        nextImageUrls = [...nextImageUrls, uploadedImage.current.url];
+      }
+      return updateClubPost({ ...values, imageUrls: nextImageUrls });
+    },
+    onError: () => {
+      // 이미지 업로드 API가 게시글에 이미지를 연결했을 수 있으므로 서버 상태를 다시 조회한다.
+      queryClient.invalidateQueries({ queryKey: ["clubPostDetail", postId] });
+      queryClient.invalidateQueries({ queryKey: ["clubPosts"] });
+    },
+    onSuccess: async (updatedPost) => {
+      await queryClient.cancelQueries({ queryKey: ["clubPostDetail", postId] });
+      if (updatedPost) {
+        queryClient.setQueryData(["clubPostDetail", postId], (old) => ({ ...old, ...updatedPost }));
+      }
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["clubPostDetail", postId] }),
+        queryClient.invalidateQueries({ queryKey: ["clubPosts"] }),
+      ]);
+      onClose();
+    },
+  });
+  const isValid = title.trim().length > 0 && title.trim().length <= 50
+    && content.trim().length > 0 && content.trim().length <= 1000;
+  const error = updateMutation.error;
+  const errorMessage = error?.response?.status === 403
+    ? "게시글 작성자만 수정할 수 있습니다."
+    : error?.response?.status === 401
+      ? "로그인이 만료되었습니다. 다시 로그인해주세요."
+      : error?.response?.data?.message || error?.message || "게시글 수정에 실패했습니다. 다시 시도해주세요.";
+
+  return (
+    <form className="flex flex-col gap-4" onSubmit={(event) => {
+      event.preventDefault();
+      if (!isValid || updateMutation.isPending
+        || !canEditClubPost(post, user, localStorage.getItem("accessToken"))) return;
+      updateMutation.mutate({
+        postId,
+        title: title.trim(),
+        content: content.trim(),
+        imageUrls,
+        postType: post.postType ?? "NOTICE",
+      });
+    }}>
+      <h2 className="text-base font-semibold text-gray-900">게시글 수정</h2>
+      <label className="flex flex-col gap-2 text-sm font-medium text-gray-700">
+        제목
+        <input autoFocus required maxLength={50} value={title}
+          onChange={(event) => setTitle(event.target.value)} disabled={updateMutation.isPending}
+          className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-500" />
+        <span className="text-right text-xs text-gray-400">{title.length}/50</span>
+      </label>
+      <label className="flex flex-col gap-2 text-sm font-medium text-gray-700">
+        내용
+        <textarea required maxLength={1000} rows={8} value={content}
+          onChange={(event) => setContent(event.target.value)} disabled={updateMutation.isPending}
+          className="w-full resize-y rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-500" />
+        <span className="text-right text-xs text-gray-400">{content.length}/1000</span>
+      </label>
+      <fieldset disabled={updateMutation.isPending} className="flex flex-col gap-3">
+        <legend className="mb-2 text-sm font-medium text-gray-700">첨부 이미지</legend>
+        <p className="text-xs text-gray-500">기존 사진을 삭제하거나 새 사진을 추가할 수 있습니다. 교체하려면 기존 사진을 삭제한 후 새 사진을 선택해주세요.</p>
+        <div className="flex flex-wrap gap-3">
+          {imageUrls.map((url, index) => (
+            <div key={`${index}-${url}`} className="flex flex-col gap-2">
+              <img src={getContentImageUrl(url)} alt={`기존 이미지 ${index + 1}`}
+                className="h-32 w-32 rounded-lg object-cover" />
+              <button type="button" onClick={() => setImageUrls((urls) => urls.filter((_, i) => i !== index))}
+                aria-label={`기존 이미지 ${index + 1} 삭제`}
+                className="text-xs text-red-500 disabled:opacity-50">이미지 삭제</button>
+            </div>
+          ))}
+          {imageFile && (
+            <div className="flex flex-col gap-2">
+              <SelectedImagePreview file={imageFile} />
+              <span className="max-w-32 break-all text-xs text-gray-500">{imageFile.name}</span>
+              <button type="button" onClick={() => {
+                setImageFile(null);
+                if (fileInputRef.current) fileInputRef.current.value = "";
+              }} className="text-xs text-red-500 disabled:opacity-50">선택 취소</button>
+            </div>
+          )}
+        </div>
+        <label className="flex flex-col gap-2 text-sm text-gray-700">
+          새 이미지 선택 (PNG, JPG · 최대 5MB)
+          <input ref={fileInputRef} type="file" accept="image/png,image/jpeg" onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            if (!["image/png", "image/jpeg"].includes(file.type) || file.size > 5 * 1024 * 1024) {
+              setImageError("5MB 이하의 PNG 또는 JPG 이미지를 선택해주세요.");
+              event.target.value = "";
+              return;
+            }
+            setImageError("");
+            setImageFile(file);
+          }} className="text-sm" />
+        </label>
+        {imageError && <p role="alert" className="text-sm text-red-500">{imageError}</p>}
+      </fieldset>
+      {updateMutation.isError && <p role="alert" className="text-sm text-red-500">{errorMessage}</p>}
+      {updateMutation.isError && uploadedImage.current && (
+        <p role="alert" className="text-xs text-amber-700">사진은 업로드되었지만 수정 저장에 실패했습니다. 저장을 다시 눌러 완료해주세요. 취소해도 업로드된 사진은 남아 있을 수 있습니다.</p>
+      )}
+      <div className="flex justify-end gap-2">
+        <button type="button" onClick={onClose} disabled={updateMutation.isPending}
+          className="rounded-lg border border-gray-300 px-4 py-2 text-sm disabled:opacity-50">취소</button>
+        <button type="submit" disabled={!isValid || updateMutation.isPending}
+          className="rounded-lg bg-[#0B72B9] px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:bg-gray-400">
+          {updateMutation.isPending ? "저장 중..." : "저장"}
+        </button>
+      </div>
+    </form>
+  );
+}
 
 // ─── 이미지 캐러셀 ────────────────────────────────────────────────────────────
 function ImageCarousel({ images }) {
@@ -154,6 +300,7 @@ export default function ClubPostDetail() {
   const { user } = useAuth();
   const commentInputRef = useRef(null);
   const [commentText, setCommentText] = useState("");
+  const [editingPostId, setEditingPostId] = useState(null);
 
   const deleteCommentMutation = useMutation({
     mutationFn: deleteClubComment,
@@ -174,7 +321,11 @@ export default function ClubPostDetail() {
   });
 
   const handleDeleteComment = (commentId) => {
-    if (deleteCommentMutation.isPending) return;
+    const comment = (post?.comments || post?.postComments || []).find(
+      (item) => String(item.commentId) === String(commentId),
+    );
+    if (commentId == null || deleteCommentMutation.isPending
+      || !canDeletePost(comment, user, localStorage.getItem("accessToken"))) return;
     if (window.confirm("이 댓글을 삭제하시겠습니까?")) {
       deleteCommentMutation.mutate(commentId);
     }
@@ -286,6 +437,7 @@ export default function ClubPostDetail() {
   });
 
   const handleDeletePost = () => {
+    if (deleteMutation.isPending || !canDeletePost(post, user, localStorage.getItem("accessToken"))) return;
     if (window.confirm("정말 게시글을 삭제하시겠습니까?")) {
       deleteMutation.mutate(currentPostId);
     }
@@ -344,11 +496,14 @@ export default function ClubPostDetail() {
   const comments = post.comments || post.postComments || [];
   const liked = post.liked ?? post.isLiked ?? false;
   const likeCount = post.likeCount ?? post.likes ?? 0;
+  const canEdit = canEditClubPost(post, user, localStorage.getItem("accessToken"));
+  const canDelete = canDeletePost(post, user, localStorage.getItem("accessToken"));
+  const isEditing = canEdit && editingPostId === currentPostId;
 
   return (
     <div className="min-h-screen bg-slate-50">
       <main className="max-w-2xl mx-auto px-4 py-8 flex flex-col gap-0">
-        <ImageCarousel images={post.imageUrls} />
+        <ImageCarousel key={JSON.stringify(post.imageUrls)} images={post.imageUrls} />
 
         <div className="bg-white rounded-2xl shadow-sm px-6 py-5 flex flex-col gap-4 mt-3">
           <div className="flex items-center justify-between">
@@ -370,16 +525,27 @@ export default function ClubPostDetail() {
                 </span>
               )}
 
-              <button
+              {canEdit && !isEditing && (
+                <button type="button" onClick={() => setEditingPostId(currentPostId)}
+                  disabled={deleteMutation.isPending}
+                  className="text-xs font-medium text-blue-600 hover:text-blue-800 disabled:text-gray-400">
+                  수정
+                </button>
+              )}
+              {canDelete && <button
                 onClick={handleDeletePost}
-                disabled={deleteMutation.isPending}
+                disabled={deleteMutation.isPending || isEditing}
                 className="text-xs font-medium text-red-500 hover:text-red-700 disabled:text-gray-400 disabled:cursor-not-allowed cursor-pointer"
               >
                 {deleteMutation.isPending ? "삭제 중" : "삭제"}
-              </button>
+              </button>}
             </div>
           </div>
 
+          {isEditing ? (
+            <PostEditor key={currentPostId} post={post} postId={currentPostId} onClose={() => setEditingPostId(null)} />
+          ) : (
+            <>
           {post.title && (
             <h2 className="text-base font-semibold text-gray-900">
               {post.title}
@@ -389,6 +555,8 @@ export default function ClubPostDetail() {
           <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-line">
             {post.content}
           </p>
+            </>
+          )}
 
           <div className="flex items-center gap-4 pt-1 border-t border-gray-100">
             <button
@@ -431,7 +599,7 @@ export default function ClubPostDetail() {
                 <CommentItem
                   key={`${currentPostId}-${c.commentId ?? idx}`}
                   comment={c}
-                  canDelete={!!user && !!localStorage.getItem("accessToken") && c.commentId != null}
+                  canDelete={canDeletePost(c, user, localStorage.getItem("accessToken")) && c.commentId != null}
                   onDelete={() => handleDeleteComment(c.commentId)}
                   isDeletePending={deleteCommentMutation.isPending}
                   isDeleting={deleteCommentMutation.isPending && deleteCommentMutation.variables === c.commentId}

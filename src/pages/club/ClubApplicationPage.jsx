@@ -10,8 +10,9 @@ import {
 } from "lucide-react";
 import { getClubs } from "../../services/clubService";
 import useMyClubs from "../../hooks/useMyClubs";
+import usePendingClubJoins from "../../hooks/usePendingClubJoins";
 
-function ClubCard({ club, isMember, membershipUnavailable }) {
+function ClubCard({ club, isMember, isApplied, membershipUnavailable }) {
   const navigate = useNavigate();
   const [hasImageError, setHasImageError] = useState(false);
 
@@ -73,8 +74,8 @@ function ClubCard({ club, isMember, membershipUnavailable }) {
             }}
             className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500"
           >
-            {isMember ? "이미 소속된 동아리 입니다." : membershipUnavailable ? "소속 확인 중" : "신청하기"}
-            {!isMember && !membershipUnavailable && <ArrowRight size={16} />}
+            {isMember ? "이미 소속된 동아리 입니다." : isApplied ? "승인 대기 · 신청 관리" : membershipUnavailable ? "소속 확인 중" : "신청하기"}
+            {!isMember && !isApplied && !membershipUnavailable && <ArrowRight size={16} />}
           </button>
         </div>
       </div>
@@ -83,6 +84,7 @@ function ClubCard({ club, isMember, membershipUnavailable }) {
 }
 
 export default function ClubApplicationPage() {
+  const { pendingClubIds } = usePendingClubJoins();
   const { clubs: myClubs, isChecking, hasError, refetch: refetchMyClubs } = useMyClubs();
   const joinedClubIds = new Set(myClubs.map((club) => String(club.clubId)));
   const {
@@ -186,7 +188,7 @@ export default function ClubApplicationPage() {
 
             <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {clubs.map((club) => (
-                <ClubCard key={club.id} club={club} isMember={joinedClubIds.has(String(club.id))} membershipUnavailable={isChecking || hasError} />
+                <ClubCard key={club.id} club={club} isMember={joinedClubIds.has(String(club.id))} isApplied={pendingClubIds.has(String(club.id))} membershipUnavailable={isChecking || hasError} />
               ))}
             </section>
           </>
