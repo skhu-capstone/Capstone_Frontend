@@ -1,14 +1,14 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import ImageFilePicker from "../../components/common/ImageFilePicker";
+import { uploadProjectRecruitmentImage, uploadClubCollaborationImage } from "../../services/recruitmentService";
 import {
   Search,
   Plus,
   X,
-  Image,
   AlertCircle,
   CalendarDays,
   Users,
   FileText,
-  Link,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import useMyClubs from "../../hooks/useMyClubs";
@@ -105,7 +105,15 @@ function ProjectPostCard({ post, onClick }) {
 }
 
 // ─── 협업 모집 모달 ───────────────────────────────────────────────────────────
-function CreateClubCollabModal({ onClose, onSuccess }) {
+function CreateClubCollabModal({ onClose: closeModal, onSuccess }) {
+  const [imageFile, setImageFile] = useState(null);
+  const [createdPost, setCreatedPost] = useState(null);
+  const submitting = useRef(false);
+  const onClose = () => {
+    if (submitting.current) return;
+    if (createdPost) onSuccess(createdPost);
+    else closeModal();
+  };
   const { clubs, isAuthenticated, isChecking, hasError, refetch } = useMyClubs();
   const [form, setForm] = useState({
     clubId: "",
@@ -114,7 +122,6 @@ function CreateClubCollabModal({ onClose, onSuccess }) {
     contestDate: "",
     content: "",
     deadline: "",
-    imageUrl: "",
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -147,40 +154,49 @@ function CreateClubCollabModal({ onClose, onSuccess }) {
   }
 
   async function handleSubmit() {
-    if (loading || isChecking || hasError || !isAuthenticated) return;
-    const e = validate();
+    if (submitting.current || !isAuthenticated || (!createdPost && (isChecking || hasError))) return;
+    const e = createdPost ? {} : validate();
     if (Object.keys(e).length) {
       setErrors(e);
       return;
     }
 
     const payload = {
-      clubId: selectedClub.clubId,
+      clubId: selectedClub?.clubId,
       title: form.title.trim(),
       contestName: form.contestName.trim(),
       contestDate: form.contestDate,
       content: form.content.trim(),
       deadline: form.deadline,
-      imageUrl: form.imageUrl.trim() || undefined,
     };
 
+    submitting.current = true;
     setLoading(true);
     setApiError("");
+    let savedPost = createdPost;
     try {
-      const res = await fetch(`${API_BASE_URL}/api/club-collaborations`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...authHeader() },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (data.success) {
-        onSuccess(data.data);
-      } else {
-        setApiError(data.message || "등록에 실패했습니다.");
+      if (!savedPost) {
+        const res = await fetch(`${API_BASE_URL}/api/club-collaborations`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...authHeader() },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.message || "등록에 실패했습니다.");
+        savedPost = data.data;
+        setCreatedPost(savedPost);
       }
-    } catch {
-      setApiError("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
+      if (imageFile) {
+        if (!savedPost?.collabId) throw new Error("모집글 번호를 확인할 수 없습니다. 목록에서 확인해주세요.");
+        await uploadClubCollaborationImage(savedPost.collabId, imageFile);
+      }
+      onSuccess(savedPost);
+    } catch (error) {
+      setApiError(savedPost
+        ? `모집글은 등록되었지만 사진 업로드를 완료하지 못했습니다. ${error.message} 사진 업로드를 다시 시도하거나 목록으로 이동해주세요.`
+        : error.message || "네트워크 오류가 발생했습니다. 다시 시도해주세요.");
     } finally {
+      submitting.current = false;
       setLoading(false);
     }
   }
@@ -226,6 +242,7 @@ function CreateClubCollabModal({ onClose, onSuccess }) {
           )}
 
           {/* 소속 동아리 */}
+          <fieldset disabled={loading || !!createdPost} className="space-y-4">
           <div>
             <label htmlFor="collab-club" className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
               <Users size={12} strokeWidth={2} />
@@ -364,28 +381,9 @@ function CreateClubCollabModal({ onClose, onSuccess }) {
             )}
           </div>
 
-          {/* 이미지 URL */}
-          <div>
-            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
-              <Image size={12} strokeWidth={2} />
-              이미지 URL
-              <span className="text-gray-400 font-normal">(선택)</span>
-            </label>
-            <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2 focus-within:border-green-400 transition-colors">
-              <Link
-                size={12}
-                strokeWidth={2}
-                className="text-gray-400 shrink-0"
-              />
-              <input
-                type="text"
-                value={form.imageUrl}
-                onChange={(e) => setField("imageUrl", e.target.value)}
-                placeholder="https://example.com/image.png"
-                className="flex-1 text-sm outline-none bg-transparent"
-              />
-            </div>
-          </div>
+          </fieldset>
+          <ImageFilePicker file={imageFile} onChange={setImageFile} disabled={loading} />
+          {createdPost && <p className="text-xs text-gray-500">모집글은 이미 등록되었습니다. 사진 업로드를 재시도하거나 목록으로 이동할 수 있습니다.</p>}
         </div>
 
         <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-gray-100">
@@ -397,10 +395,10 @@ function CreateClubCollabModal({ onClose, onSuccess }) {
           </button>
           <button
             onClick={handleSubmit}
-            disabled={loading || isChecking || hasError || !isAuthenticated || !selectedClub}
+            disabled={loading || !isAuthenticated || (!createdPost && (isChecking || hasError || !selectedClub))}
             className="px-4 py-2 text-sm text-white bg-green-500 rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer font-medium"
           >
-            {loading ? "등록 중..." : "모집 등록"}
+            {loading ? "등록 중..." : createdPost ? (imageFile ? "사진 업로드 재시도" : "완료") : "모집 등록"}
           </button>
         </div>
       </div>
@@ -409,10 +407,17 @@ function CreateClubCollabModal({ onClose, onSuccess }) {
 }
 
 // ─── 프로젝트 모집 모달 ───────────────────────────────────────────────────────
-function CreateProjectModal({ onClose, onSuccess }) {
+function CreateProjectModal({ onClose: closeModal, onSuccess }) {
+  const [imageFile, setImageFile] = useState(null);
+  const [createdPost, setCreatedPost] = useState(null);
+  const submitting = useRef(false);
+  const onClose = () => {
+    if (submitting.current) return;
+    if (createdPost) onSuccess(createdPost);
+    else closeModal();
+  };
   const [form, setForm] = useState({
     title: "",
-    imageUrl: "",
     writerStack: "",
     positions: "",
     content: "",
@@ -450,9 +455,10 @@ function CreateProjectModal({ onClose, onSuccess }) {
       return;
     }
 
+    if (submitting.current) return;
+    submitting.current = true;
     const payload = {
       title: form.title.trim(),
-      imageUrl: form.imageUrl.trim() || undefined,
       writerStack: form.writerStack.trim() || undefined,
       positions: form.positions.trim() || undefined,
       content: form.content.trim(),
@@ -461,21 +467,30 @@ function CreateProjectModal({ onClose, onSuccess }) {
 
     setLoading(true);
     setApiError("");
+    let savedPost = createdPost;
     try {
-      const res = await fetch(`${API_BASE_URL}/api/project-recruitments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...authHeader() },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (data.success) {
-        onSuccess(data.data);
-      } else {
-        setApiError(data.message || "등록에 실패했습니다.");
+      if (!savedPost) {
+        const res = await fetch(`${API_BASE_URL}/api/project-recruitments`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...authHeader() },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.message || "등록에 실패했습니다.");
+        savedPost = data.data;
+        setCreatedPost(savedPost);
       }
-    } catch {
-      setApiError("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
+      if (imageFile) {
+        if (!savedPost?.projectRecruitmentId) throw new Error("모집글 번호를 확인할 수 없습니다. 목록에서 확인해주세요.");
+        await uploadProjectRecruitmentImage(savedPost.projectRecruitmentId, imageFile);
+      }
+      onSuccess(savedPost);
+    } catch (error) {
+      setApiError(savedPost
+        ? `모집글은 등록되었지만 사진 업로드를 완료하지 못했습니다. ${error.message} 사진 업로드를 다시 시도하거나 목록으로 이동해주세요.`
+        : error.message || "네트워크 오류가 발생했습니다. 다시 시도해주세요.");
     } finally {
+      submitting.current = false;
       setLoading(false);
     }
   }
@@ -529,6 +544,7 @@ function CreateProjectModal({ onClose, onSuccess }) {
               type="text"
               value={form.title}
               onChange={(e) => setField("title", e.target.value)}
+              disabled={loading || !!createdPost}
               placeholder="예) 포폴용 앱 프로젝트 같이하실분"
               maxLength={100}
               className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors ${
@@ -550,6 +566,7 @@ function CreateProjectModal({ onClose, onSuccess }) {
             <input
               type="text"
               value={form.writerStack}
+              disabled={loading || !!createdPost}
               onChange={(e) => setField("writerStack", e.target.value)}
               placeholder="예) 백엔드, 프론트엔드, 디자인"
               className="w-full text-sm px-3 py-2 rounded-lg border border-gray-200 focus:border-indigo-400 outline-none transition-colors"
@@ -565,6 +582,7 @@ function CreateProjectModal({ onClose, onSuccess }) {
             <input
               type="text"
               value={form.positions}
+              disabled={loading || !!createdPost}
               onChange={(e) => setField("positions", e.target.value)}
               placeholder="예) 프론트 2명, 백엔드 1명"
               className="w-full text-sm px-3 py-2 rounded-lg border border-gray-200 focus:border-indigo-400 outline-none transition-colors"
@@ -586,6 +604,7 @@ function CreateProjectModal({ onClose, onSuccess }) {
                   ? "border-red-300 bg-red-50"
                   : "border-gray-200 focus:border-indigo-400"
               }`}
+              disabled={loading || !!createdPost}
             />
             {errors.deadline && (
               <p className="mt-1 text-xs text-red-500">{errors.deadline}</p>
@@ -600,6 +619,7 @@ function CreateProjectModal({ onClose, onSuccess }) {
             <textarea
               value={form.content}
               onChange={(e) => setField("content", e.target.value)}
+              disabled={loading || !!createdPost}
               placeholder="프로젝트 소개, 기술 스택, 우대 조건 등을 자유롭게 작성해주세요"
               rows={5}
               className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors resize-none ${
@@ -613,27 +633,8 @@ function CreateProjectModal({ onClose, onSuccess }) {
             )}
           </div>
 
-          <div>
-            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
-              <Image size={12} strokeWidth={2} />
-              이미지 URL
-              <span className="text-gray-400 font-normal">(선택)</span>
-            </label>
-            <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2 focus-within:border-indigo-400 transition-colors">
-              <Link
-                size={12}
-                strokeWidth={2}
-                className="text-gray-400 shrink-0"
-              />
-              <input
-                type="text"
-                value={form.imageUrl}
-                onChange={(e) => setField("imageUrl", e.target.value)}
-                placeholder="https://example.com/image.png"
-                className="flex-1 text-sm outline-none bg-transparent"
-              />
-            </div>
-          </div>
+          <ImageFilePicker file={imageFile} onChange={setImageFile} disabled={loading} />
+          {createdPost && <p className="text-xs text-gray-500">모집글은 이미 등록되었습니다. 사진 업로드를 재시도하거나 목록으로 이동할 수 있습니다.</p>}
         </div>
 
         <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-gray-100">
@@ -648,7 +649,7 @@ function CreateProjectModal({ onClose, onSuccess }) {
             disabled={loading}
             className="px-4 py-2 text-sm text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer font-medium"
           >
-            {loading ? "등록 중..." : "모집 등록"}
+            {loading ? "등록 중..." : createdPost ? (imageFile ? "사진 업로드 재시도" : "완료") : "모집 등록"}
           </button>
         </div>
       </div>

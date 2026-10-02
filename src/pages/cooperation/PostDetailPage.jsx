@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Loader2, AlertCircle } from "lucide-react";
 import RecruitmentActions from "./RecruitmentActions";
+import SafeImage from "../../components/common/SafeImage";
+import { getContentImageUrl } from "../../utils/imageUtils";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -55,21 +57,8 @@ function DetailLayout({
 
       <main className="flex-1 flex items-start justify-center px-4 pt-16 pb-8">
         <div className="w-full max-w-xl bg-white rounded-2xl shadow-sm overflow-hidden">
-          {/* 이미지 영역 */}
-          <div
-            className="w-full bg-slate-100 flex items-center justify-center"
-            style={{ height: 300 }}
-          >
-            {imageUrl ? (
-              <img
-                src={imageUrl}
-                alt="모집 이미지"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <span className="text-sm text-gray-400">이미지 영역</span>
-            )}
-          </div>
+          <SafeImage src={imageUrl} getSrc={getContentImageUrl}
+            fallbackSrc="" alt="모집 이미지" className="w-full h-75 object-cover" />
 
           <div className="px-6 py-6 flex flex-col gap-4">
             <h1 className="text-lg font-bold text-gray-900 leading-snug">

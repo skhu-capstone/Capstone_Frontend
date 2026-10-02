@@ -177,7 +177,10 @@ function ImageCarousel({ images }) {
     ? images.filter(isValidImageUrl)
     : [];
 
-  if (validImages.length === 0) return null;
+  if (validImages.length === 0) {
+    return <img src={DEFAULT_FEED_IMAGE} alt="동아리 게시물 기본 이미지"
+      className="w-full rounded-2xl object-cover" style={{ maxHeight: 420 }} />;
+  }
 
   const imageUrl = brokenImageIndexes.includes(idx)
     ? DEFAULT_FEED_IMAGE

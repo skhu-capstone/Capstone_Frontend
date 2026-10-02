@@ -5,14 +5,14 @@ import {
   AlertCircle,
   ArrowRight,
   ClipboardCheck,
-  Image as ImageIcon,
   Loader2,
 } from "lucide-react";
 import { getClubs } from "../../services/clubService";
 import useMyClubs from "../../hooks/useMyClubs";
 import usePendingClubJoins from "../../hooks/usePendingClubJoins";
+import { DEFAULT_FEED_IMAGE } from "../../utils/imageUtils";
 
-function ClubCard({ club, isMember, isApplied, membershipUnavailable }) {
+function ClubCard({ club, isMember, isApplied, canReapply, membershipUnavailable }) {
   const navigate = useNavigate();
   const [hasImageError, setHasImageError] = useState(false);
 
@@ -45,9 +45,7 @@ function ClubCard({ club, isMember, isApplied, membershipUnavailable }) {
             onError={() => setHasImageError(true)}
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-blue-300">
-            <ImageIcon size={40} strokeWidth={1.5} />
-          </div>
+          <img src={DEFAULT_FEED_IMAGE} alt="동아리 기본 이미지" className="h-full w-full object-cover" />
         )}
 
         {club.category && (
@@ -74,7 +72,7 @@ function ClubCard({ club, isMember, isApplied, membershipUnavailable }) {
             }}
             className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500"
           >
-            {isMember ? "이미 소속된 동아리 입니다." : isApplied ? "승인 대기 · 신청 관리" : membershipUnavailable ? "소속 확인 중" : "신청하기"}
+            {isMember ? "이미 소속된 동아리 입니다." : isApplied ? "승인 대기 · 신청 관리" : membershipUnavailable ? "소속 확인 중" : canReapply ? "다시 신청하기" : "신청하기"}
             {!isMember && !isApplied && !membershipUnavailable && <ArrowRight size={16} />}
           </button>
         </div>
@@ -84,8 +82,10 @@ function ClubCard({ club, isMember, isApplied, membershipUnavailable }) {
 }
 
 export default function ClubApplicationPage() {
-  const { pendingClubIds } = usePendingClubJoins();
-  const { clubs: myClubs, isChecking, hasError, refetch: refetchMyClubs } = useMyClubs();
+  const { getJoinState, isChecking: checkingJoins, hasError: joinsError, refetch: refetchJoins } = usePendingClubJoins();
+  const { clubs: myClubs, isChecking: checkingMembership, hasError: membershipError, refetch: refetchMyClubs } = useMyClubs();
+  const isChecking = checkingMembership || checkingJoins;
+  const hasError = membershipError || joinsError;
   const joinedClubIds = new Set(myClubs.map((club) => String(club.clubId)));
   const {
     data: clubData,
@@ -123,8 +123,8 @@ export default function ClubApplicationPage() {
         </header>
         {hasError && (
           <p role="alert" className="mb-4 text-sm text-red-500">
-            소속 동아리를 확인하지 못했습니다.
-            <button type="button" onClick={() => refetchMyClubs()} className="ml-2 underline">다시 시도</button>
+            소속 또는 가입 신청 상태를 확인하지 못했습니다.
+            <button type="button" onClick={() => { refetchMyClubs(); refetchJoins(); }} className="ml-2 underline">다시 시도</button>
           </p>
         )}
 
@@ -187,9 +187,10 @@ export default function ClubApplicationPage() {
             </p>
 
             <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {clubs.map((club) => (
-                <ClubCard key={club.id} club={club} isMember={joinedClubIds.has(String(club.id))} isApplied={pendingClubIds.has(String(club.id))} membershipUnavailable={isChecking || hasError} />
-              ))}
+              {clubs.map((club) => {
+                const state = getJoinState(club.id, joinedClubIds.has(String(club.id)));
+                return <ClubCard key={club.id} club={club} isMember={state.joined} isApplied={state.pending} canReapply={state.canReapply} membershipUnavailable={isChecking || hasError} />;
+              })}
             </section>
           </>
         )}

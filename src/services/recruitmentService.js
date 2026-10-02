@@ -1,5 +1,30 @@
 const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL ?? "";
 
+export async function uploadProjectRecruitmentImage(id, file) {
+  return uploadRecruitmentImage("project-recruitments", id, file);
+}
+
+export async function uploadClubCollaborationImage(id, file) {
+  return uploadRecruitmentImage("club-collaborations", id, file);
+}
+
+async function uploadRecruitmentImage(resource, id, file) {
+  const token = localStorage.getItem("accessToken");
+  if (!token) throw new Error("다시 로그인해주세요.");
+  const body = new FormData();
+  body.append("file", file);
+  const response = await fetch(`${API_BASE_URL}/api/${resource}/${id}/image`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body,
+  });
+  const result = await response.json().catch(() => null);
+  if (!response.ok || result?.success !== true) {
+    throw new Error(result?.message || "사진 업로드에 실패했습니다.");
+  }
+  return result.data;
+}
+
 export async function mutateRecruitment(type, id, method, payload) {
   const resources = { club: "club-collaborations", project: "project-recruitments" };
   if (!resources[type] || !["PATCH", "DELETE"].includes(method)) {
