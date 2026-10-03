@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { X } from "lucide-react";
 import {
   createClubPost,
   getClubDetail,
@@ -11,8 +12,38 @@ import { useAuth } from "../../context/AuthContext";
 
 const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg"];
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+const MAX_IMAGE_COUNT = 5;
 const MAX_TITLE_LENGTH = 50;
 const MAX_CONTENT_LENGTH = 1000;
+
+function ImagePreview({ file, index, onRemove }) {
+  const [previewUrl] = useState(() => URL.createObjectURL(file));
+
+  useEffect(() => {
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [previewUrl]);
+
+  return (
+    <div className="relative aspect-square overflow-hidden rounded-lg border border-gray-200 bg-gray-100">
+      {previewUrl && (
+        <img
+          src={previewUrl}
+          alt={`첨부 이미지 ${index + 1}`}
+          className="h-full w-full object-cover"
+        />
+      )}
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label={`첨부 이미지 ${index + 1} 삭제`}
+        title="이미지 삭제"
+        className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/65 text-white transition-colors hover:bg-black/80"
+      >
+        <X size={17} aria-hidden="true" />
+      </button>
+    </div>
+  );
+}
 
 export default function ClubPostCreatePage() {
   const navigate = useNavigate();
@@ -25,7 +56,7 @@ export default function ClubPostCreatePage() {
   const currentUserId = Number(authUser?.userId ?? authUser?.id);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [imageFile, setImageFile] = useState(null);
+  const [imageFiles, setImageFiles] = useState([]);
 
   const {
     data: members = [],
@@ -126,28 +157,51 @@ export default function ClubPostCreatePage() {
   };
 
   const handleImageChange = (event) => {
-    const file = event.target.files?.[0] ?? null;
+    const selectedFiles = Array.from(event.target.files ?? []);
+    event.target.value = "";
 
-    if (!file) {
-      setImageFile(null);
-      return;
-    }
+    if (selectedFiles.length === 0) return;
 
-    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    const invalidTypeFile = selectedFiles.find(
+      (file) => !ALLOWED_IMAGE_TYPES.includes(file.type)
+    );
+    if (invalidTypeFile) {
       alert("PNG 또는 JPG 이미지만 업로드할 수 있습니다.");
-      event.target.value = "";
-      setImageFile(null);
       return;
     }
 
-    if (file.size > MAX_IMAGE_SIZE) {
-      alert("이미지는 5MB 이하만 업로드할 수 있습니다.");
-      event.target.value = "";
-      setImageFile(null);
+    const oversizedFile = selectedFiles.find(
+      (file) => file.size > MAX_IMAGE_SIZE
+    );
+    if (oversizedFile) {
+      alert("각 이미지는 5MB 이하만 업로드할 수 있습니다.");
       return;
     }
 
-    setImageFile(file);
+    setImageFiles((currentFiles) => {
+      const uniqueFiles = selectedFiles.filter(
+        (selectedFile) =>
+          !currentFiles.some(
+            (currentFile) =>
+              currentFile.name === selectedFile.name &&
+              currentFile.size === selectedFile.size &&
+              currentFile.lastModified === selectedFile.lastModified
+          )
+      );
+      const availableCount = MAX_IMAGE_COUNT - currentFiles.length;
+
+      if (uniqueFiles.length > availableCount) {
+        alert(`이미지는 최대 ${MAX_IMAGE_COUNT}장까지 첨부할 수 있습니다.`);
+      }
+
+      return [...currentFiles, ...uniqueFiles.slice(0, availableCount)];
+    });
+  };
+
+  const removeImage = (targetIndex) => {
+    setImageFiles((currentFiles) =>
+      currentFiles.filter((_, index) => index !== targetIndex)
+    );
   };
 
   const isFormValid = title.trim() && content.trim();
@@ -156,14 +210,21 @@ export default function ClubPostCreatePage() {
     mutationFn: createClubPost,
 
     onSuccess: async (createdPost) => {
-      if (imageFile) {
-        try {
-          await uploadPostImage(createdPost.postId, imageFile);
-        } catch (error) {
-          console.error(error);
-          alert("게시물은 등록되었지만 이미지 업로드에 실패했습니다.");
-          navigate(`/club/main/${targetClubId}`);
-          return;
+      if (imageFiles.length > 0) {
+        let uploadedCount = 0;
+
+        for (const imageFile of imageFiles) {
+          try {
+            await uploadPostImage(createdPost.postId, imageFile);
+            uploadedCount += 1;
+          } catch (error) {
+            console.error(error);
+            alert(
+              `게시물은 등록되었지만 이미지 ${uploadedCount}/${imageFiles.length}장만 업로드됐습니다.`
+            );
+            navigate(`/club/main/${targetClubId}`);
+            return;
+          }
         }
       }
 
@@ -242,25 +303,38 @@ export default function ClubPostCreatePage() {
               이미지 첨부
             </label>
 
-            <label className="flex flex-col items-center justify-center h-52 border border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500">
+            <label className="flex min-h-40 flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 px-5 py-8 cursor-pointer hover:border-blue-500">
               <span className="text-gray-500 text-sm">
                 이미지를 클릭해서 업로드해주세요
               </span>
               <span className="mt-2 text-xs text-gray-400">
-                PNG, JPG 파일 지원 · 최대 5MB
+                PNG, JPG 파일 지원 · 각 5MB 이하 · 최대 {MAX_IMAGE_COUNT}장
+              </span>
+              <span className="mt-2 text-xs font-medium text-blue-600">
+                {imageFiles.length}/{MAX_IMAGE_COUNT}장 선택됨
               </span>
               <input
                 type="file"
                 accept="image/png, image/jpeg"
+                multiple
+                disabled={imageFiles.length >= MAX_IMAGE_COUNT}
                 onChange={handleImageChange}
                 className="hidden"
               />
-              {imageFile && (
-                <span className="mt-2 text-xs text-blue-600">
-                  {imageFile.name}
-                </span>
-              )}
             </label>
+
+            {imageFiles.length > 0 && (
+              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+                {imageFiles.map((file, index) => (
+                  <ImagePreview
+                    key={`${file.name}-${file.size}-${file.lastModified}`}
+                    file={file}
+                    index={index}
+                    onRemove={() => removeImage(index)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end gap-3">

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Loader2, AlertCircle } from "lucide-react";
+import RecruitmentActions from "./RecruitmentActions";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -26,6 +27,7 @@ function DetailLayout({
   imageUrl,
   onBack,
   onContact,
+  actions,
 }) {
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col">
@@ -80,11 +82,12 @@ function DetailLayout({
                   <span className="text-sm text-gray-400 w-20 shrink-0">
                     {label}
                   </span>
-                  <span className="text-sm text-gray-800">{value}</span>
+                  <span className="text-sm text-gray-800 whitespace-pre-wrap break-words">{value}</span>
                 </div>
               ))}
             </div>
 
+            {actions}
             <button
               onClick={onContact}
               className={`w-full mt-2 py-3 rounded-xl text-white text-sm font-semibold transition-opacity duration-150 hover:opacity-90 cursor-pointer ${buttonColor}`}
@@ -202,7 +205,7 @@ function ClubPostDetail({ id, onBack }) {
 
   return (
     <DetailLayout
-      dday={post.dDayText ?? "D-?"}
+      dday={post.ddayText ?? post.dDayText ?? "D-?"}
       clubLabel={post.clubName ?? ""}
       buttonColor="bg-green-500 hover:bg-green-600"
       fields={fields}
@@ -210,6 +213,7 @@ function ClubPostDetail({ id, onBack }) {
       imageUrl={post.imageUrl}
       onBack={onBack}
       onContact={handleContact}
+      actions={<RecruitmentActions type="club" id={id} post={post} onUpdated={setPost} />}
     />
   );
 }
@@ -295,6 +299,7 @@ function ProjectPostDetail({ id, onBack }) {
       imageUrl={post.imageUrl}
       onBack={onBack}
       onContact={handleContact}
+      actions={<RecruitmentActions type="project" id={id} post={post} onUpdated={setPost} />}
     />
   );
 }
@@ -311,9 +316,9 @@ export default function PostDetailPage() {
     else navigate("/cooperation");
   };
 
-  if (type === "club") return <ClubPostDetail id={id} onBack={handleBack} />;
+  if (type === "club") return <ClubPostDetail key={id} id={id} onBack={handleBack} />;
   if (type === "project")
-    return <ProjectPostDetail id={id} onBack={handleBack} />;
+    return <ProjectPostDetail key={id} id={id} onBack={handleBack} />;
 
   return (
     <div className="p-8 text-center text-gray-400">잘못된 접근입니다.</div>

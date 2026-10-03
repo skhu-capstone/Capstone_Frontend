@@ -1,5 +1,5 @@
 import { createElement, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   AlertCircle,
@@ -9,17 +9,25 @@ import {
   Loader2,
   Mail,
   MapPin,
+  Users,
 } from "lucide-react";
-import { getClubDetail } from "../../services/clubService";
+import { getClubDetail, requestClubJoin, cancelClubJoin } from "../../services/clubService";
+import useMyClubs from "../../hooks/useMyClubs";
+import usePendingClubJoins from "../../hooks/usePendingClubJoins";
 
 function InfoItem({ icon: Icon, label, value }) {
   return (
     <div className="flex gap-3 rounded-xl bg-slate-50 p-4">
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-blue-600 shadow-sm">
-        {createElement(Icon, { size: 18, strokeWidth: 2 })}
+        {createElement(Icon, {
+          size: 18,
+          strokeWidth: 2,
+        })}
       </div>
+
       <div className="min-w-0">
         <p className="text-xs font-medium text-gray-400">{label}</p>
+
         <p className="mt-1 break-words text-sm font-medium text-gray-700">
           {value || "정보 없음"}
         </p>
@@ -31,17 +39,89 @@ function InfoItem({ icon: Icon, label, value }) {
 export default function ClubDetailPage() {
   const { clubId } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [joinMessage, setJoinMessage] = useState("");
   const [hasImageError, setHasImageError] = useState(false);
-  const { data: club, isLoading, isError, refetch } = useQuery({
-    queryKey: ["clubDetail", clubId],
-    queryFn: () => getClubDetail(clubId),
-    enabled: Boolean(clubId),
+  const numericClubId = Number(clubId);
+  const { clubs: myClubs, isChecking, hasError, refetch: refetchMyClubs } = useMyClubs();
+  const isMember = myClubs.some((club) => Number(club.clubId) === numericClubId);
+  const { pendingClubIds, recordResult } = usePendingClubJoins();
+  const isApplied = pendingClubIds.has(String(numericClubId));
+  const cannotJoin = isMember || isApplied || isChecking || hasError;
+
+  const {
+    data: club,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
+    queryKey: ["clubDetail", numericClubId],
+    queryFn: () => getClubDetail(numericClubId),
+    enabled: Number.isInteger(numericClubId) && numericClubId > 0,
   });
+
+  const joinMutation = useMutation({
+    mutationFn: () => requestClubJoin(numericClubId, joinMessage.trim()),
+
+    onSuccess: (result) => {
+      recordResult(numericClubId, result.clubJoinStatus);
+      queryClient.invalidateQueries({ queryKey: ["myClubs"] });
+      queryClient.invalidateQueries({ queryKey: ["clubs"] });
+      queryClient.invalidateQueries({ queryKey: ["clubDetail", numericClubId] });
+      alert("동아리 가입 신청이 완료되었습니다.");
+
+      setJoinMessage("");
+
+      navigate("/club/apply");
+    },
+
+    onError: (error) => {
+      console.error(error);
+
+      alert(
+        error.response?.data?.message || error.message || "동아리 가입 신청에 실패했습니다.",
+      );
+    },
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: () => cancelClubJoin(numericClubId),
+    onSuccess: () => {
+      // DELETE 응답의 PENDING은 취소 대상 상태일 수 있어 대기 상태로 다시 저장하지 않는다.
+      recordResult(numericClubId, null);
+      queryClient.invalidateQueries({ queryKey: ["myClubs"] });
+      queryClient.invalidateQueries({ queryKey: ["clubs"] });
+      queryClient.invalidateQueries({ queryKey: ["clubDetail", numericClubId] });
+      alert("가입 신청이 취소되었습니다.");
+    },
+    onError: (error) => {
+      alert(error.response?.data?.message || error.message || "가입 신청 취소에 실패했습니다.");
+    },
+  });
+
+  const handleJoin = () => {
+    if (cannotJoin || joinMutation.isPending || cancelMutation.isPending) return;
+    if (!Number.isInteger(numericClubId) || numericClubId <= 0) {
+      alert("잘못된 동아리 주소입니다.");
+      return;
+    }
+
+    if (!joinMessage.trim()) {
+      alert("가입 신청 메시지를 입력해주세요.");
+      return;
+    }
+
+    joinMutation.mutate();
+  };
 
   if (isLoading) {
     return (
       <main className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-slate-50">
-        <Loader2 size={30} className="animate-spin text-blue-500" />
+        <div className="flex flex-col items-center gap-3 text-gray-400">
+          <Loader2 size={30} className="animate-spin text-blue-500" />
+
+          <p className="text-sm">동아리 정보를 불러오는 중입니다.</p>
+        </div>
       </main>
     );
   }
@@ -51,12 +131,25 @@ export default function ClubDetailPage() {
       <main className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-slate-50 px-5">
         <div className="flex w-full max-w-lg flex-col items-center gap-3 rounded-2xl border border-red-100 bg-white p-10 text-center shadow-sm">
           <AlertCircle size={32} className="text-red-400" />
-          <p className="font-medium text-gray-700">동아리 정보를 불러오지 못했습니다.</p>
+
+          <p className="font-medium text-gray-700">
+            동아리 정보를 불러오지 못했습니다.
+          </p>
+
           <div className="flex gap-2">
-            <button type="button" onClick={() => navigate(-1)} className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 cursor-pointer">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="cursor-pointer rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+            >
               돌아가기
             </button>
-            <button type="button" onClick={() => refetch()} className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 cursor-pointer">
+
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+            >
               다시 시도
             </button>
           </div>
@@ -71,7 +164,7 @@ export default function ClubDetailPage() {
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="mb-5 flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-gray-500 transition-colors hover:bg-white hover:text-gray-800 cursor-pointer"
+          className="mb-5 flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-gray-500 transition-colors hover:bg-white hover:text-gray-800"
         >
           <ArrowLeft size={17} />
           동아리 목록으로
@@ -94,27 +187,102 @@ export default function ClubDetailPage() {
           </div>
 
           <div className="p-6 sm:p-9">
-            {club.category && (
-              <span className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-                {club.category}
-              </span>
-            )}
-            <h1 className="mt-3 text-2xl font-bold text-gray-900 sm:text-3xl">{club.clubName}</h1>
-            <p className="mt-3 text-base leading-7 text-gray-500">
-              {club.shortDescription || "동아리 소개가 아직 등록되지 않았습니다."}
-            </p>
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                {club.category && (
+                  <span className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                    {club.category}
+                  </span>
+                )}
+
+                <h1 className="mt-3 text-2xl font-bold text-gray-900 sm:text-3xl">
+                  {club.clubName}
+                </h1>
+
+                <p className="mt-3 text-base leading-7 text-gray-500">
+                  {club.shortDescription ||
+                    "동아리 소개가 아직 등록되지 않았습니다."}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 rounded-xl bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700">
+                <Users size={17} />
+                <span>{club.memberCount ?? 0}명</span>
+              </div>
+            </div>
 
             <section className="mt-8">
               <h2 className="text-base font-bold text-gray-900">동아리 소개</h2>
+
               <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-gray-600">
-                {club.detailDescription || "상세 소개가 아직 등록되지 않았습니다."}
+                {club.detailDescription ||
+                  "상세 소개가 아직 등록되지 않았습니다."}
               </p>
             </section>
 
             <section className="mt-8 grid gap-3 sm:grid-cols-3">
-              <InfoItem icon={CalendarDays} label="정기 모임" value={club.regularMeetingTime} />
-              <InfoItem icon={MapPin} label="활동 장소" value={club.activityLocation} />
+              <InfoItem
+                icon={CalendarDays}
+                label="정기 모임"
+                value={club.regularMeetingTime}
+              />
+
+              <InfoItem
+                icon={MapPin}
+                label="활동 장소"
+                value={club.activityLocation}
+              />
+
               <InfoItem icon={Mail} label="연락처" value={club.contact} />
+            </section>
+
+            <section className="mt-10 border-t border-gray-100 pt-8">
+              <h2 className="text-lg font-bold text-gray-900">
+                동아리 가입 신청
+              </h2>
+
+              <p className="mt-2 text-sm text-gray-500">
+                가입하고 싶은 이유나 간단한 자기소개를 작성해주세요.
+              </p>
+
+              <textarea
+                value={joinMessage}
+                onChange={(event) => setJoinMessage(event.target.value)}
+                placeholder="예) 웹 개발에 관심이 많고 동아리 프로젝트에 적극적으로 참여하고 싶습니다."
+                rows={5}
+                disabled={cannotJoin || joinMutation.isPending}
+                className="mt-5 w-full resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm leading-6 outline-none transition-colors focus:border-blue-400 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
+              />
+
+              {hasError && (
+                <p role="alert" className="mt-2 text-sm text-red-500">
+                  소속 동아리를 확인하지 못했습니다.
+                  <button type="button" onClick={() => refetchMyClubs()} className="ml-2 underline">다시 시도</button>
+                </p>
+              )}
+              <div className="mt-4 flex justify-end gap-3">
+                {isApplied && !isMember && (
+                  <button type="button" disabled={cancelMutation.isPending || joinMutation.isPending}
+                    onClick={() => {
+                      if (!cancelMutation.isPending && window.confirm("가입 신청을 취소하시겠습니까?")) cancelMutation.mutate();
+                    }}
+                    className="rounded-lg border border-red-200 px-5 py-3 text-sm text-red-600 disabled:opacity-50">
+                    {cancelMutation.isPending ? "취소 중..." : "가입 신청 취소"}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={handleJoin}
+                  disabled={cannotJoin || !joinMessage.trim() || joinMutation.isPending || cancelMutation.isPending}
+                  className="flex min-w-36 cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+                >
+                  {joinMutation.isPending && (
+                    <Loader2 size={16} className="animate-spin" />
+                  )}
+
+                  {isMember ? "이미 소속된 동아리 입니다." : isApplied ? "신청 완료 · 승인 대기" : isChecking || hasError ? "소속 확인 중" : joinMutation.isPending ? "신청 중..." : "가입 신청하기"}
+                </button>
+              </div>
             </section>
           </div>
         </article>

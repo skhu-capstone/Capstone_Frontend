@@ -10,6 +10,7 @@ import {
   getContentImageUrl,
   getProfileImageUrl,
 } from "../../utils/imageUtils";
+import { useAuth } from "../../context/AuthContext";
 
 const VALID_TABS = ["feeds", "members", "calendar"];
 
@@ -20,6 +21,9 @@ export default function ClubMainPage() {
   const clubMenuRef = useRef(null);
   const navigate = useNavigate();
   const { clubId } = useParams();
+  const { user: authUser, loading: authLoading } = useAuth();
+  const accessToken = localStorage.getItem("accessToken");
+  const isAuthenticated = !!authUser && !!accessToken;
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get("tab");
   const activeTab = VALID_TABS.includes(tabParam) ? tabParam : "feeds";
@@ -59,25 +63,36 @@ export default function ClubMainPage() {
 
   const getMemberInitial = (name = "") => name.trim().slice(0, 1) || "?";
 
+  const getFeedWriterId = (feed) =>
+    [
+      feed.writerId,
+      feed.writerUserId,
+      feed.userId,
+      feed.writer?.userId,
+      feed.writer?.id,
+    ].find((id) => id !== undefined && id !== null && String(id).trim() !== "");
+
   const {
     data: clubs = [],
     isLoading,
     isError,
+    error,
   } = useQuery({
     queryKey: ["myClubs"],
     queryFn: getMyClubs,
+    enabled: isAuthenticated,
   });
 
   const hasClub = clubs.length > 0;
   const routeClubId = Number(clubId);
-  const hasRouteClubId = Number.isFinite(routeClubId);
+  const hasRouteClubId = Number.isInteger(routeClubId) && routeClubId > 0;
 
   const selectedClub = hasRouteClubId
     ? clubs.find((club) => Number(club.clubId) === routeClubId)
     : clubs[0];
 
   const selectedClubId = selectedClub?.clubId;
-  const loginUser = parseStoredUser();
+  const loginUser = authUser ?? parseStoredUser();
 
   useEffect(() => {
     if (isLoading || !hasClub) return;
@@ -88,12 +103,6 @@ export default function ClubMainPage() {
     }
 
   }, [activeTab, clubs, hasClub, hasRouteClubId, isLoading, navigate]);
-
-  useEffect(() => {
-    setCurrentFeedPage(1);
-    setCurrentMemberPage(1);
-    setIsClubMenuOpen(false);
-  }, [selectedClubId]);
 
   useEffect(() => {
     if (tabParam && !VALID_TABS.includes(tabParam)) {
@@ -119,7 +128,7 @@ export default function ClubMainPage() {
   } = useQuery({
     queryKey: ["clubMembers", selectedClubId],
     queryFn: () => getClubMembers(selectedClubId),
-    enabled: !!selectedClubId,
+    enabled: isAuthenticated && !!selectedClubId,
   });
 
   const roleMap = {
@@ -134,8 +143,9 @@ export default function ClubMainPage() {
     ?.role?.trim()
     .toUpperCase();
 
-  const isPresident = myRole === "PRESIDENT";
-  const canManageClub = ["PRESIDENT", "STAFF"].includes(myRole);
+  const isRoleResolved = !isMembersLoading && !isMembersError;
+  const isPresident = isRoleResolved && myRole === "PRESIDENT";
+  const canManageClub = isRoleResolved && ["PRESIDENT", "STAFF"].includes(myRole);
 
   const {
     data: postsData,
@@ -149,7 +159,7 @@ export default function ClubMainPage() {
         page: currentFeedPage - 1,
         size: 4,
       }),
-    enabled: !!selectedClubId,
+    enabled: isAuthenticated && !!selectedClubId,
   });
 
   const feeds = Array.isArray(postsData)
@@ -160,18 +170,88 @@ export default function ClubMainPage() {
         ? [postsData]
         : [];
 
+  const membersById = Object.fromEntries(
+    members
+      .map((member) => [member.userId ?? member.id, member])
+      .filter(([id]) => id !== undefined && id !== null)
+      .map(([id, member]) => [String(id), member])
+  );
   const membersByName = Object.fromEntries(
     members.map((member) => [member.name, member])
   );
 
   const totalFeedPages = postsData?.totalPages ?? 0;
+  const clubListErrorStatus = error?.response?.status;
+  const isAuthError =
+    clubListErrorStatus === 401 || clubListErrorStatus === 403;
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return <p>동아리 정보를 불러오는 중입니다...</p>;
   }
 
+  if (!isAuthenticated) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-slate-50 px-12">
+        <section className="flex max-w-xl flex-col items-center gap-8 rounded-2xl bg-white px-12 py-14 text-center shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)]">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              로그인이 필요합니다.
+            </h1>
+            <p className="mt-4 text-base leading-7 text-slate-900/60">
+              내 동아리 정보를 확인하려면 먼저 로그인해주세요.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => navigate("/login")}
+            className="h-12 rounded-xl bg-sky-700 px-5 text-sm font-semibold text-white hover:bg-sky-800"
+          >
+            로그인하기
+          </button>
+        </section>
+      </main>
+    );
+  }
+
   if (isError) {
-    return <p>동아리 정보를 불러오지 못했습니다</p>;
+    if (isAuthError) {
+      return (
+        <main className="flex min-h-screen items-center justify-center bg-slate-50 px-12">
+          <section className="flex max-w-xl flex-col items-center gap-8 rounded-2xl bg-white px-12 py-14 text-center shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)]">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                로그인이 만료되었습니다.
+              </h1>
+              <p className="mt-4 text-base leading-7 text-slate-900/60">
+                다시 로그인한 뒤 내 동아리 정보를 확인해주세요.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => navigate("/login")}
+              className="h-12 rounded-xl bg-sky-700 px-5 text-sm font-semibold text-white hover:bg-sky-800"
+            >
+              로그인하기
+            </button>
+          </section>
+        </main>
+      );
+    }
+
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-slate-50 px-12">
+        <section className="flex max-w-xl flex-col items-center gap-6 rounded-2xl bg-white px-12 py-14 text-center shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)]">
+          <h1 className="text-3xl font-bold text-gray-900">
+            동아리 정보를 불러오지 못했습니다.
+          </h1>
+          <p className="text-base leading-7 text-slate-900/60">
+            잠시 후 다시 시도해주세요.
+          </p>
+        </section>
+      </main>
+    );
   }
 
   if (!hasClub) {
@@ -246,16 +326,27 @@ export default function ClubMainPage() {
 
   // 전체 페이지 수 계산한 거
   const totalMemberPages = Math.ceil(members.length / memberPerPage);
+  const safeTotalMemberPages = Math.max(totalMemberPages, 1);
+  const safeCurrentMemberPage = Math.min(
+    Math.max(currentMemberPage, 1),
+    safeTotalMemberPages
+  );
 
   const currentMembers = members.slice(
-    (currentMemberPage - 1) * memberPerPage,
-    currentMemberPage * memberPerPage,
+    (safeCurrentMemberPage - 1) * memberPerPage,
+    safeCurrentMemberPage * memberPerPage,
   );
 
   // 현재 탭 기준으로 페이지 정보 결정 (피드랑 멤버)
+  const safeTotalFeedPages = Math.max(totalFeedPages, 1);
+  const safeCurrentFeedPage = Math.min(
+    Math.max(currentFeedPage, 1),
+    safeTotalFeedPages
+  );
   const currentPage =
-    activeTab === "feeds" ? currentFeedPage : currentMemberPage;
-  const totalPages = activeTab === "feeds" ? totalFeedPages : totalMemberPages;
+    activeTab === "feeds" ? safeCurrentFeedPage : safeCurrentMemberPage;
+  const totalPages =
+    activeTab === "feeds" ? safeTotalFeedPages : safeTotalMemberPages;
 
   const handlePrevPage = () => {
     if (activeTab === "feeds") {
@@ -267,15 +358,35 @@ export default function ClubMainPage() {
 
   const handleNextPage = () => {
     if (activeTab === "feeds") {
-      setCurrentFeedPage((prev) => Math.min(prev + 1, totalFeedPages));
+      setCurrentFeedPage((prev) => Math.min(prev + 1, safeTotalFeedPages));
     } else {
-      setCurrentMemberPage((prev) => Math.min(prev + 1, totalMemberPages));
+      setCurrentMemberPage((prev) => Math.min(prev + 1, safeTotalMemberPages));
     }
   };
 
   const handleSelectClub = (nextClubId) => {
     setIsClubMenuOpen(false);
+    setCurrentFeedPage(1);
+    setCurrentMemberPage(1);
     navigate(`/club/main/${nextClubId}?tab=${activeTab}`);
+  };
+
+  const handlePresidentManageClick = () => {
+    if (!isPresident) {
+      alert("대표만 접근할 수 있습니다.");
+      return;
+    }
+
+    navigate(`/club/president/${selectedClubId}`);
+  };
+
+  const handlePostCreateClick = () => {
+    if (!canManageClub) {
+      alert("대표 또는 운영진만 게시물을 작성할 수 있습니다.");
+      return;
+    }
+
+    navigate(`/clubs/${selectedClubId}/posts/create`);
   };
 
   const handleTabChange = (nextTab) => {
@@ -345,7 +456,7 @@ export default function ClubMainPage() {
             <div className="flex items-center gap-3">
               {isPresident && (
                 <button
-                  onClick={() => navigate(`/club/president/${selectedClubId}`)}
+                  onClick={handlePresidentManageClick}
                   className="h-12 rounded-xl border border-sky-700/30 bg-white px-5 text-sm font-semibold text-sky-700 hover:border-sky-700 hover:bg-sky-50"
                 >
                   대표 관리
@@ -354,7 +465,7 @@ export default function ClubMainPage() {
 
               {canManageClub && (
                 <button
-                  onClick={() => navigate(`/clubs/${selectedClubId}/posts/create`)}
+                  onClick={handlePostCreateClick}
                   className="h-12 rounded-xl bg-sky-700 px-5 text-sm font-semibold text-white hover:bg-sky-800"
                 >
                   게시물 작성
@@ -368,24 +479,25 @@ export default function ClubMainPage() {
               {previewMembers.map((member, index) => {
                 const profileImage = getMemberProfileImage(member);
 
-                return profileImage ? (
-                  <img
+                return (
+                  <SafeImage
                     key={member.userId}
                     src={profileImage}
                     alt="멤버 프로필"
                     className={`h-8 w-8 rounded-full border-2 border-slate-50 object-cover ${
                       index !== 0 ? "-ml-2" : ""
                     }`}
+                    referrerPolicy="no-referrer"
+                    fallback={
+                      <div
+                        className={`flex h-8 w-8 items-center justify-center rounded-full border-2 border-slate-50 bg-slate-300 text-xs font-bold text-slate-600 ${
+                          index !== 0 ? "-ml-2" : ""
+                        }`}
+                      >
+                        {getMemberInitial(member.name)}
+                      </div>
+                    }
                   />
-                ) : (
-                  <div
-                    key={member.userId}
-                    className={`flex h-8 w-8 items-center justify-center rounded-full border-2 border-slate-50 bg-slate-300 text-xs font-bold text-slate-600 ${
-                      index !== 0 ? "-ml-2" : ""
-                    }`}
-                  >
-                    {getMemberInitial(member.name)}
-                  </div>
                 );
               })}
             </div>
@@ -447,21 +559,29 @@ export default function ClubMainPage() {
                 아직 작성된 게시글이 없습니다.
               </div>
             ) : (
-              feeds.map((feed) => (
-                <FeedCard
-                  key={feed.postId}
-                  id={feed.postId}
-                  clubId={selectedClubId}
-                  author={feed.writerName}
-                  date={feed.createdAt}
-                  profileImage={
-                    getWriterProfileImage(feed) ??
-                    getMemberProfileImage(membersByName[feed.writerName] ?? {})
-                  }
-                  image={getImageUrl(feed.imageUrls?.[0])}
-                  content={feed.content}
-                />
-              ))
+              feeds.map((feed) => {
+                const writerId = getFeedWriterId(feed);
+                const matchedMember =
+                  writerId !== undefined && writerId !== null
+                    ? membersById[String(writerId)]
+                    : membersByName[feed.writerName];
+
+                return (
+                  <FeedCard
+                    key={feed.postId}
+                    id={feed.postId}
+                    clubId={selectedClubId}
+                    author={feed.writerName}
+                    date={feed.createdAt}
+                    profileImage={
+                      getWriterProfileImage(feed) ??
+                      getMemberProfileImage(matchedMember ?? {})
+                    }
+                    image={getImageUrl(feed.imageUrls?.[0])}
+                    content={feed.content}
+                  />
+                );
+              })
             )}
           </section>
         ) : activeTab === "members" ? (
