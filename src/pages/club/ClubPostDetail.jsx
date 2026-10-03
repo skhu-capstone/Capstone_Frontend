@@ -30,6 +30,7 @@ import {
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const MAX_POST_IMAGE_COUNT = 5;
+const MAX_POST_IMAGE_SIZE = 20 * 1024 * 1024;
 
 function SelectedImagePreview({ file }) {
   const [url] = useState(() => URL.createObjectURL(file));
@@ -129,7 +130,7 @@ function PostEditor({ post, postId, onClose }) {
           <div>
             <h3 className="text-sm font-semibold text-gray-800">첨부 이미지</h3>
             <p className="mt-1 text-xs leading-5 text-gray-500">
-              PNG, JPG · 각 5MB 이하 · 최대 {MAX_POST_IMAGE_COUNT}장
+              PNG, JPG · 각 20MB 이하 · 최대 {MAX_POST_IMAGE_COUNT}장
             </p>
           </div>
           <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200">
@@ -197,8 +198,8 @@ function PostEditor({ post, postId, onClose }) {
                 onChange={(event) => {
                   const file = event.target.files?.[0];
                   if (!file) return;
-                  if (!["image/png", "image/jpeg"].includes(file.type) || file.size > 5 * 1024 * 1024) {
-                    setImageError("5MB 이하의 PNG 또는 JPG 이미지를 선택해주세요.");
+                  if (!["image/png", "image/jpeg"].includes(file.type) || file.size > MAX_POST_IMAGE_SIZE) {
+                    setImageError("20MB 이하의 PNG 또는 JPG 이미지를 선택해주세요.");
                     event.target.value = "";
                     return;
                   }

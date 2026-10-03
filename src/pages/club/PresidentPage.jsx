@@ -29,7 +29,7 @@ const CLUB_INFO_LIMITS = {
   contact: 100,
 };
 const ALLOWED_CLUB_IMAGE_TYPES = ["image/png", "image/jpeg"];
-const MAX_CLUB_IMAGE_SIZE = 5 * 1024 * 1024;
+const MAX_CLUB_IMAGE_SIZE = 20 * 1024 * 1024;
 
 const managementTabs = [
   { key: "info", label: "동아리 정보" },
@@ -500,7 +500,7 @@ export default function PresidentPage() {
     }
 
     if (file.size > MAX_CLUB_IMAGE_SIZE) {
-      alert("이미지는 5MB 이하만 업로드할 수 있습니다.");
+      alert("이미지는 20MB 이하만 업로드할 수 있습니다.");
       event.target.value = "";
       setClubImageFile(null);
       setClubImagePreview("");

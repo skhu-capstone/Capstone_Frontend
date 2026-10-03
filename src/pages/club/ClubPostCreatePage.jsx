@@ -11,7 +11,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 
 const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg"];
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+const MAX_IMAGE_SIZE = 20 * 1024 * 1024;
 const MAX_IMAGE_COUNT = 5;
 const MAX_TITLE_LENGTH = 50;
 const MAX_CONTENT_LENGTH = 1000;
@@ -174,7 +174,7 @@ export default function ClubPostCreatePage() {
       (file) => file.size > MAX_IMAGE_SIZE
     );
     if (oversizedFile) {
-      alert("각 이미지는 5MB 이하만 업로드할 수 있습니다.");
+      alert("각 이미지는 20MB 이하만 업로드할 수 있습니다.");
       return;
     }
 
@@ -308,7 +308,7 @@ export default function ClubPostCreatePage() {
                 이미지를 클릭해서 업로드해주세요
               </span>
               <span className="mt-2 text-xs text-gray-400">
-                PNG, JPG 파일 지원 · 각 5MB 이하 · 최대 {MAX_IMAGE_COUNT}장
+                PNG, JPG 파일 지원 · 각 20MB 이하 · 최대 {MAX_IMAGE_COUNT}장
               </span>
               <span className="mt-2 text-xs font-medium text-blue-600">
                 {imageFiles.length}/{MAX_IMAGE_COUNT}장 선택됨

@@ -8,7 +8,7 @@ import { getMyPage, updateCoffeeChatProfile, updateCoffeeChatVisibility, uploadP
 import { useAuth } from "../../context/AuthContext";
 import { getProfileImageUrl } from "../../utils/imageUtils";
 
-const MAX_PROFILE_IMAGE_SIZE = 5 * 1024 * 1024;
+const MAX_PROFILE_IMAGE_SIZE = 20 * 1024 * 1024;
 const ALLOWED_PROFILE_IMAGE_TYPES = ["image/png", "image/jpeg"];
 
 export default function MyPage() {
@@ -193,7 +193,7 @@ export default function MyPage() {
     }
 
     if (file.size > MAX_PROFILE_IMAGE_SIZE) {
-      alert("이미지는 5MB 이하만 업로드할 수 있습니다.");
+      alert("이미지는 20MB 이하만 업로드할 수 있습니다.");
       event.target.value = "";
       return;
     }
