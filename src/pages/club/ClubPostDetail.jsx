@@ -5,7 +5,11 @@ import {
   MessageCircle,
   ChevronLeft,
   ChevronRight,
+  ImagePlus,
+  Pencil,
   Send,
+  Trash2,
+  X,
 } from "lucide-react";
 import {
   deleteClubPost,
@@ -25,15 +29,14 @@ import {
 } from "../../utils/imageUtils";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const MAX_POST_IMAGE_COUNT = 5;
 
 function SelectedImagePreview({ file }) {
-  const [url, setUrl] = useState("");
+  const [url] = useState(() => URL.createObjectURL(file));
   useEffect(() => {
-    const objectUrl = URL.createObjectURL(file);
-    setUrl(objectUrl);
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [file]);
-  return url ? <img src={url} alt="새로 선택한 이미지" className="h-32 w-32 rounded-lg object-cover" /> : null;
+    return () => URL.revokeObjectURL(url);
+  }, [url]);
+  return <img src={url} alt="새로 선택한 이미지" className="h-full w-full object-cover" />;
 }
 
 function PostEditor({ post, postId, onClose }) {
@@ -44,6 +47,7 @@ function PostEditor({ post, postId, onClose }) {
   const [imageUrls, setImageUrls] = useState(() => [...(post.imageUrls ?? [])]);
   const [imageFile, setImageFile] = useState(null);
   const [imageError, setImageError] = useState("");
+  const [hasUploadedImage, setHasUploadedImage] = useState(false);
   const uploadedImage = useRef(null);
   const fileInputRef = useRef(null);
   const updateMutation = useMutation({
@@ -54,6 +58,7 @@ function PostEditor({ post, postId, onClose }) {
           const url = await uploadPostImage(postId, imageFile);
           if (!url) throw new Error("업로드한 이미지 주소를 확인할 수 없습니다. 게시글을 새로고침해 확인해주세요.");
           uploadedImage.current = { file: imageFile, url };
+          setHasUploadedImage(true);
         }
         nextImageUrls = [...nextImageUrls, uploadedImage.current.url];
       }
@@ -84,6 +89,8 @@ function PostEditor({ post, postId, onClose }) {
     : error?.response?.status === 401
       ? "로그인이 만료되었습니다. 다시 로그인해주세요."
       : error?.response?.data?.message || error?.message || "게시글 수정에 실패했습니다. 다시 시도해주세요.";
+  const selectedImageCount = imageUrls.length + (imageFile ? 1 : 0);
+  const canAddImage = imageUrls.length < MAX_POST_IMAGE_COUNT;
 
   return (
     <form className="flex flex-col gap-4" onSubmit={(event) => {
@@ -113,48 +120,100 @@ function PostEditor({ post, postId, onClose }) {
           className="w-full resize-y rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-500" />
         <span className="text-right text-xs text-gray-400">{content.length}/1000</span>
       </label>
-      <fieldset disabled={updateMutation.isPending} className="flex flex-col gap-3">
-        <legend className="mb-2 text-sm font-medium text-gray-700">첨부 이미지</legend>
-        <p className="text-xs text-gray-500">기존 사진을 삭제하거나 새 사진을 추가할 수 있습니다. 교체하려면 기존 사진을 삭제한 후 새 사진을 선택해주세요.</p>
-        <div className="flex flex-wrap gap-3">
+      <fieldset
+        disabled={updateMutation.isPending}
+        className="rounded-xl border border-slate-200 bg-slate-50 p-4 disabled:opacity-60"
+      >
+        <legend className="sr-only">첨부 이미지</legend>
+        <div className="mb-4 flex items-start justify-between gap-4">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-800">첨부 이미지</h3>
+            <p className="mt-1 text-xs leading-5 text-gray-500">
+              PNG, JPG · 각 5MB 이하 · 최대 {MAX_POST_IMAGE_COUNT}장
+            </p>
+          </div>
+          <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200">
+            {selectedImageCount}/{MAX_POST_IMAGE_COUNT}장
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
           {imageUrls.map((url, index) => (
-            <div key={`${index}-${url}`} className="flex flex-col gap-2">
-              <img src={getContentImageUrl(url)} alt={`기존 이미지 ${index + 1}`}
-                className="h-32 w-32 rounded-lg object-cover" />
-              <button type="button" onClick={() => setImageUrls((urls) => urls.filter((_, i) => i !== index))}
+            <div
+              key={`${index}-${url}`}
+              className="group relative aspect-square overflow-hidden rounded-lg bg-white ring-1 ring-slate-200"
+            >
+              <img
+                src={getContentImageUrl(url)}
+                alt={`기존 이미지 ${index + 1}`}
+                className="h-full w-full object-cover"
+              />
+              <span className="absolute bottom-2 left-2 rounded-md bg-black/60 px-2 py-1 text-[11px] font-medium text-white">
+                {index + 1}
+              </span>
+              <button
+                type="button"
+                onClick={() => setImageUrls((urls) => urls.filter((_, i) => i !== index))}
                 aria-label={`기존 이미지 ${index + 1} 삭제`}
-                className="text-xs text-red-500 disabled:opacity-50">이미지 삭제</button>
+                title="이미지 삭제"
+                className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/65 text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed"
+              >
+                <X size={16} aria-hidden="true" />
+              </button>
             </div>
           ))}
           {imageFile && (
-            <div className="flex flex-col gap-2">
+            <div className="relative aspect-square overflow-hidden rounded-lg bg-white ring-2 ring-blue-500 ring-offset-2 ring-offset-slate-50">
               <SelectedImagePreview file={imageFile} />
-              <span className="max-w-32 break-all text-xs text-gray-500">{imageFile.name}</span>
-              <button type="button" onClick={() => {
-                setImageFile(null);
-                if (fileInputRef.current) fileInputRef.current.value = "";
-              }} className="text-xs text-red-500 disabled:opacity-50">선택 취소</button>
+              <span className="absolute bottom-2 left-2 max-w-[calc(100%-1rem)] truncate rounded-md bg-blue-600 px-2 py-1 text-[11px] font-medium text-white">
+                새 이미지
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setImageFile(null);
+                  if (fileInputRef.current) fileInputRef.current.value = "";
+                }}
+                aria-label="새 이미지 선택 취소"
+                title="선택 취소"
+                className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/65 text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed"
+              >
+                <X size={16} aria-hidden="true" />
+              </button>
             </div>
           )}
+          {canAddImage && (
+            <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-300 bg-white text-slate-500 transition-colors hover:border-blue-500 hover:bg-blue-50 hover:text-blue-600">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
+                <ImagePlus size={20} aria-hidden="true" />
+              </span>
+              <span className="text-xs font-semibold">
+                {imageFile ? "선택 변경" : "사진 추가"}
+              </span>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (!file) return;
+                  if (!["image/png", "image/jpeg"].includes(file.type) || file.size > 5 * 1024 * 1024) {
+                    setImageError("5MB 이하의 PNG 또는 JPG 이미지를 선택해주세요.");
+                    event.target.value = "";
+                    return;
+                  }
+                  setImageError("");
+                  setImageFile(file);
+                }}
+                className="hidden"
+              />
+            </label>
+          )}
         </div>
-        <label className="flex flex-col gap-2 text-sm text-gray-700">
-          새 이미지 선택 (PNG, JPG · 최대 5MB)
-          <input ref={fileInputRef} type="file" accept="image/png,image/jpeg" onChange={(event) => {
-            const file = event.target.files?.[0];
-            if (!file) return;
-            if (!["image/png", "image/jpeg"].includes(file.type) || file.size > 5 * 1024 * 1024) {
-              setImageError("5MB 이하의 PNG 또는 JPG 이미지를 선택해주세요.");
-              event.target.value = "";
-              return;
-            }
-            setImageError("");
-            setImageFile(file);
-          }} className="text-sm" />
-        </label>
-        {imageError && <p role="alert" className="text-sm text-red-500">{imageError}</p>}
+        {imageError && <p role="alert" className="mt-3 text-sm text-red-500">{imageError}</p>}
       </fieldset>
       {updateMutation.isError && <p role="alert" className="text-sm text-red-500">{errorMessage}</p>}
-      {updateMutation.isError && uploadedImage.current && (
+      {updateMutation.isError && hasUploadedImage && (
         <p role="alert" className="text-xs text-amber-700">사진은 업로드되었지만 수정 저장에 실패했습니다. 저장을 다시 눌러 완료해주세요. 취소해도 업로드된 사진은 남아 있을 수 있습니다.</p>
       )}
       <div className="flex justify-end gap-2">
@@ -506,39 +565,47 @@ export default function ClubPostDetail() {
         <ImageCarousel key={JSON.stringify(post.imageUrls)} images={post.imageUrls} />
 
         <div className="bg-white rounded-2xl shadow-sm px-6 py-5 flex flex-col gap-4 mt-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-semibold text-indigo-600">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-semibold text-indigo-600">
                 {post.writerName?.[0] ?? "?"}
               </div>
-              <span className="text-sm font-medium text-gray-700">
+              <span className="max-w-40 truncate text-sm font-medium text-gray-700">
                 {post.writerName}
               </span>
-              <span className="text-xs text-gray-400">
+              <span className="shrink-0 text-xs text-gray-400">
                 {formatDate(post.createdAt)}
               </span>
-            </div>
-            <div className="flex items-center gap-2">
               {post.postType === "NOTICE" && (
-                <span className="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-0.5">
+                <span className="shrink-0 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700">
                   공지
                 </span>
               )}
+            </div>
 
+            <div className="flex shrink-0 items-center gap-2">
               {canEdit && !isEditing && (
-                <button type="button" onClick={() => setEditingPostId(currentPostId)}
+                <button
+                  type="button"
+                  onClick={() => setEditingPostId(currentPostId)}
                   disabled={deleteMutation.isPending}
-                  className="text-xs font-medium text-blue-600 hover:text-blue-800 disabled:text-gray-400">
+                  className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-blue-200 bg-white px-3 text-xs font-semibold text-blue-600 transition-colors hover:border-blue-300 hover:bg-blue-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
+                >
+                  <Pencil size={14} aria-hidden="true" />
                   수정
                 </button>
               )}
-              {canDelete && <button
-                onClick={handleDeletePost}
-                disabled={deleteMutation.isPending || isEditing}
-                className="text-xs font-medium text-red-500 hover:text-red-700 disabled:text-gray-400 disabled:cursor-not-allowed cursor-pointer"
-              >
-                {deleteMutation.isPending ? "삭제 중" : "삭제"}
-              </button>}
+              {canDelete && (
+                <button
+                  type="button"
+                  onClick={handleDeletePost}
+                  disabled={deleteMutation.isPending || isEditing}
+                  className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 text-xs font-semibold text-red-500 transition-colors hover:border-red-300 hover:bg-red-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
+                >
+                  <Trash2 size={14} aria-hidden="true" />
+                  {deleteMutation.isPending ? "삭제 중" : "삭제"}
+                </button>
+              )}
             </div>
           </div>
 
@@ -547,12 +614,12 @@ export default function ClubPostDetail() {
           ) : (
             <>
           {post.title && (
-            <h2 className="text-base font-semibold text-gray-900">
+            <h2 className="break-words [overflow-wrap:anywhere] text-base font-semibold text-gray-900">
               {post.title}
             </h2>
           )}
 
-          <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-line">
+          <p className="max-w-full whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-sm leading-relaxed text-gray-800">
             {post.content}
           </p>
             </>
