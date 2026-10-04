@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import FeedCard from "../../components/card/FeedCard";
+import ClubPostOrderEditor from "../../components/card/ClubPostOrderEditor";
 import ClubCalendar from "../../components/card/ClubCalendar";
 import SafeImage from "../../components/common/SafeImage";
 import { useQuery } from "@tanstack/react-query";
@@ -18,6 +19,7 @@ export default function ClubMainPage() {
   const [currentFeedPage, setCurrentFeedPage] = useState(1); // 피드 페이지 번호
   const [currentMemberPage, setCurrentMemberPage] = useState(1); // 멤버 페이지 번호
   const [isClubMenuOpen, setIsClubMenuOpen] = useState(false);
+  const [orderingClubId, setOrderingClubId] = useState(null);
   const clubMenuRef = useRef(null);
   const navigate = useNavigate();
   const { clubId } = useParams();
@@ -145,6 +147,7 @@ export default function ClubMainPage() {
 
   const isRoleResolved = !isMembersLoading && !isMembersError;
   const isPresident = isRoleResolved && myRole === "PRESIDENT";
+  const isOrderingPosts = isPresident && orderingClubId === selectedClubId && activeTab === "feeds";
   const canManageClub = isRoleResolved && ["PRESIDENT", "STAFF"].includes(myRole);
 
   const {
@@ -365,6 +368,7 @@ export default function ClubMainPage() {
   };
 
   const handleSelectClub = (nextClubId) => {
+    setOrderingClubId(null);
     setIsClubMenuOpen(false);
     setCurrentFeedPage(1);
     setCurrentMemberPage(1);
@@ -390,6 +394,7 @@ export default function ClubMainPage() {
   };
 
   const handleTabChange = (nextTab) => {
+    setOrderingClubId(null);
     setSearchParams({ tab: nextTab });
   };
 
@@ -548,7 +553,19 @@ export default function ClubMainPage() {
         </header>
 
         {/* 조건부로 렌더링 -> 피드 or 멤버 or 캘린더 */}
-        {activeTab === "feeds" ? (
+        {activeTab === "feeds" && isPresident && !isOrderingPosts && (
+          <div className="mt-5 flex justify-end">
+            <button type="button" onClick={() => setOrderingClubId(selectedClubId)}
+              className="rounded-xl border border-sky-700/30 bg-white px-5 py-3 text-sm font-semibold text-sky-700 hover:bg-sky-50">
+              게시물 순서 편집
+            </button>
+          </div>
+        )}
+        {isOrderingPosts ? (
+          <ClubPostOrderEditor key={selectedClubId} clubId={selectedClubId}
+            onClose={() => setOrderingClubId(null)}
+            onSaved={() => { setCurrentFeedPage(1); setOrderingClubId(null); }} />
+        ) : activeTab === "feeds" ? (
           <section className="grid grid-cols-2 gap-10 py-7">
             {isPostsLoading ? (
               <p>게시글을 불러오는 중입니다...</p>
@@ -632,7 +649,7 @@ export default function ClubMainPage() {
         )}
 
         {/* 페이지 이동 섹션 */}
-        {activeTab !== "calendar" && totalPages > 1 && (
+        {activeTab !== "calendar" && !isOrderingPosts && totalPages > 1 && (
           <div className="flex justify-center pb-7">
           <div className="flex items-center gap-1">
             <button

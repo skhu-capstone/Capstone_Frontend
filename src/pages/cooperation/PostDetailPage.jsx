@@ -4,6 +4,8 @@ import { ArrowLeft, Loader2, AlertCircle } from "lucide-react";
 import RecruitmentActions from "./RecruitmentActions";
 import SafeImage from "../../components/common/SafeImage";
 import { getContentImageUrl } from "../../utils/imageUtils";
+import { useAuth } from "../../context/AuthContext";
+import { isOwnRecruitment } from "../../utils/recruitmentOwnership";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -29,6 +31,8 @@ function DetailLayout({
   imageUrl,
   onBack,
   onContact,
+  contactDisabled,
+  isOwnPost,
   actions,
 }) {
   return (
@@ -79,10 +83,12 @@ function DetailLayout({
             {actions}
             <button
               onClick={onContact}
-              className={`w-full mt-2 py-3 rounded-xl text-white text-sm font-semibold transition-opacity duration-150 hover:opacity-90 cursor-pointer ${buttonColor}`}
+              disabled={contactDisabled}
+              className={`w-full mt-2 py-3 rounded-xl text-white text-sm font-semibold transition-opacity duration-150 hover:opacity-90 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 ${buttonColor}`}
             >
               문의하기
             </button>
+            {isOwnPost && <p className="text-center text-xs text-gray-500">본인이 작성한 게시물에는 문의할 수 없습니다.</p>}
           </div>
         </div>
       </main>
@@ -117,6 +123,7 @@ function ErrorView({ message, onBack }) {
 // ─── 동아리 협업모집 상세 ─────────────────────────────────────────────────────
 // GET /api/club-collaborations/:collabId
 function ClubPostDetail({ id, onBack }) {
+  const { user, loading: authLoading } = useAuth();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -159,8 +166,11 @@ function ClubPostDetail({ id, onBack }) {
     { label: "작성자:", value: post.writerName ?? "-" },
   ];
 
-  // 문의하기 → 커피챗으로 연결 (writerId 없으므로 일단 목록으로)
+  const isOwnPost = isOwnRecruitment(post, user);
+
+  // 문의하기 → 커피챗으로 연결
   async function handleContact() {
+    if (authLoading || isOwnPost) return;
     try {
       const res = await fetch(
         `${API_BASE_URL}/api/club-collaborations/${id}/apply`,
@@ -202,6 +212,8 @@ function ClubPostDetail({ id, onBack }) {
       imageUrl={post.imageUrl}
       onBack={onBack}
       onContact={handleContact}
+      contactDisabled={authLoading || isOwnPost}
+      isOwnPost={isOwnPost}
       actions={<RecruitmentActions type="club" id={id} post={post} onUpdated={setPost} />}
     />
   );
@@ -210,6 +222,7 @@ function ClubPostDetail({ id, onBack }) {
 // ─── 프로젝트 팀원모집 상세 ───────────────────────────────────────────────────
 // GET /api/project-recruitments/:projectRecruitmentId
 function ProjectPostDetail({ id, onBack }) {
+  const { user, loading: authLoading } = useAuth();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -251,8 +264,11 @@ function ProjectPostDetail({ id, onBack }) {
     { label: "마감일:", value: post.deadline ?? "-" },
   ];
 
+  const isOwnPost = isOwnRecruitment(post, user);
+
   // 문의하기 → writerId로 커피챗 생성 후 이동
   async function handleContact() {
+    if (authLoading || isOwnPost) return;
     if (!post.writerId) {
       navigate("/coffee-chat");
       return;
@@ -288,6 +304,8 @@ function ProjectPostDetail({ id, onBack }) {
       imageUrl={post.imageUrl}
       onBack={onBack}
       onContact={handleContact}
+      contactDisabled={authLoading || isOwnPost}
+      isOwnPost={isOwnPost}
       actions={<RecruitmentActions type="project" id={id} post={post} onUpdated={setPost} />}
     />
   );

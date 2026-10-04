@@ -153,6 +153,19 @@ export const getClubPosts = async ({ clubId, page = 0, size = 4 }) => {
   return response.data.data;
 };
 
+// Proposed backend contract: docs/club-post-order-api.md
+export const updateClubPostOrder = async ({ clubId, postIds }) => {
+  const response = await axios.patch(
+    `${BASE_URL}/api/clubs/${clubId}/posts/order`,
+    { postIds },
+    { headers: getAuthHeaders() },
+  );
+  if (response.data?.success === false) {
+    throw new Error(response.data.message || "게시물 순서 저장에 실패했습니다.");
+  }
+  return response.data?.data;
+};
+
 // 동아리 게시물 생성
 export const createClubPost = async ({
   clubId,

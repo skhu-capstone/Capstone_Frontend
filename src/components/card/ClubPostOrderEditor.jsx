@@ -1,0 +1,99 @@
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ArrowUp, ArrowDown, GripVertical } from "lucide-react";
+import { getClubPosts, updateClubPostOrder } from "../../services/clubService";
+import { collectClubPosts, movePost } from "../../utils/clubPostOrder";
+import { DEFAULT_FEED_IMAGE, getContentImageUrl } from "../../utils/imageUtils";
+import SafeImage from "../common/SafeImage";
+
+export default function ClubPostOrderEditor({ clubId, onClose, onSaved }) {
+  const queryClient = useQueryClient();
+  const [draft, setDraft] = useState(null);
+  const [draggedId, setDraggedId] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const { data, isPending, isError, refetch } = useQuery({
+    queryKey: ["clubPostOrder", clubId],
+    queryFn: () => collectClubPosts((page) => getClubPosts({ clubId, page, size: 100 })),
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+  const posts = draft ?? data ?? [];
+  const changed = draft !== null && draft.some((post, index) => post.postId !== data?.[index]?.postId);
+
+  function move(from, to) {
+    if (saving) return;
+    setDraft(movePost(posts, from, to));
+    setError("");
+  }
+
+  async function save() {
+    if (saving || !changed) return;
+    setSaving(true);
+    setError("");
+    try {
+      await updateClubPostOrder({ clubId, postIds: posts.map((post) => post.postId) });
+    } catch (error) {
+      setError(error.response?.data?.message || error.message || "순서를 저장하지 못했습니다. 다시 시도해주세요.");
+      setSaving(false);
+      return;
+    }
+    await queryClient.invalidateQueries({ queryKey: ["clubPosts", clubId] });
+    onSaved();
+  }
+
+  return (
+    <section className="my-7 rounded-2xl border border-slate-200 bg-white p-5" aria-label="게시물 순서 편집" aria-busy={saving}>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-bold text-gray-900">게시물 순서 편집</h2>
+          <p className="mt-1 text-sm text-slate-500">드래그하거나 위·아래 버튼으로 이동하세요. 맨 위 게시물이 먼저 표시됩니다.</p>
+        </div>
+        <div className="flex gap-2">
+          <button type="button" disabled={saving} onClick={onClose} className="rounded-lg border border-slate-300 px-4 py-2 text-sm disabled:opacity-40">취소</button>
+          <button type="button" disabled={saving || isPending || isError || !changed} onClick={save} className="rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">{saving ? "저장 중…" : "순서 저장"}</button>
+        </div>
+      </div>
+      {isPending && <p className="mt-5" role="status">전체 게시물을 불러오는 중입니다…</p>}
+      {isError && <div className="mt-5" role="alert">게시물을 불러오지 못했습니다. <button type="button" onClick={() => refetch()} className="text-sky-700 underline">다시 시도</button></div>}
+      {error && <p role="alert" className="mt-4 text-sm text-red-600">{error}</p>}
+      {!isPending && !isError && (
+        <ol className="mt-5 flex flex-col gap-3">
+          {posts.map((post, index) => (
+            <li key={post.postId} draggable={!saving}
+              onDragStart={(event) => {
+                setDraggedId(post.postId);
+                event.dataTransfer.effectAllowed = "move";
+                event.dataTransfer.setData("text/plain", String(post.postId));
+              }}
+              onDragEnd={() => setDraggedId(null)}
+              onDragOver={(event) => {
+                if (!saving && draggedId !== null) event.preventDefault();
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                move(posts.findIndex((item) => item.postId === draggedId), index);
+                setDraggedId(null);
+              }}
+              className={`flex items-center gap-3 rounded-xl border p-3 ${draggedId === post.postId ? "border-sky-500 bg-sky-50" : "border-slate-200"}`}>
+              <GripVertical size={18} className="shrink-0 cursor-grab text-slate-400" aria-hidden="true" />
+              <span className="w-7 shrink-0 text-center text-sm text-slate-500">{index + 1}</span>
+              <SafeImage src={post.imageUrls?.[0]} fallbackSrc={DEFAULT_FEED_IMAGE} getSrc={getContentImageUrl} alt="" className="h-14 w-14 shrink-0 rounded-lg object-cover" draggable={false} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold">{post.title || post.content || "제목 없는 게시물"}</p>
+                <p className="mt-1 text-xs text-slate-500">{post.writerName} · {post.createdAt?.slice(0, 10)}</p>
+              </div>
+              <div className="flex shrink-0 gap-1">
+                <button type="button" aria-label={`${index + 1}번째 게시물 위로 이동`} disabled={saving || index === 0} onClick={() => move(index, index - 1)} className="rounded-lg p-2 hover:bg-slate-100 disabled:opacity-30"><ArrowUp size={18} /></button>
+                <button type="button" aria-label={`${index + 1}번째 게시물 아래로 이동`} disabled={saving || index === posts.length - 1} onClick={() => move(index, index + 1)} className="rounded-lg p-2 hover:bg-slate-100 disabled:opacity-30"><ArrowDown size={18} /></button>
+              </div>
+            </li>
+          ))}
+          {posts.length === 0 && <li className="py-8 text-center text-slate-500">정렬할 게시물이 없습니다.</li>}
+        </ol>
+      )}
+    </section>
+  );
+}

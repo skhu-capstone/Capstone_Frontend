@@ -238,6 +238,7 @@ export default function MyPage() {
         <h1 className="mb-10 text-5xl font-bold text-gray-900">My Page</h1>
 
         <MyPageCard
+          compact
           name={user.name}
           email={user.email}
           schoolEmail={user.schoolEmail}
