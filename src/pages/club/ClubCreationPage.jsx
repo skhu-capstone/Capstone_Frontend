@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AlertCircle, Image as ImageIcon, Loader2, Plus } from "lucide-react";
-import { createClub } from "../../services/clubService";
+import { AlertCircle, Loader2, Plus } from "lucide-react";
+import { createClub, uploadClubImage } from "../../services/clubService";
+import ImageFilePicker from "../../components/common/ImageFilePicker";
 
 const INITIAL_FORM = {
   clubName: "",
   category: "",
   shortDescription: "",
   detailDescription: "",
-  imageUrl: "",
   regularMeetingTime: "",
   activityLocation: "",
   contact: "",
@@ -20,7 +20,7 @@ export default function ClubCreationPage() {
   const [form, setForm] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState("");
-  const [imageError, setImageError] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   const setField = (key, value) => {
@@ -36,9 +36,6 @@ export default function ClubCreationPage() {
 
     setApiError("");
 
-    if (key === "imageUrl") {
-      setImageError(false);
-    }
   };
 
   const handleSubmit = async (event) => {
@@ -60,7 +57,7 @@ export default function ClubCreationPage() {
       category: form.category.trim(),
       shortDescription: form.shortDescription.trim(),
       detailDescription: form.detailDescription.trim(),
-      imageUrl: form.imageUrl.trim(),
+      imageUrl: "",
       regularMeetingTime: form.regularMeetingTime.trim(),
       activityLocation: form.activityLocation.trim(),
       contact: form.contact.trim(),
@@ -72,7 +69,21 @@ export default function ClubCreationPage() {
     try {
       const createdClub = await createClub(payload);
 
-      alert("동아리가 생성되었습니다.");
+      let imageUploadFailed = false;
+      if (imageFile) {
+        try {
+          await uploadClubImage(createdClub.id, imageFile);
+        } catch (error) {
+          console.error(error);
+          imageUploadFailed = true;
+        }
+      }
+
+      alert(
+        imageUploadFailed
+          ? "동아리가 생성되었지만 대표 이미지 업로드에 실패했습니다. 동아리 관리에서 이미지를 다시 등록해주세요."
+          : "동아리가 생성되었습니다.",
+      );
 
       navigate(`/club/main/${createdClub.id}`);
     } catch (error) {
@@ -217,50 +228,14 @@ export default function ClubCreationPage() {
               </label>
 
               <div>
-                <label
-                  htmlFor="clubImageUrl"
-                  className="mb-2 block text-sm font-medium text-gray-700"
-                >
-                  대표 이미지 URL
-                  <span className="ml-1 text-xs font-normal text-gray-400">
-                    (선택)
-                  </span>
-                </label>
-
-                <input
-                  id="clubImageUrl"
-                  type="url"
-                  value={form.imageUrl}
-                  onChange={(event) => setField("imageUrl", event.target.value)}
-                  placeholder="https://example.com/image.jpg"
-                  className="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm outline-none transition-colors focus:border-blue-400"
-                />
-
-                <p className="mt-2 text-xs text-gray-400">
-                  외부에서 접근 가능한 이미지 주소를 입력해주세요.
+                <p className="mb-2 text-sm font-medium text-gray-700">
+                  대표 이미지
                 </p>
-
-                {form.imageUrl.trim() && (
-                  <div className="mt-4 overflow-hidden rounded-xl border border-gray-200 bg-slate-50">
-                    {!imageError ? (
-                      <img
-                        src={form.imageUrl.trim()}
-                        alt="동아리 대표 이미지 미리보기"
-                        onLoad={() => setImageError(false)}
-                        onError={() => setImageError(true)}
-                        className="h-64 w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-48 flex-col items-center justify-center gap-2 text-gray-400">
-                        <ImageIcon size={32} strokeWidth={1.5} />
-
-                        <p className="text-sm">이미지를 불러올 수 없습니다.</p>
-
-                        <p className="text-xs">이미지 URL을 확인해주세요.</p>
-                      </div>
-                    )}
-                  </div>
-                )}
+                <ImageFilePicker
+                  file={imageFile}
+                  onChange={setImageFile}
+                  disabled={submitting}
+                />
               </div>
             </div>
 
