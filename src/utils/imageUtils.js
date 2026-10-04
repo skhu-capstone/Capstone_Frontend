@@ -1,5 +1,8 @@
-export const DEFAULT_PROFILE_IMAGE = "https://placehold.co/250x250";
-export const DEFAULT_FEED_IMAGE = "https://placehold.co/600x250";
+import defaultProfileImage from "../assets/default-profile.svg";
+import defaultFeedImage from "../assets/default-feed.svg";
+
+export const DEFAULT_PROFILE_IMAGE = defaultProfileImage;
+export const DEFAULT_FEED_IMAGE = defaultFeedImage;
 
 const LEGACY_PRIVATE_UPLOAD_PATH = "/uploads/";
 const RENDERABLE_IMAGE_PROTOCOLS = ["http:", "https:", "data:", "blob:"];

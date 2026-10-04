@@ -10,9 +10,11 @@ function SafeImage({
   referrerPolicy,
   ...props
 }) {
-  const [failedSrc, setFailedSrc] = useState("");
-  const imageSrc = getSrc(src, fallbackSrc);
-  const shouldShowImage = imageSrc && imageSrc !== failedSrc;
+  const [failures, setFailures] = useState({ source: null, urls: [] });
+  const requestedSrc = getSrc(src, fallbackSrc);
+  const failedUrls = failures.source === requestedSrc ? failures.urls : [];
+  const imageSrc = failedUrls.includes(requestedSrc) ? fallbackSrc : requestedSrc;
+  const shouldShowImage = imageSrc && !failedUrls.includes(imageSrc);
 
   if (!shouldShowImage) {
     return fallback ?? null;
@@ -25,7 +27,7 @@ function SafeImage({
       alt={alt}
       className={className}
       referrerPolicy={referrerPolicy}
-      onError={() => setFailedSrc(imageSrc)}
+      onError={() => setFailures({ source: requestedSrc, urls: [...failedUrls, imageSrc] })}
     />
   );
 }

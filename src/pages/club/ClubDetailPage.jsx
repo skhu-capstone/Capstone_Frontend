@@ -5,15 +5,19 @@ import {
   AlertCircle,
   ArrowLeft,
   CalendarDays,
-  Image as ImageIcon,
   Loader2,
   Mail,
   MapPin,
   Users,
 } from "lucide-react";
-import { getClubDetail, requestClubJoin, cancelClubJoin } from "../../services/clubService";
+import {
+  getClubDetail,
+  requestClubJoin,
+  cancelClubJoin,
+} from "../../services/clubService";
 import useMyClubs from "../../hooks/useMyClubs";
 import usePendingClubJoins from "../../hooks/usePendingClubJoins";
+import { DEFAULT_FEED_IMAGE } from "../../utils/imageUtils";
 
 function InfoItem({ icon: Icon, label, value }) {
   return (
@@ -43,11 +47,29 @@ export default function ClubDetailPage() {
   const [joinMessage, setJoinMessage] = useState("");
   const [hasImageError, setHasImageError] = useState(false);
   const numericClubId = Number(clubId);
-  const { clubs: myClubs, isChecking, hasError, refetch: refetchMyClubs } = useMyClubs();
-  const isMember = myClubs.some((club) => Number(club.clubId) === numericClubId);
-  const { pendingClubIds, recordResult } = usePendingClubJoins();
-  const isApplied = pendingClubIds.has(String(numericClubId));
-  const cannotJoin = isMember || isApplied || isChecking || hasError;
+  const {
+    clubs: myClubs,
+    isAuthenticated,
+    isChecking: checkingMembership,
+    hasError: membershipError,
+    refetch: refetchMyClubs,
+  } = useMyClubs();
+  const {
+    getJoinState,
+    recordResult,
+    isChecking: checkingJoins,
+    hasError: joinsError,
+    refetch: refetchJoins,
+  } = usePendingClubJoins();
+  const isChecking = checkingMembership || checkingJoins;
+  const hasError = membershipError || joinsError;
+  const joinState = getJoinState(
+    numericClubId,
+    myClubs.some((club) => Number(club.clubId) === numericClubId),
+  );
+  const isMember = joinState.joined;
+  const isApplied = joinState.pending;
+  const cannotJoin = joinState.blocked || isChecking || hasError;
 
   const {
     data: club,
@@ -63,11 +85,13 @@ export default function ClubDetailPage() {
   const joinMutation = useMutation({
     mutationFn: () => requestClubJoin(numericClubId, joinMessage.trim()),
 
-    onSuccess: (result) => {
-      recordResult(numericClubId, result.clubJoinStatus);
+    onSuccess: async (result) => {
+      await recordResult(numericClubId, result.clubJoinStatus);
       queryClient.invalidateQueries({ queryKey: ["myClubs"] });
       queryClient.invalidateQueries({ queryKey: ["clubs"] });
-      queryClient.invalidateQueries({ queryKey: ["clubDetail", numericClubId] });
+      queryClient.invalidateQueries({
+        queryKey: ["clubDetail", numericClubId],
+      });
       alert("동아리 가입 신청이 완료되었습니다.");
 
       setJoinMessage("");
@@ -79,28 +103,41 @@ export default function ClubDetailPage() {
       console.error(error);
 
       alert(
-        error.response?.data?.message || error.message || "동아리 가입 신청에 실패했습니다.",
+        error.response?.data?.message ||
+          error.message ||
+          "동아리 가입 신청에 실패했습니다.",
       );
     },
   });
 
   const cancelMutation = useMutation({
     mutationFn: () => cancelClubJoin(numericClubId),
-    onSuccess: () => {
+    onSuccess: async () => {
       // DELETE 응답의 PENDING은 취소 대상 상태일 수 있어 대기 상태로 다시 저장하지 않는다.
-      recordResult(numericClubId, null);
+      await recordResult(numericClubId, null);
       queryClient.invalidateQueries({ queryKey: ["myClubs"] });
       queryClient.invalidateQueries({ queryKey: ["clubs"] });
-      queryClient.invalidateQueries({ queryKey: ["clubDetail", numericClubId] });
+      queryClient.invalidateQueries({
+        queryKey: ["clubDetail", numericClubId],
+      });
       alert("가입 신청이 취소되었습니다.");
     },
     onError: (error) => {
-      alert(error.response?.data?.message || error.message || "가입 신청 취소에 실패했습니다.");
+      alert(
+        error.response?.data?.message ||
+          error.message ||
+          "가입 신청 취소에 실패했습니다.",
+      );
     },
   });
 
   const handleJoin = () => {
-    if (cannotJoin || joinMutation.isPending || cancelMutation.isPending) return;
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    if (cannotJoin || joinMutation.isPending || cancelMutation.isPending)
+      return;
     if (!Number.isInteger(numericClubId) || numericClubId <= 0) {
       alert("잘못된 동아리 주소입니다.");
       return;
@@ -180,9 +217,7 @@ export default function ClubDetailPage() {
                 onError={() => setHasImageError(true)}
               />
             ) : (
-              <div className="flex h-full items-center justify-center text-blue-300">
-                <ImageIcon size={56} strokeWidth={1.4} />
-              </div>
+              <img src={DEFAULT_FEED_IMAGE} alt="동아리 기본 이미지" className="h-full w-full object-cover" />
             )}
           </div>
 
@@ -256,31 +291,73 @@ export default function ClubDetailPage() {
 
               {hasError && (
                 <p role="alert" className="mt-2 text-sm text-red-500">
-                  소속 동아리를 확인하지 못했습니다.
-                  <button type="button" onClick={() => refetchMyClubs()} className="ml-2 underline">다시 시도</button>
+                  소속 또는 가입 신청 상태를 확인하지 못했습니다.
+                  <button
+                    type="button"
+                    onClick={() => {
+                      refetchMyClubs();
+                      refetchJoins();
+                    }}
+                    className="ml-2 underline"
+                  >
+                    다시 시도
+                  </button>
                 </p>
               )}
               <div className="mt-4 flex justify-end gap-3">
                 {isApplied && !isMember && (
-                  <button type="button" disabled={cancelMutation.isPending || joinMutation.isPending}
+                  <button
+                    type="button"
+                    disabled={
+                      isChecking ||
+                      hasError ||
+                      cancelMutation.isPending ||
+                      joinMutation.isPending
+                    }
                     onClick={() => {
-                      if (!cancelMutation.isPending && window.confirm("가입 신청을 취소하시겠습니까?")) cancelMutation.mutate();
+                      if (
+                        isAuthenticated &&
+                        !isChecking &&
+                        !hasError &&
+                        !cancelMutation.isPending &&
+                        !joinMutation.isPending &&
+                        window.confirm("가입 신청을 취소하시겠습니까?")
+                      )
+                        cancelMutation.mutate();
                     }}
-                    className="rounded-lg border border-red-200 px-5 py-3 text-sm text-red-600 disabled:opacity-50">
+                    className="rounded-lg border border-red-200 px-5 py-3 text-sm text-red-600 disabled:opacity-50 cursor-pointer"
+                  >
                     {cancelMutation.isPending ? "취소 중..." : "가입 신청 취소"}
                   </button>
                 )}
                 <button
                   type="button"
                   onClick={handleJoin}
-                  disabled={cannotJoin || !joinMessage.trim() || joinMutation.isPending || cancelMutation.isPending}
+                  disabled={
+                    cannotJoin ||
+                    !joinMessage.trim() ||
+                    joinMutation.isPending ||
+                    cancelMutation.isPending
+                  }
                   className="flex min-w-36 cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                 >
                   {joinMutation.isPending && (
                     <Loader2 size={16} className="animate-spin" />
                   )}
 
-                  {isMember ? "이미 소속된 동아리 입니다." : isApplied ? "신청 완료 · 승인 대기" : isChecking || hasError ? "소속 확인 중" : joinMutation.isPending ? "신청 중..." : "가입 신청하기"}
+                  {isMember
+                    ? "이미 소속된 동아리 입니다."
+                    : isApplied
+                      ? "신청 완료 · 승인 대기"
+                      : isChecking || hasError
+                        ? "소속 확인 중"
+                        : joinState.blocked
+                          ? "신청 불가"
+                          : joinMutation.isPending
+                            ? "신청 중..."
+                            : joinState.canReapply
+                              ? "다시 가입 신청하기"
+                              : "가입 신청하기"}
                 </button>
               </div>
             </section>

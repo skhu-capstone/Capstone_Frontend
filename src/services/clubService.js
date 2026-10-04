@@ -112,6 +112,17 @@ export const cancelClubJoin = async (clubId) => {
 };
 
 // 내 동아리 목록
+export const getMyClubJoins = async () => {
+  const response = await axios.get(`${BASE_URL}/api/users/me/club/join`, {
+    headers: getAuthHeaders(),
+  });
+  if (response.data?.success === false || !Array.isArray(response.data?.data)) {
+    throw new Error(response.data?.message || "가입 신청 내역을 불러오지 못했습니다.");
+  }
+  return response.data.data;
+};
+
+// 내 소속 동아리 목록
 export const getMyClubs = async () => {
   const response = await axios.get(`${BASE_URL}/api/users/me/clubs`, {
     headers: getAuthHeaders(),

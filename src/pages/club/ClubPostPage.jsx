@@ -12,7 +12,8 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
-import { isValidImageUrl } from "../../utils/imageUtils";
+import { DEFAULT_FEED_IMAGE, getContentImageUrl } from "../../utils/imageUtils";
+import SafeImage from "../../components/common/SafeImage";
 
 const POSTS_PER_PAGE = 6;
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -98,10 +99,6 @@ function SortDropdown({ value, onChange }) {
 // ─── 게시물 카드 ──────────────────────────────────────────────────────────────
 function PostCard({ post, onClick }) {
   const [hovered, setHovered] = useState(false);
-  const [hasImageError, setHasImageError] = useState(false);
-  const imageUrl = isValidImageUrl(post.imageUrls?.[0])
-    ? post.imageUrls[0]
-    : null;
   const likeCount = post.likeCount ?? 0;
   const commentCount = post.commentCount ?? 0;
 
@@ -112,21 +109,14 @@ function PostCard({ post, onClick }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {imageUrl && !hasImageError ? (
-        <img
-          src={imageUrl}
-          alt={post.clubName}
+        <SafeImage
+          src={post.imageUrls?.[0]}
+          fallbackSrc={DEFAULT_FEED_IMAGE}
+          getSrc={getContentImageUrl}
+          alt={post.clubName || "동아리 게시물 기본 이미지"}
           className="w-full h-full object-cover transition-transform duration-300"
           style={{ transform: hovered ? "scale(1.04)" : "scale(1)" }}
-          onError={() => setHasImageError(true)}
         />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center bg-slate-100">
-          <span className="text-xs text-slate-400 px-3 text-center line-clamp-3">
-            {post.title}
-          </span>
-        </div>
-      )}
 
       {post.postType === "NOTICE" && (
         <span className="absolute top-2 left-2 text-xs font-medium text-amber-700 bg-amber-50/90 border border-amber-200 rounded-full px-2 py-0.5">

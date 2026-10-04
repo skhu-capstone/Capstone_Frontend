@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mutateRecruitment } from "./recruitmentService.js";
+import { mutateRecruitment, uploadProjectRecruitmentImage, uploadClubCollaborationImage } from "./recruitmentService.js";
 
 test("both recruitment types send authenticated PATCH and DELETE requests and preserve failures", async () => {
   const oldFetch = globalThis.fetch;
@@ -20,6 +20,23 @@ test("both recruitment types send authenticated PATCH and DELETE requests and pr
         assert.deepEqual(await mutateRecruitment(type, 7, method, payload), { title: "Updated" });
       }
     }
+    const file = new File(["image-content"], "photo.PNG", { type: "image/png" });
+    let expectedImagePath = "/api/project-recruitments/7/image";
+    globalThis.fetch = async (url, options) => {
+      assert.equal(url, expectedImagePath);
+      assert.equal(options.method, "POST");
+      assert.equal(options.headers.Authorization, "Bearer test-token");
+      assert.equal(options.headers["Content-Type"], undefined);
+      assert.equal(options.body.get("file").name, "photo.PNG");
+      assert.equal(await options.body.get("file").text(), "image-content");
+      return { ok: true, json: async () => ({ success: true, data: "https://example.test/image.png" }) };
+    };
+    assert.equal(await uploadProjectRecruitmentImage(7, file), "https://example.test/image.png");
+    expectedImagePath = "/api/club-collaborations/7/image";
+    assert.equal(await uploadClubCollaborationImage(7, file), "https://example.test/image.png");
+    globalThis.fetch = async () => ({ ok: false, json: async () => ({ success: false, message: "Upload failed" }) });
+    await assert.rejects(uploadProjectRecruitmentImage(7, file), /Upload failed/);
+    await assert.rejects(uploadClubCollaborationImage(7, file), /Upload failed/);
     for (const [status, message] of [[401, /로그인/], [403, /작성자/], [500, /요청에 실패/]]) {
       globalThis.fetch = async () => ({ ok: false, status, json: async () => { throw new Error("not JSON"); } });
       await assert.rejects(mutateRecruitment("club", 7, "DELETE"), message);

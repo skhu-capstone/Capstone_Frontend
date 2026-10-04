@@ -1,18 +1,39 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
+import { getClubJoinState } from "../utils/clubJoinStatus";
+import { getMyClubJoins } from "../services/clubService";
 
 export default function usePendingClubJoins() {
   const { user } = useAuth();
   const userId = user?.userId ?? user?.id;
   const queryClient = useQueryClient();
-  const queryKey = ["clubJoinResults", userId];
-  // 조회 API가 연결되기 전까지 현재 실행 중 수신한 응답만 보관한다.
-  // 영구 브라우저 기록으로 거절/탈퇴 후 재신청을 막지 않는다.
-  const { data = {} } = useQuery({ queryKey, enabled: false, initialData: {} });
+  const queryKey = ["myClubJoins", userId];
+  const isAuthenticated = !!user && !!localStorage.getItem("accessToken");
+  const query = useQuery({
+    queryKey,
+    queryFn: getMyClubJoins,
+    enabled: isAuthenticated,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: "always",
+  });
+  const data = {};
+  // 서버는 최근 신청 순으로 반환한다. 같은 동아리는 첫 번째 기록을 사용한다.
+  for (const item of isAuthenticated ? query.data ?? [] : []) {
+    if (!Object.hasOwn(data, String(item.clubId))) data[String(item.clubId)] = item.clubJoinStatus;
+  }
   return {
+    isChecking: isAuthenticated && query.isPending,
+    hasError: isAuthenticated && query.isError,
+    refetch: query.refetch,
     pendingClubIds: new Set(Object.keys(data).filter((id) => data[id] === "PENDING")),
-    recordResult: (clubId, status) => {
-      queryClient.setQueryData(queryKey, (old) => ({ ...old, [clubId]: status }));
+    getJoinState: (clubId, isMember = false) => getClubJoinState(data[String(clubId)], isMember),
+    recordResult: async (clubId, status) => {
+      await queryClient.cancelQueries({ queryKey });
+      queryClient.setQueryData(queryKey, (old = []) => [
+        ...(status == null ? [] : [{ clubId, clubJoinStatus: status }]),
+        ...old.filter((item) => String(item.clubId) !== String(clubId)),
+      ]);
+      await queryClient.invalidateQueries({ queryKey });
     },
   };
 }
