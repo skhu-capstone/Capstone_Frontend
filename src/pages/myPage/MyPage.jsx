@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import MyPageCard from "../../components/card/MyPageCard";
 import InputLabel from "../../components/card/InputLabel";
 import EditInputLabel from "../../components/card/EditInputLabel";
-import { getMyPage, updateCoffeeChatProfile, updateCoffeeChatVisibility, uploadProfileImage } from "../../services/myPageService";
+import { getMyPage, updateNickname, updateCoffeeChatProfile, updateCoffeeChatVisibility, uploadProfileImage } from "../../services/myPageService";
 import { useAuth } from "../../context/AuthContext";
 import { getProfileImageUrl } from "../../utils/imageUtils";
 
@@ -15,12 +15,15 @@ export default function MyPage() {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false); // 수정
   const [isVisible, setIsVisible] = useState(false); // 커피챗 공개 여부
-  const { user: authUser, loading: authLoading } = useAuth();
+  const { user: authUser, loading: authLoading, updateUserProfile } = useAuth();
   const queryClient = useQueryClient();
   const accessToken = localStorage.getItem("accessToken");
   const isAuthenticated = !!authUser && !!accessToken;
   const [selectedImageFile, setSelectedImageFile] = useState(null);
   const [previewImage, setPreviewImage] = useState("");
+  const [isEditingNickname, setIsEditingNickname] = useState(false);
+  const [nicknameDraft, setNicknameDraft] = useState("");
+  const [nicknameError, setNicknameError] = useState("");
 
   const [user, setUser] = useState({
     name: "",
@@ -103,6 +106,41 @@ export default function MyPage() {
 
     return () => URL.revokeObjectURL(objectUrl);
   }, [selectedImageFile]);
+
+  const updateNicknameMutation = useMutation({
+    mutationFn: updateNickname,
+    onSuccess: (result, submittedName) => {
+      const name = result?.name ?? submittedName;
+      setUser((prev) => ({ ...prev, name }));
+      updateUserProfile({ name });
+      queryClient.setQueryData(["myPage"], (prev) =>
+        prev ? { ...prev, name } : prev
+      );
+      setIsEditingNickname(false);
+      setNicknameError("");
+    },
+    onError: (error) => {
+      setNicknameError(
+        error.response?.data?.message ?? "닉네임 변경에 실패했습니다. 다시 시도해주세요."
+      );
+    },
+  });
+
+  const handleNicknameSave = (event) => {
+    event.preventDefault();
+    if (updateNicknameMutation.isPending) return;
+    const name = nicknameDraft.trim();
+    if (!name) {
+      setNicknameError("닉네임을 입력해주세요.");
+      return;
+    }
+    if (name === user.name) {
+      setIsEditingNickname(false);
+      setNicknameError("");
+      return;
+    }
+    updateNicknameMutation.mutate(name);
+  };
 
   // 커피챗 프로필 저장
     const updateProfileMutation = useMutation({
@@ -273,6 +311,68 @@ export default function MyPage() {
               </div>
 
               <div className="flex flex-1 flex-col gap-4">
+                <form onSubmit={handleNicknameSave} className="flex flex-col gap-2">
+                  <label htmlFor="nickname" className="text-xs font-medium text-gray-900">
+                    닉네임
+                  </label>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {isEditingNickname ? (
+                      <>
+                        <input
+                          id="nickname"
+                          type="text"
+                          value={nicknameDraft}
+                          onChange={(event) => {
+                            setNicknameDraft(event.target.value);
+                            setNicknameError("");
+                          }}
+                          disabled={updateNicknameMutation.isPending}
+                          aria-invalid={!!nicknameError}
+                          aria-describedby={nicknameError ? "nickname-error" : undefined}
+                          autoFocus
+                          className="min-w-0 flex-1 rounded-lg bg-blue-900/10 px-3.5 py-2.5 text-base outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsEditingNickname(false);
+                            setNicknameDraft(user.name);
+                            setNicknameError("");
+                          }}
+                          disabled={updateNicknameMutation.isPending}
+                          className="rounded-full px-4 py-2 text-sm font-semibold text-gray-500 disabled:opacity-50"
+                        >
+                          취소
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={updateNicknameMutation.isPending}
+                          className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+                        >
+                          {updateNicknameMutation.isPending ? "저장 중..." : "저장"}
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <span className="min-w-0 flex-1 break-words text-base text-gray-900">{user.name || "미설정"}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNicknameDraft(user.name);
+                            setNicknameError("");
+                            setIsEditingNickname(true);
+                          }}
+                          className="rounded-full border border-blue-600 px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50"
+                        >
+                          닉네임 수정
+                        </button>
+                      </>
+                    )}
+                  </div>
+                  {nicknameError && (
+                    <p id="nickname-error" role="alert" className="text-sm text-red-600">{nicknameError}</p>
+                  )}
+                </form>
                 <InputLabel label="Email" value={user.email} />
                 <InputLabel label="University Email" value={user.schoolEmail} />
 

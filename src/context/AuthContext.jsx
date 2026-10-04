@@ -116,9 +116,18 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("user");
   };
 
+  const updateUserProfile = (profileData) => {
+    setUser((currentUser) => {
+      if (!currentUser) return currentUser;
+      const nextUser = { ...currentUser, ...profileData };
+      localStorage.setItem("user", JSON.stringify(nextUser));
+      return nextUser;
+    });
+  };
+
   return (
     <AuthContext.Provider
-      value={{ user, loading, googleLogin, setAuthenticatedUser, logout }}
+      value={{ user, loading, googleLogin, setAuthenticatedUser, updateUserProfile, logout }}
     >
       {children}
     </AuthContext.Provider>

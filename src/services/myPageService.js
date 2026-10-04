@@ -16,6 +16,20 @@ export const getMyPage = async () => {
   return response.data.data;
 };
 
+// 닉네임 수정: 백엔드의 name 필드를 사용합니다.
+export const updateNickname = async (name) => {
+  const response = await axios.patch(
+    `${BASE_URL}/api/mypage/name`,
+    { name },
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    }
+  );
+  return response.data.data;
+};
+
 // 커피챗 프로필 수정
 export const updateCoffeeChatProfile = async (profileData) => {
   const response = await axios.put(
