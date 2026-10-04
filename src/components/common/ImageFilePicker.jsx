@@ -1,6 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { Plus } from "lucide-react";
 
+const MAX_IMAGE_SIZE = 20 * 1024 * 1024;
+
+function ImagePreview({ file }) {
+  const [preview] = useState(() => URL.createObjectURL(file));
+
+  useEffect(() => () => URL.revokeObjectURL(preview), [preview]);
+
+  return <img src={preview} alt="선택한 사진 미리보기" className="max-h-48 rounded-lg object-contain" />;
+}
+
 export default function ImageFilePicker({ file, onChange, disabled }) {
   const inputRef = useRef(null);
   const previewRef = useRef(null);
@@ -22,15 +32,15 @@ export default function ImageFilePicker({ file, onChange, disabled }) {
           <Plus size={23} aria-hidden="true" />
         </span>
         <span className="font-semibold">{file ? "사진 변경" : "사진 첨부 (선택)"}</span>
-        <span className="text-xs text-gray-400">클릭하여 사진 선택 · PNG, JPG · 최대 5MB</span>
+        <span className="text-xs text-gray-400">클릭하여 사진 선택 · PNG, JPG · 최대 20MB</span>
         <input ref={inputRef} type="file" accept="image/png,image/jpeg" disabled={disabled}
           aria-label={file ? "사진 변경" : "사진 첨부 (선택)"}
           className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
           onChange={(event) => {
             const selected = event.target.files?.[0];
             if (!selected) return;
-            if (!["image/png", "image/jpeg"].includes(selected.type) || selected.size > 5 * 1024 * 1024) {
-              setError("5MB 이하의 PNG 또는 JPG 파일을 선택해주세요.");
+            if (!["image/png", "image/jpeg"].includes(selected.type) || selected.size > MAX_IMAGE_SIZE) {
+              setError("20MB 이하의 PNG 또는 JPG 파일을 선택해주세요.");
               event.target.value = "";
               return;
             }

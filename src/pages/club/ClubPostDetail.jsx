@@ -32,12 +32,12 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const MAX_POST_IMAGE_COUNT = 5;
 const MAX_POST_IMAGE_SIZE = 20 * 1024 * 1024;
 
-function SelectedImagePreview({ file }) {
+function SelectedImagePreview({ file, index }) {
   const [url] = useState(() => URL.createObjectURL(file));
   useEffect(() => {
     return () => URL.revokeObjectURL(url);
   }, [url]);
-  return <img src={url} alt="새로 선택한 이미지" className="h-full w-full object-cover" />;
+  return <img src={url} alt={`새로 선택한 이미지 ${index + 1}`} className="h-full w-full object-cover" />;
 }
 
 function PostEditor({ post, postId, onClose }) {
@@ -46,24 +46,32 @@ function PostEditor({ post, postId, onClose }) {
   const [title, setTitle] = useState(post.title ?? "");
   const [content, setContent] = useState(post.content ?? "");
   const [imageUrls, setImageUrls] = useState(() => [...(post.imageUrls ?? [])]);
-  const [imageFile, setImageFile] = useState(null);
+  const [imageFiles, setImageFiles] = useState([]);
   const [imageError, setImageError] = useState("");
   const [hasUploadedImage, setHasUploadedImage] = useState(false);
-  const uploadedImage = useRef(null);
+  const uploadedImages = useRef(new Map());
   const fileInputRef = useRef(null);
   const updateMutation = useMutation({
     mutationFn: async (values) => {
-      let nextImageUrls = values.imageUrls;
-      if (imageFile) {
-        if (uploadedImage.current?.file !== imageFile) {
-          const url = await uploadPostImage(postId, imageFile);
+      const uploadedImageUrls = [];
+
+      for (const imageFile of values.imageFiles) {
+        let url = uploadedImages.current.get(imageFile);
+
+        if (!url) {
+          url = await uploadPostImage(postId, imageFile);
           if (!url) throw new Error("업로드한 이미지 주소를 확인할 수 없습니다. 게시글을 새로고침해 확인해주세요.");
-          uploadedImage.current = { file: imageFile, url };
+          uploadedImages.current.set(imageFile, url);
           setHasUploadedImage(true);
         }
-        nextImageUrls = [...nextImageUrls, uploadedImage.current.url];
+
+        uploadedImageUrls.push(url);
       }
-      return updateClubPost({ ...values, imageUrls: nextImageUrls });
+
+      return updateClubPost({
+        ...values,
+        imageUrls: [...values.imageUrls, ...uploadedImageUrls],
+      });
     },
     onError: () => {
       // 이미지 업로드 API가 게시글에 이미지를 연결했을 수 있으므로 서버 상태를 다시 조회한다.
@@ -90,8 +98,53 @@ function PostEditor({ post, postId, onClose }) {
     : error?.response?.status === 401
       ? "로그인이 만료되었습니다. 다시 로그인해주세요."
       : error?.response?.data?.message || error?.message || "게시글 수정에 실패했습니다. 다시 시도해주세요.";
-  const selectedImageCount = imageUrls.length + (imageFile ? 1 : 0);
-  const canAddImage = imageUrls.length < MAX_POST_IMAGE_COUNT;
+  const selectedImageCount = imageUrls.length + imageFiles.length;
+  const canAddImage = selectedImageCount < MAX_POST_IMAGE_COUNT;
+
+  const handleImageChange = (event) => {
+    const selectedFiles = Array.from(event.target.files ?? []);
+    event.target.value = "";
+
+    if (selectedFiles.length === 0) return;
+
+    if (selectedFiles.some((file) => !["image/png", "image/jpeg"].includes(file.type))) {
+      setImageError("PNG 또는 JPG 이미지만 선택해주세요.");
+      return;
+    }
+
+    if (selectedFiles.some((file) => file.size > MAX_POST_IMAGE_SIZE)) {
+      setImageError("각 이미지는 20MB 이하만 선택해주세요.");
+      return;
+    }
+
+    const uniqueFiles = selectedFiles.filter(
+      (selectedFile) =>
+        !imageFiles.some(
+          (currentFile) =>
+            currentFile.name === selectedFile.name &&
+            currentFile.size === selectedFile.size &&
+            currentFile.lastModified === selectedFile.lastModified
+        )
+    );
+    const availableCount = MAX_POST_IMAGE_COUNT - selectedImageCount;
+
+    if (uniqueFiles.length > availableCount) {
+      setImageError(`이미지는 기존 사진과 합쳐 최대 ${MAX_POST_IMAGE_COUNT}장까지 추가할 수 있습니다.`);
+    } else {
+      setImageError("");
+    }
+
+    setImageFiles((currentFiles) => [
+      ...currentFiles,
+      ...uniqueFiles.slice(0, availableCount),
+    ]);
+  };
+
+  const removeSelectedImage = (targetIndex) => {
+    setImageFiles((currentFiles) =>
+      currentFiles.filter((_, index) => index !== targetIndex)
+    );
+  };
 
   return (
     <form className="flex flex-col gap-4" onSubmit={(event) => {
@@ -103,6 +156,7 @@ function PostEditor({ post, postId, onClose }) {
         title: title.trim(),
         content: content.trim(),
         imageUrls,
+        imageFiles,
         postType: post.postType ?? "NOTICE",
       });
     }}>
@@ -163,49 +217,40 @@ function PostEditor({ post, postId, onClose }) {
               </button>
             </div>
           ))}
-          {imageFile && (
-            <div className="relative aspect-square overflow-hidden rounded-lg bg-white ring-2 ring-blue-500 ring-offset-2 ring-offset-slate-50">
-              <SelectedImagePreview file={imageFile} />
+          {imageFiles.map((file, index) => (
+            <div
+              key={`${file.name}-${file.size}-${file.lastModified}`}
+              className="relative aspect-square overflow-hidden rounded-lg bg-white ring-2 ring-blue-500 ring-offset-2 ring-offset-slate-50"
+            >
+              <SelectedImagePreview file={file} index={index} />
               <span className="absolute bottom-2 left-2 max-w-[calc(100%-1rem)] truncate rounded-md bg-blue-600 px-2 py-1 text-[11px] font-medium text-white">
-                새 이미지
+                새 이미지 {index + 1}
               </span>
               <button
                 type="button"
-                onClick={() => {
-                  setImageFile(null);
-                  if (fileInputRef.current) fileInputRef.current.value = "";
-                }}
-                aria-label="새 이미지 선택 취소"
+                onClick={() => removeSelectedImage(index)}
+                aria-label={`새 이미지 ${index + 1} 선택 취소`}
                 title="선택 취소"
                 className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/65 text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed"
               >
                 <X size={16} aria-hidden="true" />
               </button>
             </div>
-          )}
+          ))}
           {canAddImage && (
             <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-300 bg-white text-slate-500 transition-colors hover:border-blue-500 hover:bg-blue-50 hover:text-blue-600">
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
                 <ImagePlus size={20} aria-hidden="true" />
               </span>
               <span className="text-xs font-semibold">
-                {imageFile ? "선택 변경" : "사진 추가"}
+                사진 추가
               </span>
               <input
                 ref={fileInputRef}
                 type="file"
                 accept="image/png,image/jpeg"
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  if (!file) return;
-                  if (!["image/png", "image/jpeg"].includes(file.type) || file.size > MAX_POST_IMAGE_SIZE) {
-                    setImageError("20MB 이하의 PNG 또는 JPG 이미지를 선택해주세요.");
-                    event.target.value = "";
-                    return;
-                  }
-                  setImageError("");
-                  setImageFile(file);
-                }}
+                multiple
+                onChange={handleImageChange}
                 className="hidden"
               />
             </label>
