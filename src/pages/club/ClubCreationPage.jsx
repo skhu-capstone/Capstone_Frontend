@@ -172,12 +172,8 @@ export default function ClubCreationPage() {
                     <span className="mb-2 block text-sm font-medium text-gray-700">
                       {field.label}
 
-                      {field.required ? (
+                      {field.required && (
                         <span className="ml-1 text-red-400">*</span>
-                      ) : (
-                        <span className="ml-1 text-xs font-normal text-gray-400">
-                          (선택)
-                        </span>
                       )}
                     </span>
 
@@ -207,9 +203,6 @@ export default function ClubCreationPage() {
               <label className="block">
                 <span className="mb-2 block text-sm font-medium text-gray-700">
                   상세 소개
-                  <span className="ml-1 text-xs font-normal text-gray-400">
-                    (선택)
-                  </span>
                 </span>
 
                 <textarea
