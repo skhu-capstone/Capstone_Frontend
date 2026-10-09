@@ -67,3 +67,14 @@
 @theme {
   --font-pretendard: "Pretendard", sans-serif;
 }
+
+@media (max-width: 767px) {
+  .mobile-card-scroller {
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-card-scroller::-webkit-scrollbar {
+    display: none;
+  }
+}

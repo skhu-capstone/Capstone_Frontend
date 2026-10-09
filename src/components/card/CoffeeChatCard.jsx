@@ -14,43 +14,39 @@ function CoffeeChatCard({
   const navigate = useNavigate();
 
   return (
-    <div className="w-full min-h-105 px-5 py-6 bg-white dark:bg-theme-surface rounded-2xl shadow-[0px_8px_24px_rgba(0,0,0,0.08)] dark:shadow-theme-shadow md:h-125.75 md:px-6 md:py-4
-    flex flex-col justify-center items-center gap-2.5 overflow-hidden transition-all duration-300
-    hover:scale-[1.02] hover:-translate-y-5 hover:outline-[3px] hover:outline-offset-[-3px] hover:outline-blue-700 dark:hover:outline-theme-focus"
+    <div className="flex h-full min-h-44 w-full min-w-0 items-center overflow-hidden rounded-xl bg-white p-4 shadow-[0px_6px_18px_rgba(0,0,0,0.08)] transition-all duration-300 dark:bg-theme-surface dark:shadow-theme-shadow md:h-125.75 md:min-h-0 md:flex-col md:justify-center md:rounded-2xl md:px-6 md:py-4 md:shadow-[0px_8px_24px_rgba(0,0,0,0.08)] md:hover:-translate-y-3 md:hover:scale-[1.02] md:hover:outline-[3px] md:hover:outline-offset-[-3px] md:hover:outline-blue-700 md:dark:hover:outline-theme-focus"
     >
-      <div className="flex w-full flex-col items-center gap-6 md:gap-7">
+      <div className="flex w-full min-w-0 items-center gap-4 md:flex-col md:gap-7">
         <SafeImage
-          className="h-40 w-40 rounded-full object-cover md:h-52 md:w-52"
+          className="h-24 w-24 shrink-0 rounded-full object-cover ring-1 ring-slate-200 dark:ring-theme-border md:h-52 md:w-52 md:ring-0"
           src={profileImage}
           fallbackSrc={DEFAULT_PROFILE_IMAGE}
           getSrc={getProfileImageUrl}
           alt={`${name} 프로필 이미지`}
           referrerPolicy="no-referrer"
           fallback={
-            <div className="h-40 w-40 rounded-full bg-zinc-300 dark:bg-theme-disabled-bg md:h-52 md:w-52" />
+            <div className="h-24 w-24 shrink-0 rounded-full bg-zinc-300 ring-1 ring-slate-200 dark:bg-theme-disabled-bg dark:ring-theme-border md:h-52 md:w-52 md:ring-0" />
           }
         />
 
-        <div className="flex w-full flex-col items-center gap-6 md:gap-7">
-          <div className="max-w-full text-center text-2xl font-bold leading-7 text-black dark:text-theme-text break-words md:text-3xl md:leading-8">
+        <div className="flex min-w-0 flex-1 flex-col items-center gap-3 md:w-full md:flex-none md:gap-7">
+          <div className="max-w-full truncate text-center text-lg font-bold leading-6 text-black dark:text-theme-text md:text-3xl md:leading-8">
             {name}
           </div>
 
-          <div className="flex w-full flex-col items-center gap-6 md:gap-8">
-            <div className="max-w-full text-center text-xl font-medium leading-7 text-black dark:text-theme-text break-words md:text-2xl">
-              관심 분야: {interestTopics}
+          <div className="flex w-full min-w-0 flex-col items-center gap-2 md:gap-8">
+            <div className="max-w-full truncate rounded-md bg-slate-100 px-2 py-1 text-center text-xs font-medium leading-5 text-slate-700 dark:bg-theme-raised dark:text-theme-secondary md:bg-transparent md:p-0 md:text-2xl md:leading-7 md:text-black md:dark:bg-transparent md:dark:text-theme-text">
+              관심 분야 · {interestTopics}
             </div>
 
-            <div className="max-w-full text-center text-xl font-medium leading-7 text-black dark:text-theme-text break-words md:text-2xl">
-              미팅 타입: {meetingType}
+            <div className="max-w-full truncate text-center text-xs font-medium leading-5 text-slate-500 dark:text-theme-muted md:text-2xl md:leading-7 md:text-black md:dark:text-theme-text">
+              미팅 타입 · {meetingType}
             </div>
 
             <button
               type="button"
               onClick={() => navigate(`/coffee-chat/profile/${id}`)}
-              className="h-14 w-full max-w-52 bg-blue-500 dark:bg-theme-primary rounded-xl border border-blue-700 dark:border-theme-focus
-              flex items-center justify-center text-white text-2xl font-medium leading-6 md:text-3xl
-              hover:bg-blue-600 dark:hover:bg-theme-primary-hover transition cursor-pointer"
+              className="flex h-11 w-full touch-manipulation cursor-pointer items-center justify-center rounded-lg border border-blue-700 bg-blue-500 px-3 text-sm font-semibold leading-5 text-white transition hover:bg-blue-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-theme-focus dark:bg-theme-primary dark:hover:bg-theme-primary-hover dark:focus-visible:outline-theme-focus md:h-14 md:max-w-52 md:rounded-xl md:text-3xl md:font-medium md:leading-6"
             >
               정보 더보기
             </button>
