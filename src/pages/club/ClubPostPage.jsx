@@ -56,7 +56,7 @@ function SortDropdown({ value, onChange }) {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 text-sm text-gray-600 bg-white border border-gray-100 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors duration-150 cursor-pointer shadow-sm"
+        className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-theme-secondary bg-white dark:bg-theme-surface border border-gray-100 dark:border-theme-border rounded-lg px-3 py-1.5 hover:bg-gray-50 dark:hover:bg-theme-hover transition-colors duration-150 cursor-pointer shadow-sm dark:shadow-theme-shadow"
       >
         <ArrowUpDown size={13} strokeWidth={2} />
         {current.label}
@@ -67,7 +67,7 @@ function SortDropdown({ value, onChange }) {
         />
       </button>
       {open && (
-        <div className="absolute left-0 top-full mt-1.5 w-44 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden">
+        <div className="absolute left-0 top-full mt-1.5 w-44 bg-white dark:bg-theme-surface border border-gray-100 dark:border-theme-border rounded-xl shadow-lg dark:shadow-theme-shadow z-50 overflow-hidden">
           {SORT_OPTIONS.map((opt) => {
             const Icon = opt.icon;
             const DirIcon = opt.dir === "desc" ? ArrowDown : ArrowUp;
@@ -79,13 +79,13 @@ function SortDropdown({ value, onChange }) {
                   onChange(opt.key);
                   setOpen(false);
                 }}
-                className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left transition-colors duration-100 cursor-pointer ${isActive ? "bg-slate-50 text-gray-900 font-medium" : "text-gray-600 hover:bg-slate-50"}`}
+                className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left transition-colors duration-100 cursor-pointer ${isActive ? "bg-slate-50 dark:bg-theme-subtle text-gray-900 dark:text-theme-text font-medium" : "text-gray-600 dark:text-theme-secondary hover:bg-slate-50 dark:hover:bg-theme-hover"}`}
               >
                 <Icon size={12} strokeWidth={2} />
-                <DirIcon size={11} strokeWidth={2} className="text-gray-400" />
+                <DirIcon size={11} strokeWidth={2} className="text-gray-400 dark:text-theme-muted" />
                 {opt.label}
                 {isActive && (
-                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-theme-primary flex-shrink-0" />
                 )}
               </button>
             );
@@ -104,7 +104,7 @@ function PostCard({ post, onClick }) {
 
   return (
     <div
-      className="relative rounded-2xl overflow-hidden cursor-pointer aspect-square bg-slate-200"
+      className="relative rounded-2xl overflow-hidden cursor-pointer aspect-square bg-slate-200 dark:bg-theme-raised"
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -119,7 +119,7 @@ function PostCard({ post, onClick }) {
         />
 
       {post.postType === "NOTICE" && (
-        <span className="absolute top-2 left-2 text-xs font-medium text-amber-700 bg-amber-50/90 border border-amber-200 rounded-full px-2 py-0.5">
+        <span className="absolute top-2 left-2 text-xs font-medium text-amber-700 dark:text-theme-warning bg-amber-50/90 dark:bg-theme-warning-bg/90 border border-amber-200 dark:border-theme-warning-border rounded-full px-2 py-0.5">
           공지
         </span>
       )}
@@ -170,7 +170,7 @@ function SkeletonGrid() {
       {Array.from({ length: 6 }).map((_, i) => (
         <div
           key={i}
-          className="aspect-square rounded-2xl bg-slate-200 animate-pulse"
+          className="aspect-square rounded-2xl bg-slate-200 dark:bg-theme-raised animate-pulse"
         />
       ))}
     </div>
@@ -225,11 +225,11 @@ export default function ClubPostPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-theme-page">
       <main className="max-w-3xl mx-auto px-4 py-8">
         <div className="mb-5">
-          <h1 className="text-2xl font-bold text-gray-900">동아리 게시판</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-theme-text">동아리 게시판</h1>
+          <p className="text-sm text-gray-500 dark:text-theme-muted mt-1">
             동아리 활동 내역을 기록하고 추억하세요
           </p>
         </div>
@@ -242,11 +242,11 @@ export default function ClubPostPage() {
 
         {!loading && error && (
           <div className="flex flex-col items-center justify-center py-20 gap-3">
-            <AlertCircle size={24} className="text-red-300" strokeWidth={1.5} />
-            <p className="text-sm text-gray-400">{error}</p>
+            <AlertCircle size={24} className="text-red-300 dark:text-theme-danger" strokeWidth={1.5} />
+            <p className="text-sm text-gray-400 dark:text-theme-muted">{error}</p>
             <button
               onClick={() => setPage((p) => p)}
-              className="text-xs text-blue-500 hover:text-blue-700 transition-colors cursor-pointer"
+              className="text-xs text-blue-500 dark:text-theme-link hover:text-blue-700 dark:hover:text-theme-link transition-colors cursor-pointer"
             >
               다시 시도
             </button>
@@ -272,7 +272,7 @@ export default function ClubPostPage() {
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+            <div className="flex flex-col items-center justify-center py-20 text-gray-400 dark:text-theme-muted">
               <p className="text-sm">게시물이 없습니다</p>
             </div>
           ))}
@@ -282,26 +282,26 @@ export default function ClubPostPage() {
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-150 cursor-pointer"
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-200 dark:hover:bg-theme-hover disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-150 cursor-pointer"
             >
               <ChevronLeft
                 size={18}
                 strokeWidth={2}
-                className="text-gray-600"
+                className="text-gray-600 dark:text-theme-secondary"
               />
             </button>
-            <span className="text-sm font-medium text-gray-600 w-12 text-center">
+            <span className="text-sm font-medium text-gray-600 dark:text-theme-secondary w-12 text-center">
               {page} / {totalPages}
             </span>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-150 cursor-pointer"
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-200 dark:hover:bg-theme-hover disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-150 cursor-pointer"
             >
               <ChevronRight
                 size={18}
                 strokeWidth={2}
-                className="text-gray-600"
+                className="text-gray-600 dark:text-theme-secondary"
               />
             </button>
           </div>

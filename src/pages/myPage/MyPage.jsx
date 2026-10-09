@@ -271,9 +271,9 @@ export default function MyPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 px-8 py-20">
+    <main className="min-h-screen bg-gray-50 dark:bg-theme-page px-8 py-20">
       <section className="mx-auto max-w-4xl">
-        <h1 className="mb-10 text-5xl font-bold text-gray-900">My Page</h1>
+        <h1 className="mb-10 text-5xl font-bold text-gray-900 dark:text-theme-text">My Page</h1>
 
         <MyPageCard
           compact
@@ -285,11 +285,11 @@ export default function MyPage() {
         />
 
         <section className="mt-10">
-          <h2 className="border-b border-gray-300 pb-2 text-3xl font-bold text-gray-900">
+          <h2 className="border-b border-gray-300 dark:border-theme-border-strong pb-2 text-3xl font-bold text-gray-900 dark:text-theme-text">
             Profile Settings
           </h2>
 
-          <div className="mt-8 border-b border-gray-300 pb-8">
+          <div className="mt-8 border-b border-gray-300 dark:border-theme-border-strong pb-8">
             <div className="flex items-center gap-8">
               <div className="flex flex-col items-center gap-3">
                 <img
@@ -299,7 +299,7 @@ export default function MyPage() {
                   referrerPolicy="no-referrer"
                 />
 
-                <label className="cursor-pointer rounded-full border border-blue-600 px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50">
+                <label className="cursor-pointer rounded-full border border-blue-600 dark:border-theme-focus px-4 py-2 text-sm font-semibold text-blue-600 dark:text-theme-link hover:bg-blue-50 dark:hover:bg-theme-accent-hover">
                   커피챗 이미지 변경
                   <input
                     type="file"
@@ -312,7 +312,7 @@ export default function MyPage() {
 
               <div className="flex flex-1 flex-col gap-4">
                 <form onSubmit={handleNicknameSave} className="flex flex-col gap-2">
-                  <label htmlFor="nickname" className="text-xs font-medium text-gray-900">
+                  <label htmlFor="nickname" className="text-xs font-medium text-gray-900 dark:text-theme-text">
                     닉네임
                   </label>
                   <div className="flex flex-wrap items-center gap-2">
@@ -330,7 +330,7 @@ export default function MyPage() {
                           aria-invalid={!!nicknameError}
                           aria-describedby={nicknameError ? "nickname-error" : undefined}
                           autoFocus
-                          className="min-w-0 flex-1 rounded-lg bg-blue-900/10 px-3.5 py-2.5 text-base outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                          className="min-w-0 flex-1 rounded-lg bg-blue-900/10 dark:bg-theme-accent px-3.5 py-2.5 text-base outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-theme-focus disabled:opacity-50"
                         />
                         <button
                           type="button"
@@ -340,21 +340,21 @@ export default function MyPage() {
                             setNicknameError("");
                           }}
                           disabled={updateNicknameMutation.isPending}
-                          className="rounded-full px-4 py-2 text-sm font-semibold text-gray-500 disabled:opacity-50"
+                          className="rounded-full px-4 py-2 text-sm font-semibold text-gray-500 dark:text-theme-muted disabled:opacity-50"
                         >
                           취소
                         </button>
                         <button
                           type="submit"
                           disabled={updateNicknameMutation.isPending}
-                          className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+                          className="rounded-full bg-blue-600 dark:bg-theme-primary px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 dark:hover:bg-theme-primary-hover disabled:opacity-50"
                         >
                           {updateNicknameMutation.isPending ? "저장 중..." : "저장"}
                         </button>
                       </>
                     ) : (
                       <>
-                        <span className="min-w-0 flex-1 break-words text-base text-gray-900">{user.name || "미설정"}</span>
+                        <span className="min-w-0 flex-1 break-words text-base text-gray-900 dark:text-theme-text">{user.name || "미설정"}</span>
                         <button
                           type="button"
                           onClick={() => {
@@ -362,7 +362,7 @@ export default function MyPage() {
                             setNicknameError("");
                             setIsEditingNickname(true);
                           }}
-                          className="rounded-full border border-blue-600 px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50"
+                          className="rounded-full border border-blue-600 dark:border-theme-focus px-4 py-2 text-sm font-semibold text-blue-600 dark:text-theme-link hover:bg-blue-50 dark:hover:bg-theme-accent-hover"
                         >
                           닉네임 수정
                         </button>
@@ -370,15 +370,15 @@ export default function MyPage() {
                     )}
                   </div>
                   {nicknameError && (
-                    <p id="nickname-error" role="alert" className="text-sm text-red-600">{nicknameError}</p>
+                    <p id="nickname-error" role="alert" className="text-sm text-red-600 dark:text-theme-danger">{nicknameError}</p>
                   )}
                 </form>
                 <InputLabel label="Email" value={user.email} />
                 <InputLabel label="University Email" value={user.schoolEmail} />
 
                 {selectedImageFile && (
-                  <div className="flex items-center justify-between rounded-xl bg-blue-50 px-4 py-3">
-                    <span className="truncate text-sm font-medium text-blue-900">
+                  <div className="flex items-center justify-between rounded-xl bg-blue-50 dark:bg-theme-accent px-4 py-3">
+                    <span className="truncate text-sm font-medium text-blue-900 dark:text-theme-link">
                       {selectedImageFile.name}
                     </span>
 
@@ -387,7 +387,7 @@ export default function MyPage() {
                         type="button"
                         onClick={handleImageCancel}
                         disabled={uploadImageMutation.isPending}
-                        className="rounded-full px-4 py-2 text-sm font-semibold text-gray-500 hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded-full px-4 py-2 text-sm font-semibold text-gray-500 dark:text-theme-muted hover:bg-white dark:hover:bg-theme-hover disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         취소
                       </button>
@@ -395,7 +395,7 @@ export default function MyPage() {
                         type="button"
                         onClick={handleImageUpload}
                         disabled={uploadImageMutation.isPending}
-                        className="rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded-full bg-blue-600 dark:bg-theme-primary px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 dark:hover:bg-theme-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {uploadImageMutation.isPending ? "업로드 중..." : "저장"}
                       </button>
@@ -406,15 +406,15 @@ export default function MyPage() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between border-b border-gray-300 py-8">
+          <div className="flex items-center justify-between border-b border-gray-300 dark:border-theme-border-strong py-8">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Visibility</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-theme-text">Visibility</h3>
 
-              <p className="mt-2 font-semibold text-gray-900">
+              <p className="mt-2 font-semibold text-gray-900 dark:text-theme-text">
                 커피챗 프로필 공개
               </p>
 
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-gray-500 dark:text-theme-muted">
                 {isVisible
                   ? "다른 사용자가 내 커피챗 프로필을 볼 수 있습니다."
                   : "현재 내 커피챗 프로필이 비공개 상태입니다."}
@@ -424,7 +424,7 @@ export default function MyPage() {
             <div className="flex items-center gap-4">
               <span
                 className={`text-sm font-semibold ${
-                  isVisible ? "text-blue-600" : "text-gray-500"
+                  isVisible ? "text-blue-600 dark:text-theme-link" : "text-gray-500 dark:text-theme-muted"
                 }`}
               >
                 {isVisible ? "공개" : "비공개"}
@@ -435,11 +435,11 @@ export default function MyPage() {
                 onClick={handleToggleVisibility}
                 disabled={updateVisibilityMutation.isPending}
                 className={`relative h-8 w-16 rounded-full transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60 ${
-                  isVisible ? "bg-blue-600" : "bg-gray-300"
+                  isVisible ? "bg-blue-600 dark:bg-theme-primary" : "bg-gray-300 dark:bg-theme-disabled-bg"
                 }`}
               >
                 <span
-                  className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow-md transition-all duration-300 ${
+                  className={`absolute top-1 h-6 w-6 rounded-full bg-white dark:bg-theme-surface shadow-md dark:shadow-theme-shadow transition-all duration-300 ${
                     isVisible ? "left-9" : "left-1"
                   }`}
                 />
@@ -448,7 +448,7 @@ export default function MyPage() {
           </div>
 
           <div className="mt-8">
-            <h3 className="mb-6 text-lg font-bold text-gray-900">
+            <h3 className="mb-6 text-lg font-bold text-gray-900 dark:text-theme-text">
               Edit Profile
             </h3>
 
@@ -524,14 +524,14 @@ export default function MyPage() {
                 <>
                   <button
                     onClick={handleCancel}
-                    className="rounded-full bg-gray-400 px-5 py-2 font-semibold text-white"
+                    className="rounded-full bg-gray-400 dark:bg-theme-disabled-bg px-5 py-2 font-semibold text-white"
                   >
                     취소
                   </button>
 
                   <button
                     onClick={handleSave}
-                    className="rounded-full bg-blue-600 px-5 py-2 font-semibold text-white"
+                    className="rounded-full bg-blue-600 dark:bg-theme-primary px-5 py-2 font-semibold text-white"
                   >
                     저장
                   </button>
@@ -539,7 +539,7 @@ export default function MyPage() {
               ) : (
                 <button
                   onClick={handleEdit}
-                  className="rounded-full bg-blue-600 px-5 py-2 font-semibold text-white"
+                  className="rounded-full bg-blue-600 dark:bg-theme-primary px-5 py-2 font-semibold text-white"
                 >
                   수정
                 </button>

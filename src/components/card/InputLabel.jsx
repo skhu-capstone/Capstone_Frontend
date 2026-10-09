@@ -9,15 +9,15 @@ function InputLabel({
   return (
     <div className={`w-full inline-flex flex-col justify-start items-start gap-1 ${className}`}>
       {/* 라벨 */}
-      <div className="self-stretch text-gray-900 text-xs font-medium leading-4 line-clamp-1">
+      <div className="self-stretch text-gray-900 dark:text-theme-text text-xs font-medium leading-4 line-clamp-1">
         {label}
       </div>
 
       {/* 값 영역 */}
-      <div className={`self-stretch min-h-11 px-3.5 py-2.5 bg-blue-900/10 rounded-[10px] 
+      <div className={`self-stretch min-h-11 px-3.5 py-2.5 bg-blue-900/10 dark:bg-theme-accent rounded-[10px]
       outline-[1.5px] outline-offset-[-1.5px] outline-black/0 inline-flex justify-start items-start 
       gap-2 ${multiline ? 'min-h-30' : 'items-center'}`}>
-        <div className={`flex-1 text-black text-base font-normal leading-5
+        <div className={`flex-1 text-black dark:text-theme-text text-base font-normal leading-5
         ${multiline ? 'whitespace-pre-wrap' : 'line-clamp-1'}`}>
           {displayValue}
         </div>

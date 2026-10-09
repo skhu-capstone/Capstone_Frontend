@@ -577,7 +577,7 @@ export default function PresidentPage() {
       ) : (
         <div className="flex flex-col gap-5">
           <label className="flex flex-col gap-2">
-            <span className="text-sm font-semibold text-slate-700">
+            <span className="text-sm font-semibold text-slate-700 dark:text-theme-secondary">
               동아리명
             </span>
             <input
@@ -586,28 +586,28 @@ export default function PresidentPage() {
                 handleClubInfoChange("clubName", event.target.value)
               }
               maxLength={CLUB_INFO_LIMITS.clubName}
-              className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-sky-700"
+              className="rounded-xl border border-slate-200 dark:border-theme-border px-4 py-3 text-sm outline-none focus:border-sky-700 dark:focus:border-theme-focus"
             />
           </label>
 
           <div className="grid grid-cols-2 gap-4">
             <label className="flex flex-col gap-2">
-              <span className="text-sm font-semibold text-slate-700">카테고리</span>
+              <span className="text-sm font-semibold text-slate-700 dark:text-theme-secondary">카테고리</span>
               <input
                 value={clubInfo.category}
                 onChange={(event) =>
                   handleClubInfoChange("category", event.target.value)
                 }
                 maxLength={CLUB_INFO_LIMITS.category}
-                className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-sky-700"
+                className="rounded-xl border border-slate-200 dark:border-theme-border px-4 py-3 text-sm outline-none focus:border-sky-700 dark:focus:border-theme-focus"
               />
             </label>
 
             <div className="flex flex-col gap-2">
-              <span className="text-sm font-semibold text-slate-700">
+              <span className="text-sm font-semibold text-slate-700 dark:text-theme-secondary">
                 대표 이미지
               </span>
-              <label className="flex cursor-pointer items-center gap-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-3 hover:border-sky-400 hover:bg-sky-50/50">
+              <label className="flex cursor-pointer items-center gap-4 rounded-xl border border-dashed border-slate-300 dark:border-theme-border-strong bg-slate-50 dark:bg-theme-subtle p-3 hover:border-sky-400 dark:hover:border-theme-focus hover:bg-sky-50/50 dark:hover:bg-theme-accent-hover">
                 {(clubImagePreview || clubInfo.imageUrl) && !hasClubImageError ? (
                   <img
                     src={clubImagePreview || clubInfo.imageUrl}
@@ -616,15 +616,15 @@ export default function PresidentPage() {
                     onError={() => setHasClubImageError(true)}
                   />
                 ) : (
-                  <div className="flex h-20 w-28 shrink-0 items-center justify-center rounded-lg bg-white text-sm font-semibold text-slate-400">
+                  <div className="flex h-20 w-28 shrink-0 items-center justify-center rounded-lg bg-white dark:bg-theme-surface text-sm font-semibold text-slate-400 dark:text-theme-muted">
                     이미지 없음
                   </div>
                 )}
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-slate-700">
+                  <p className="truncate text-sm font-semibold text-slate-700 dark:text-theme-secondary">
                     {clubImageFile?.name || "이미지 파일 선택"}
                   </p>
-                  <p className="mt-1 text-xs text-slate-900/50">
+                  <p className="mt-1 text-xs text-slate-900/50 dark:text-theme-muted">
                     저장 시 선택한 이미지가 업로드됩니다.
                   </p>
                 </div>
@@ -639,32 +639,32 @@ export default function PresidentPage() {
           </div>
 
           <label className="flex flex-col gap-2">
-            <span className="text-sm font-semibold text-slate-700">한 줄 소개</span>
+            <span className="text-sm font-semibold text-slate-700 dark:text-theme-secondary">한 줄 소개</span>
             <input
               value={clubInfo.shortDescription}
               onChange={(event) =>
                 handleClubInfoChange("shortDescription", event.target.value)
               }
               maxLength={CLUB_INFO_LIMITS.shortDescription}
-              className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-sky-700"
+              className="rounded-xl border border-slate-200 dark:border-theme-border px-4 py-3 text-sm outline-none focus:border-sky-700 dark:focus:border-theme-focus"
             />
           </label>
 
           <label className="flex flex-col gap-2">
-            <span className="text-sm font-semibold text-slate-700">상세 소개</span>
+            <span className="text-sm font-semibold text-slate-700 dark:text-theme-secondary">상세 소개</span>
             <textarea
               value={clubInfo.detailDescription}
               onChange={(event) =>
                 handleClubInfoChange("detailDescription", event.target.value)
               }
               maxLength={CLUB_INFO_LIMITS.detailDescription}
-              className="min-h-44 resize-none rounded-xl border border-slate-200 px-4 py-3 text-sm leading-6 outline-none focus:border-sky-700"
+              className="min-h-44 resize-none rounded-xl border border-slate-200 dark:border-theme-border px-4 py-3 text-sm leading-6 outline-none focus:border-sky-700 dark:focus:border-theme-focus"
             />
           </label>
 
           <div className="grid grid-cols-3 gap-4">
             <label className="flex flex-col gap-2">
-              <span className="text-sm font-semibold text-slate-700">
+              <span className="text-sm font-semibold text-slate-700 dark:text-theme-secondary">
                 정기 모임
               </span>
               <input
@@ -673,12 +673,12 @@ export default function PresidentPage() {
                   handleClubInfoChange("regularMeetingTime", event.target.value)
                 }
                 maxLength={CLUB_INFO_LIMITS.regularMeetingTime}
-                className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-sky-700"
+                className="rounded-xl border border-slate-200 dark:border-theme-border px-4 py-3 text-sm outline-none focus:border-sky-700 dark:focus:border-theme-focus"
               />
             </label>
 
             <label className="flex flex-col gap-2">
-              <span className="text-sm font-semibold text-slate-700">
+              <span className="text-sm font-semibold text-slate-700 dark:text-theme-secondary">
                 활동 장소
               </span>
               <input
@@ -687,19 +687,19 @@ export default function PresidentPage() {
                   handleClubInfoChange("activityLocation", event.target.value)
                 }
                 maxLength={CLUB_INFO_LIMITS.activityLocation}
-                className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-sky-700"
+                className="rounded-xl border border-slate-200 dark:border-theme-border px-4 py-3 text-sm outline-none focus:border-sky-700 dark:focus:border-theme-focus"
               />
             </label>
 
             <label className="flex flex-col gap-2">
-              <span className="text-sm font-semibold text-slate-700">연락처</span>
+              <span className="text-sm font-semibold text-slate-700 dark:text-theme-secondary">연락처</span>
               <input
                 value={clubInfo.contact}
                 onChange={(event) =>
                   handleClubInfoChange("contact", event.target.value)
                 }
                 maxLength={CLUB_INFO_LIMITS.contact}
-                className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-sky-700"
+                className="rounded-xl border border-slate-200 dark:border-theme-border px-4 py-3 text-sm outline-none focus:border-sky-700 dark:focus:border-theme-focus"
               />
             </label>
           </div>
@@ -707,7 +707,7 @@ export default function PresidentPage() {
           <button
             onClick={handleClubInfoSubmit}
             disabled={updateClubInfoMutation.isPending}
-            className="self-end rounded-xl bg-sky-700 px-5 py-3 text-sm font-semibold text-white hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+            className="self-end rounded-xl bg-sky-700 dark:bg-theme-primary px-5 py-3 text-sm font-semibold text-white hover:bg-sky-800 dark:hover:bg-theme-primary-hover disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-theme-disabled-bg"
           >
             {updateClubInfoMutation.isPending ? "저장 중..." : "저장"}
           </button>
@@ -732,13 +732,13 @@ export default function PresidentPage() {
             {applicants.map((applicant) => (
               <div
                 key={applicant.id}
-                className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 rounded-xl border border-slate-200 px-4 py-3"
+                className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 rounded-xl border border-slate-200 dark:border-theme-border px-4 py-3"
               >
                 <div className="min-w-0">
-                  <p className="truncate text-base font-bold text-gray-900">
+                  <p className="truncate text-base font-bold text-gray-900 dark:text-theme-text">
                     {applicant.name}
                   </p>
-                  <p className="mt-0.5 truncate text-sm text-slate-900/50">
+                  <p className="mt-0.5 truncate text-sm text-slate-900/50 dark:text-theme-muted">
                     {applicant.requestedAt
                       ? `신청일 ${applicant.requestedAt.slice(0, 10)}`
                       : "신청일 정보 없음"}
@@ -752,7 +752,7 @@ export default function PresidentPage() {
                       approveJoinRequestMutation.isPending ||
                       rejectJoinRequestMutation.isPending
                     }
-                    className="rounded-xl bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+                    className="rounded-xl bg-sky-700 dark:bg-theme-primary px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800 dark:hover:bg-theme-primary-hover disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-theme-disabled-bg"
                   >
                     승인
                   </button>
@@ -762,13 +762,13 @@ export default function PresidentPage() {
                       approveJoinRequestMutation.isPending ||
                       rejectJoinRequestMutation.isPending
                     }
-                    className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent"
+                    className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-500 dark:text-theme-muted hover:bg-slate-100 dark:hover:bg-theme-hover disabled:cursor-not-allowed disabled:text-slate-300 dark:disabled:text-theme-disabled disabled:hover:bg-transparent"
                   >
                     거절
                   </button>
                 </div>
 
-                <p className="line-clamp-2 text-sm leading-6 text-slate-700">
+                <p className="line-clamp-2 text-sm leading-6 text-slate-700 dark:text-theme-secondary">
                   {applicant.message}
                 </p>
               </div>
@@ -791,7 +791,7 @@ export default function PresidentPage() {
         <EmptyText>등록된 멤버가 없습니다.</EmptyText>
       ) : (
         <div className="min-h-0 flex-1 overflow-y-auto pr-2">
-          <div className="flex flex-col divide-y divide-slate-200">
+          <div className="flex flex-col divide-y divide-slate-200 dark:divide-theme-border">
             {members.map((member) => {
               const memberId = member.userId ?? member.id;
               const isSelf = Number(memberId) === loginUserId;
@@ -803,16 +803,16 @@ export default function PresidentPage() {
                   className="flex items-center justify-between gap-4 py-4"
                 >
                   <div>
-                    <p className="text-base font-bold text-gray-900">
+                    <p className="text-base font-bold text-gray-900 dark:text-theme-text">
                       {member.name}
                       {isSelf && (
-                        <span className="ml-2 text-sm font-medium text-sky-700">
+                        <span className="ml-2 text-sm font-medium text-sky-700 dark:text-theme-link">
                           나
                         </span>
                       )}
                     </p>
                     {member.email && (
-                      <p className="mt-1 text-sm text-slate-900/50">
+                      <p className="mt-1 text-sm text-slate-900/50 dark:text-theme-muted">
                         {member.email}
                       </p>
                     )}
@@ -830,7 +830,7 @@ export default function PresidentPage() {
                       onChange={(event) =>
                         handleRoleChange(memberId, event.target.value)
                       }
-                      className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 outline-none disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                      className="rounded-xl border border-slate-200 dark:border-theme-border bg-white dark:bg-theme-surface px-3 py-2 text-sm font-semibold text-slate-700 dark:text-theme-secondary outline-none disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-theme-subtle disabled:text-slate-400 dark:disabled:text-theme-disabled"
                     >
                       <option value="PRESIDENT" disabled={!isCurrentUserPresident}>
                         대표
@@ -847,7 +847,7 @@ export default function PresidentPage() {
 	                        isPresident ||
 	                        removeMemberMutation.isPending
 	                      }
-                      className="rounded-xl px-4 py-2 text-sm font-semibold text-red-500 hover:bg-red-50 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent"
+                      className="rounded-xl px-4 py-2 text-sm font-semibold text-red-500 dark:text-theme-danger hover:bg-red-50 dark:hover:bg-theme-danger-bg disabled:cursor-not-allowed disabled:text-slate-300 dark:disabled:text-theme-disabled disabled:hover:bg-transparent"
                     >
                       내보내기
                     </button>
@@ -913,22 +913,22 @@ export default function PresidentPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 px-12 py-12">
+    <main className="min-h-screen bg-slate-50 dark:bg-theme-page px-12 py-12">
       <section className="mx-auto flex w-full max-w-330 flex-col gap-8">
-        <header className="flex flex-col gap-6 border-b border-slate-300 pb-4">
+        <header className="flex flex-col gap-6 border-b border-slate-300 dark:border-theme-border-strong pb-4">
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-4xl font-bold leading-10 text-gray-900">
+              <h1 className="text-4xl font-bold leading-10 text-gray-900 dark:text-theme-text">
                 대표 관리
               </h1>
-              <p className="mt-3 text-base text-slate-900/60">
+              <p className="mt-3 text-base text-slate-900/60 dark:text-theme-muted">
                 가입 신청과 멤버 권한, 동아리 정보를 관리하세요.
               </p>
             </div>
 
-            <div className="rounded-xl bg-white px-5 py-4 text-right shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)]">
-              <p className="text-sm text-slate-900/60">현재 대표</p>
-              <p className="mt-1 text-lg font-bold text-gray-900">
+            <div className="rounded-xl bg-white dark:bg-theme-surface px-5 py-4 text-right shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] dark:shadow-theme-shadow">
+              <p className="text-sm text-slate-900/60 dark:text-theme-muted">현재 대표</p>
+              <p className="mt-1 text-lg font-bold text-gray-900 dark:text-theme-text">
                 {president?.name ?? "대표 없음"}
               </p>
             </div>
@@ -941,8 +941,8 @@ export default function PresidentPage() {
                 onClick={() => setActiveTab(tab.key)}
                 className={`px-7 py-3 text-base font-medium ${
                   activeTab === tab.key
-                    ? "border-b-2 border-blue-600 text-blue-600"
-                    : "text-slate-900/60"
+                    ? "border-b-2 border-blue-600 dark:border-theme-focus text-blue-600 dark:text-theme-link"
+                    : "text-slate-900/60 dark:text-theme-muted"
                 }`}
               >
                 {tab.label}
@@ -969,11 +969,11 @@ export default function PresidentPage() {
 
 function AccessMessage({ title, description }) {
   return (
-    <main className="min-h-screen bg-slate-50 px-12 py-12">
-      <section className="mx-auto flex min-h-100 max-w-3xl items-center justify-center rounded-xl bg-white p-8 text-center shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)]">
+    <main className="min-h-screen bg-slate-50 dark:bg-theme-page px-12 py-12">
+      <section className="mx-auto flex min-h-100 max-w-3xl items-center justify-center rounded-xl bg-white dark:bg-theme-surface p-8 text-center shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] dark:shadow-theme-shadow">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-          <p className="mt-3 text-sm text-slate-900/60">{description}</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-theme-text">{title}</h1>
+          <p className="mt-3 text-sm text-slate-900/60 dark:text-theme-muted">{description}</p>
         </div>
       </section>
     </main>
@@ -983,10 +983,10 @@ function AccessMessage({ title, description }) {
 function Panel({ title, children, className = "", hideTitle = false }) {
   return (
     <section
-      className={`rounded-xl bg-white p-6 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] ${className}`}
+      className={`rounded-xl bg-white dark:bg-theme-surface p-6 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] dark:shadow-theme-shadow ${className}`}
     >
       {!hideTitle && (
-        <h2 className="mb-5 text-xl font-bold text-gray-900">{title}</h2>
+        <h2 className="mb-5 text-xl font-bold text-gray-900 dark:text-theme-text">{title}</h2>
       )}
       {children}
     </section>
@@ -994,7 +994,7 @@ function Panel({ title, children, className = "", hideTitle = false }) {
 }
 
 function EmptyText({ children }) {
-  return <p className="py-8 text-center text-sm text-slate-900/50">{children}</p>;
+  return <p className="py-8 text-center text-sm text-slate-900/50 dark:text-theme-muted">{children}</p>;
 }
 
 function ConfirmModal({
@@ -1013,9 +1013,9 @@ function ConfirmModal({
         if (event.target === event.currentTarget && !isPending) onClose();
       }}
     >
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-        <h3 className="text-xl font-bold text-gray-900">{title}</h3>
-        <p className="mt-3 text-sm leading-6 text-slate-900/60">
+      <div className="w-full max-w-md rounded-2xl bg-white dark:bg-theme-surface p-6 shadow-xl dark:shadow-theme-shadow">
+        <h3 className="text-xl font-bold text-gray-900 dark:text-theme-text">{title}</h3>
+        <p className="mt-3 text-sm leading-6 text-slate-900/60 dark:text-theme-muted">
           {description}
         </p>
 
@@ -1023,7 +1023,7 @@ function ConfirmModal({
           <button
             onClick={onClose}
             disabled={isPending}
-            className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-100"
+            className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-500 dark:text-theme-muted hover:bg-slate-100 dark:hover:bg-theme-hover"
           >
             취소
           </button>
@@ -1031,7 +1031,7 @@ function ConfirmModal({
             onClick={onConfirm}
             disabled={isPending}
             className={`rounded-xl px-5 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 ${
-              danger ? "bg-red-500 hover:bg-red-600" : "bg-sky-700 hover:bg-sky-800"
+              danger ? "bg-red-500 dark:bg-theme-danger-action hover:bg-red-600 dark:hover:bg-theme-danger-hover" : "bg-sky-700 dark:bg-theme-primary hover:bg-sky-800 dark:hover:bg-theme-primary-hover"
             }`}
           >
             {isPending ? "처리 중..." : confirmText}

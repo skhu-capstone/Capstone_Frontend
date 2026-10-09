@@ -24,7 +24,7 @@ function ImagePreview({ file, index, onRemove }) {
   }, [previewUrl]);
 
   return (
-    <div className="relative aspect-square overflow-hidden rounded-lg border border-gray-200 bg-gray-100">
+    <div className="relative aspect-square overflow-hidden rounded-lg border border-gray-200 dark:border-theme-border bg-gray-100 dark:bg-theme-subtle">
       {previewUrl && (
         <img
           src={previewUrl}
@@ -243,8 +243,8 @@ export default function ClubPostCreatePage() {
     (isValidClubId && (isMembersLoading || isClubDetailLoading))
   ) {
     return (
-      <main className="min-h-screen bg-[#F7F8FA] px-16 py-14">
-        <section className="max-w-295 mx-auto text-gray-500">
+      <main className="min-h-screen bg-[#F7F8FA] dark:bg-theme-page px-16 py-14">
+        <section className="max-w-295 mx-auto text-gray-500 dark:text-theme-muted">
           게시물 작성 권한을 확인하는 중입니다...
         </section>
       </main>
@@ -252,18 +252,18 @@ export default function ClubPostCreatePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#F7F8FA] px-16 py-14">
+    <main className="min-h-screen bg-[#F7F8FA] dark:bg-theme-page px-16 py-14">
       <section className="max-w-295 mx-auto">
         <div className="mb-10">
-          <h1 className="text-3xl font-bold text-[#1F2937]">
+          <h1 className="text-3xl font-bold text-[#1F2937] dark:text-theme-text">
             {clubDetail?.clubName ?? "동아리"}
           </h1>
-          <p className="mt-3 text-sm text-gray-500">
+          <p className="mt-3 text-sm text-gray-500 dark:text-theme-muted">
             동아리 피드에 공유할 게시물을 작성해주세요.
           </p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.12)] p-8">
+        <div className="bg-white dark:bg-theme-surface rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.12)] dark:shadow-theme-shadow p-8">
           <h2 className="text-2xl font-bold mb-8">게시물 작성</h2>
 
           <div className="mb-7">
@@ -275,9 +275,9 @@ export default function ClubPostCreatePage() {
                 onChange={(e) => setTitle(e.target.value)}
                 maxLength={MAX_TITLE_LENGTH}
                 placeholder="게시물 제목을 입력해주세요"
-                className="w-full h-12 px-4 border border-gray-300 rounded-lg outline-none focus:border-blue-500"
+                className="w-full h-12 px-4 border border-gray-300 dark:border-theme-border-strong rounded-lg outline-none focus:border-blue-500 dark:focus:border-theme-focus"
               />
-              <p className="mt-2 text-right text-xs text-gray-400">
+              <p className="mt-2 text-right text-xs text-gray-400 dark:text-theme-muted">
                 {title.length}/{MAX_TITLE_LENGTH}
               </p>
             </div>
@@ -291,9 +291,9 @@ export default function ClubPostCreatePage() {
                 onChange={(e) => setContent(e.target.value)}
                 maxLength={MAX_CONTENT_LENGTH}
                 placeholder="동아리원들에게 공유할 내용을 작성해주세요"
-                className="w-full h-64 px-4 py-4 border border-gray-300 rounded-lg resize-none outline-none focus:border-blue-500"
+                className="w-full h-64 px-4 py-4 border border-gray-300 dark:border-theme-border-strong rounded-lg resize-none outline-none focus:border-blue-500 dark:focus:border-theme-focus"
               />
-              <p className="mt-2 text-right text-xs text-gray-400">
+              <p className="mt-2 text-right text-xs text-gray-400 dark:text-theme-muted">
                 {content.length}/{MAX_CONTENT_LENGTH}
               </p>
             </div>
@@ -303,14 +303,14 @@ export default function ClubPostCreatePage() {
               이미지 첨부
             </label>
 
-            <label className="flex min-h-40 flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 px-5 py-8 cursor-pointer hover:border-blue-500">
-              <span className="text-gray-500 text-sm">
+            <label className="flex min-h-40 flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 dark:border-theme-border-strong px-5 py-8 cursor-pointer hover:border-blue-500 dark:hover:border-theme-focus">
+              <span className="text-gray-500 dark:text-theme-muted text-sm">
                 이미지를 클릭해서 업로드해주세요
               </span>
-              <span className="mt-2 text-xs text-gray-400">
+              <span className="mt-2 text-xs text-gray-400 dark:text-theme-muted">
                 PNG, JPG 파일 지원 · 각 20MB 이하 · 최대 {MAX_IMAGE_COUNT}장
               </span>
-              <span className="mt-2 text-xs font-medium text-blue-600">
+              <span className="mt-2 text-xs font-medium text-blue-600 dark:text-theme-link">
                 {imageFiles.length}/{MAX_IMAGE_COUNT}장 선택됨
               </span>
               <input
@@ -340,7 +340,7 @@ export default function ClubPostCreatePage() {
           <div className="flex justify-end gap-3">
             <button
               onClick={() => navigate(-1)}
-              className="w-24 h-11 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-100"
+              className="w-24 h-11 border border-gray-300 dark:border-theme-border-strong rounded-lg text-gray-600 dark:text-theme-secondary hover:bg-gray-100 dark:hover:bg-theme-hover"
             >
               취소
             </button>
@@ -353,7 +353,7 @@ export default function ClubPostCreatePage() {
                 !isFormValid ||
                 createPostMutation.isPending
               }
-              className="w-24 h-11 bg-[#0B72B9] text-white rounded-lg hover:bg-[#095f9b] disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="w-24 h-11 bg-[#0B72B9] dark:bg-theme-primary text-white rounded-lg hover:bg-[#095f9b] dark:hover:bg-theme-primary-hover disabled:bg-gray-400 dark:disabled:bg-theme-disabled-bg disabled:cursor-not-allowed"
             >
               {createPostMutation.isPending ? "등록 중" : "등록"}
             </button>

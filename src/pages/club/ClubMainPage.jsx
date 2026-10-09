@@ -194,13 +194,13 @@ export default function ClubMainPage() {
 
   if (!isAuthenticated) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 px-12">
-        <section className="flex max-w-xl flex-col items-center gap-8 rounded-2xl bg-white px-12 py-14 text-center shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)]">
+      <main className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-theme-page px-12">
+        <section className="flex max-w-xl flex-col items-center gap-8 rounded-2xl bg-white dark:bg-theme-surface px-12 py-14 text-center shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] dark:shadow-theme-shadow">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-theme-text">
               로그인이 필요합니다.
             </h1>
-            <p className="mt-4 text-base leading-7 text-slate-900/60">
+            <p className="mt-4 text-base leading-7 text-slate-900/60 dark:text-theme-muted">
               내 동아리 정보를 확인하려면 먼저 로그인해주세요.
             </p>
           </div>
@@ -208,7 +208,7 @@ export default function ClubMainPage() {
           <button
             type="button"
             onClick={() => navigate("/login")}
-            className="h-12 rounded-xl bg-sky-700 px-5 text-sm font-semibold text-white hover:bg-sky-800"
+            className="h-12 rounded-xl bg-sky-700 dark:bg-theme-primary px-5 text-sm font-semibold text-white hover:bg-sky-800 dark:hover:bg-theme-primary-hover"
           >
             로그인하기
           </button>
@@ -220,13 +220,13 @@ export default function ClubMainPage() {
   if (isError) {
     if (isAuthError) {
       return (
-        <main className="flex min-h-screen items-center justify-center bg-slate-50 px-12">
-          <section className="flex max-w-xl flex-col items-center gap-8 rounded-2xl bg-white px-12 py-14 text-center shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)]">
+        <main className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-theme-page px-12">
+          <section className="flex max-w-xl flex-col items-center gap-8 rounded-2xl bg-white dark:bg-theme-surface px-12 py-14 text-center shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] dark:shadow-theme-shadow">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-theme-text">
                 로그인이 만료되었습니다.
               </h1>
-              <p className="mt-4 text-base leading-7 text-slate-900/60">
+              <p className="mt-4 text-base leading-7 text-slate-900/60 dark:text-theme-muted">
                 다시 로그인한 뒤 내 동아리 정보를 확인해주세요.
               </p>
             </div>
@@ -234,7 +234,7 @@ export default function ClubMainPage() {
             <button
               type="button"
               onClick={() => navigate("/login")}
-              className="h-12 rounded-xl bg-sky-700 px-5 text-sm font-semibold text-white hover:bg-sky-800"
+              className="h-12 rounded-xl bg-sky-700 dark:bg-theme-primary px-5 text-sm font-semibold text-white hover:bg-sky-800 dark:hover:bg-theme-primary-hover"
             >
               로그인하기
             </button>
@@ -244,12 +244,12 @@ export default function ClubMainPage() {
     }
 
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 px-12">
-        <section className="flex max-w-xl flex-col items-center gap-6 rounded-2xl bg-white px-12 py-14 text-center shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)]">
-          <h1 className="text-3xl font-bold text-gray-900">
+      <main className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-theme-page px-12">
+        <section className="flex max-w-xl flex-col items-center gap-6 rounded-2xl bg-white dark:bg-theme-surface px-12 py-14 text-center shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] dark:shadow-theme-shadow">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-theme-text">
             동아리 정보를 불러오지 못했습니다.
           </h1>
-          <p className="text-base leading-7 text-slate-900/60">
+          <p className="text-base leading-7 text-slate-900/60 dark:text-theme-muted">
             잠시 후 다시 시도해주세요.
           </p>
         </section>
@@ -259,23 +259,23 @@ export default function ClubMainPage() {
 
   if (!hasClub) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 px-12">
+      <main className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-theme-page px-12">
         <section className="flex flex-col items-center gap-10">
-          <h1 className="text-center text-4xl font-bold text-black">
+          <h1 className="text-center text-4xl font-bold text-black dark:text-theme-text">
             소속된 동아리가 없습니다. 동아리에 참여하거나 만들어보세요!
           </h1>
           <div className="flex items-center gap-8">
             <button
               type="button"
               onClick={() => navigate("/")}
-              className="h-18 w-62.5 rounded-[20px] bg-zinc-400 text-2xl font-bold text-white"
+              className="h-18 w-62.5 rounded-[20px] bg-zinc-400 dark:bg-theme-disabled-bg text-2xl font-bold text-white"
             >
               메인으로 돌아가기
             </button>
             <button
               type="button"
               onClick={() => navigate("/club/create")}
-              className="h-18 w-62.5 rounded-[20px] bg-blue-600 text-2xl font-bold text-white"
+              className="h-18 w-62.5 rounded-[20px] bg-blue-600 dark:bg-theme-primary text-2xl font-bold text-white"
             >
               동아리 생성하기
             </button>
@@ -287,13 +287,13 @@ export default function ClubMainPage() {
 
   if (!selectedClub) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 px-12">
-        <section className="flex max-w-xl flex-col items-center gap-8 rounded-2xl bg-white px-12 py-14 text-center shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)]">
+      <main className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-theme-page px-12">
+        <section className="flex max-w-xl flex-col items-center gap-8 rounded-2xl bg-white dark:bg-theme-surface px-12 py-14 text-center shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] dark:shadow-theme-shadow">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-theme-text">
               접근할 수 없는 동아리입니다.
             </h1>
-            <p className="mt-4 text-base leading-7 text-slate-900/60">
+            <p className="mt-4 text-base leading-7 text-slate-900/60 dark:text-theme-muted">
               존재하지 않는 동아리이거나, 현재 계정으로 가입되어 있지 않은
               동아리입니다.
             </p>
@@ -303,14 +303,14 @@ export default function ClubMainPage() {
             <button
               type="button"
               onClick={() => navigate(`/club/main/${clubs[0].clubId}`, { replace: true })}
-              className="h-12 rounded-xl bg-sky-700 px-5 text-sm font-semibold text-white hover:bg-sky-800"
+              className="h-12 rounded-xl bg-sky-700 dark:bg-theme-primary px-5 text-sm font-semibold text-white hover:bg-sky-800 dark:hover:bg-theme-primary-hover"
             >
               내 동아리로 이동
             </button>
             <button
               type="button"
               onClick={() => navigate("/club/apply")}
-              className="h-12 rounded-xl border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              className="h-12 rounded-xl border border-slate-300 dark:border-theme-border-strong bg-white dark:bg-theme-surface px-5 text-sm font-semibold text-slate-700 dark:text-theme-secondary hover:bg-slate-50 dark:hover:bg-theme-hover"
             >
               동아리 신청하기
             </button>
@@ -399,23 +399,23 @@ export default function ClubMainPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 px-12 py-12">
+    <main className="min-h-screen bg-slate-50 dark:bg-theme-page px-12 py-12">
       <section className="mx-auto flex w-full max-w-330 flex-col">
-        <header className="flex flex-col gap-7 border-b border-slate-300 pb-4">
+        <header className="flex flex-col gap-7 border-b border-slate-300 dark:border-theme-border-strong pb-4">
           <div className="flex w-full items-center justify-between">
             <div className="relative" ref={clubMenuRef}>
               <button
                 type="button"
                 onClick={() => setIsClubMenuOpen((prev) => !prev)}
-                className="flex w-fit items-center gap-1 rounded-xl py-1 pr-2 hover:bg-slate-100"
+                className="flex w-fit items-center gap-1 rounded-xl py-1 pr-2 hover:bg-slate-100 dark:hover:bg-theme-hover"
                 aria-expanded={isClubMenuOpen}
                 aria-haspopup="menu"
               >
-                <h1 className="text-4xl font-bold leading-10 text-gray-900">
+                <h1 className="text-4xl font-bold leading-10 text-gray-900 dark:text-theme-text">
                   {selectedClub.clubName}
                 </h1>
                 <span
-                  className={`text-gray-900 transition-transform ${isClubMenuOpen ? "rotate-180" : ""}`}
+                  className={`text-gray-900 dark:text-theme-text transition-transform ${isClubMenuOpen ? "rotate-180" : ""}`}
                 >
                   ▾
                 </span>
@@ -423,7 +423,7 @@ export default function ClubMainPage() {
 
               {isClubMenuOpen && (
                 <div
-                  className="absolute left-0 top-full z-40 mt-3 max-h-80 w-72 overflow-y-auto rounded-xl border border-slate-200 bg-white py-2 shadow-lg"
+                  className="absolute left-0 top-full z-40 mt-3 max-h-80 w-72 overflow-y-auto rounded-xl border border-slate-200 dark:border-theme-border bg-white dark:bg-theme-surface py-2 shadow-lg dark:shadow-theme-shadow"
                   role="menu"
                 >
                   {clubs.map((club) => {
@@ -435,19 +435,19 @@ export default function ClubMainPage() {
                         type="button"
                         role="menuitem"
                         onClick={() => handleSelectClub(club.clubId)}
-                        className={`flex w-full flex-col px-4 py-3 text-left hover:bg-slate-50 ${
-                          isSelected ? "bg-sky-50" : ""
+                        className={`flex w-full flex-col px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-theme-hover ${
+                          isSelected ? "bg-sky-50 dark:bg-theme-accent" : ""
                         }`}
                       >
                         <span
                           className={`text-sm font-bold ${
-                            isSelected ? "text-sky-700" : "text-gray-900"
+                            isSelected ? "text-sky-700 dark:text-theme-link" : "text-gray-900 dark:text-theme-text"
                           }`}
                         >
                           {club.clubName}
                         </span>
                         {club.category && (
-                          <span className="mt-1 text-xs text-slate-900/50">
+                          <span className="mt-1 text-xs text-slate-900/50 dark:text-theme-muted">
                             {club.category}
                           </span>
                         )}
@@ -462,7 +462,7 @@ export default function ClubMainPage() {
               {isPresident && (
                 <button
                   onClick={handlePresidentManageClick}
-                  className="h-12 rounded-xl border border-sky-700/30 bg-white px-5 text-sm font-semibold text-sky-700 hover:border-sky-700 hover:bg-sky-50"
+                  className="h-12 rounded-xl border border-sky-700/30 dark:border-theme-focus bg-white dark:bg-theme-surface px-5 text-sm font-semibold text-sky-700 dark:text-theme-link hover:border-sky-700 dark:hover:border-theme-focus hover:bg-sky-50 dark:hover:bg-theme-accent-hover"
                 >
                   대표 관리
                 </button>
@@ -471,7 +471,7 @@ export default function ClubMainPage() {
               {canManageClub && (
                 <button
                   onClick={handlePostCreateClick}
-                  className="h-12 rounded-xl bg-sky-700 px-5 text-sm font-semibold text-white hover:bg-sky-800"
+                  className="h-12 rounded-xl bg-sky-700 dark:bg-theme-primary px-5 text-sm font-semibold text-white hover:bg-sky-800 dark:hover:bg-theme-primary-hover"
                 >
                   게시물 작성
                 </button>
@@ -489,13 +489,13 @@ export default function ClubMainPage() {
                     key={member.userId}
                     src={profileImage}
                     alt="멤버 프로필"
-                    className={`h-8 w-8 rounded-full border-2 border-slate-50 object-cover ${
+                    className={`h-8 w-8 rounded-full border-2 border-slate-50 dark:border-theme-border object-cover ${
                       index !== 0 ? "-ml-2" : ""
                     }`}
                     referrerPolicy="no-referrer"
                     fallback={
                       <div
-                        className={`flex h-8 w-8 items-center justify-center rounded-full border-2 border-slate-50 bg-slate-300 text-xs font-bold text-slate-600 ${
+                        className={`flex h-8 w-8 items-center justify-center rounded-full border-2 border-slate-50 dark:border-theme-border bg-slate-300 dark:bg-theme-disabled-bg text-xs font-bold text-slate-600 dark:text-theme-secondary ${
                           index !== 0 ? "-ml-2" : ""
                         }`}
                       >
@@ -507,7 +507,7 @@ export default function ClubMainPage() {
               })}
             </div>
 
-            <p className="text-base text-slate-900/60">
+            <p className="text-base text-slate-900/60 dark:text-theme-muted">
               {members[0]?.name}
               {members[1]?.name && `, ${members[1].name}`}{" "}
               {hiddenMemberCount > 0 && (
@@ -521,8 +521,8 @@ export default function ClubMainPage() {
               onClick={() => handleTabChange("feeds")}
               className={`px-7 py-3 text-base font-medium ${
                 activeTab === "feeds"
-                  ? "border-b-2 border-blue-600 text-blue-600"
-                  : "text-slate-900/60"
+                  ? "border-b-2 border-blue-600 dark:border-theme-focus text-blue-600 dark:text-theme-link"
+                  : "text-slate-900/60 dark:text-theme-muted"
               }`}
             >
               Feeds
@@ -532,8 +532,8 @@ export default function ClubMainPage() {
               onClick={() => handleTabChange("members")}
               className={`px-7 py-3 text-base font-medium ${
                 activeTab === "members"
-                  ? "border-b-2 border-blue-600 text-blue-600"
-                  : "text-slate-900/60"
+                  ? "border-b-2 border-blue-600 dark:border-theme-focus text-blue-600 dark:text-theme-link"
+                  : "text-slate-900/60 dark:text-theme-muted"
               }`}
             >
               Members
@@ -543,8 +543,8 @@ export default function ClubMainPage() {
               onClick={() => handleTabChange("calendar")}
               className={`px-7 py-3 text-base font-medium ${
                 activeTab === "calendar"
-                  ? "border-b-2 border-blue-600 text-blue-600"
-                  : "text-slate-900/60"
+                  ? "border-b-2 border-blue-600 dark:border-theme-focus text-blue-600 dark:text-theme-link"
+                  : "text-slate-900/60 dark:text-theme-muted"
               }`}
             >
               Calendar
@@ -556,7 +556,7 @@ export default function ClubMainPage() {
         {activeTab === "feeds" && isPresident && !isOrderingPosts && (
           <div className="mt-5 flex justify-end">
             <button type="button" onClick={() => setOrderingClubId(selectedClubId)}
-              className="rounded-xl border border-sky-700/30 bg-white px-5 py-3 text-sm font-semibold text-sky-700 hover:bg-sky-50">
+              className="rounded-xl border border-sky-700/30 dark:border-theme-focus bg-white dark:bg-theme-surface px-5 py-3 text-sm font-semibold text-sky-700 dark:text-theme-link hover:bg-sky-50 dark:hover:bg-theme-accent-hover">
               게시물 순서 편집
             </button>
           </div>
@@ -572,7 +572,7 @@ export default function ClubMainPage() {
             ) : isPostsError ? (
               <p>게시글을 불러오지 못했습니다.</p>
             ) : feeds.length === 0 ? (
-              <div className="col-span-2 flex min-h-80 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white text-base font-medium text-slate-900/50">
+              <div className="col-span-2 flex min-h-80 items-center justify-center rounded-xl border border-dashed border-slate-300 dark:border-theme-border-strong bg-white dark:bg-theme-surface text-base font-medium text-slate-900/50 dark:text-theme-muted">
                 아직 작성된 게시글이 없습니다.
               </div>
             ) : (
@@ -608,7 +608,7 @@ export default function ClubMainPage() {
             ) : isMembersError ? (
               <p>멤버 정보를 불러오지 못했습니다.</p>
             ) : members.length === 0 ? (
-              <div className="flex min-h-80 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white text-base font-medium text-slate-900/50">
+              <div className="flex min-h-80 items-center justify-center rounded-xl border border-dashed border-slate-300 dark:border-theme-border-strong bg-white dark:bg-theme-surface text-base font-medium text-slate-900/50 dark:text-theme-muted">
                 아직 표시할 멤버가 없습니다.
               </div>
             ) : (
@@ -618,7 +618,7 @@ export default function ClubMainPage() {
                 return (
                   <div
                     key={member.userId}
-                    className="flex h-14 items-center gap-3 border-b border-slate-300"
+                    className="flex h-14 items-center gap-3 border-b border-slate-300 dark:border-theme-border-strong"
                   >
                     <SafeImage
                       src={profileImage}
@@ -626,16 +626,16 @@ export default function ClubMainPage() {
                       className="h-10 w-10 rounded-full object-cover"
                       referrerPolicy="no-referrer"
                       fallback={
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-300 text-sm font-bold text-slate-600">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-300 dark:bg-theme-disabled-bg text-sm font-bold text-slate-600 dark:text-theme-secondary">
                           {getMemberInitial(member.name)}
                         </div>
                       }
                     />
                     <div className="flex flex-col">
-                      <span className="text-sm font-bold text-gray-900">
+                      <span className="text-sm font-bold text-gray-900 dark:text-theme-text">
                         {member.name}
                       </span>
-                      <span className="text-sm text-slate-900/60">
+                      <span className="text-sm text-slate-900/60 dark:text-theme-muted">
                         {roleMap[member.role] ?? member.role}
                       </span>
                     </div>
@@ -655,8 +655,8 @@ export default function ClubMainPage() {
             <button
               onClick={handlePrevPage}
               disabled={currentPage === 1}
-              className="flex h-10 w-10 items-center justify-center rounded-2xl text-neutral-800 hover:bg-slate-200 disabled:cursor-not-allowed
-              disabled:text-gray-300 disabled:hover:bg-transparent"
+              className="flex h-10 w-10 items-center justify-center rounded-2xl text-neutral-800 dark:text-theme-text hover:bg-slate-200 dark:hover:bg-theme-hover disabled:cursor-not-allowed
+              disabled:text-gray-300 dark:disabled:text-theme-disabled disabled:hover:bg-transparent"
             >
               ‹
             </button>
@@ -673,7 +673,7 @@ export default function ClubMainPage() {
                       : setCurrentMemberPage(page)
                   }
                   className={`flex h-10 w-10 items-center justify-center rounded-2xl text-base font-medium 
-                    ${currentPage === page ? "bg-sky-700 text-slate-50" : "text-gray-900/60 hover:bg-slate-200"}`}
+                    ${currentPage === page ? "bg-sky-700 dark:bg-theme-primary text-slate-50" : "text-gray-900/60 dark:text-theme-muted hover:bg-slate-200 dark:hover:bg-theme-hover"}`}
                 >
                   {page}
                 </button>
@@ -683,8 +683,8 @@ export default function ClubMainPage() {
             <button
               onClick={handleNextPage}
               disabled={currentPage === totalPages}
-              className="flex h-10 w-10 items-center justify-center rounded-2xl text-neutral-800 hover:bg-slate-200 disabled:cursor-not-allowed
-              disabled:text-gray-300 disabled:hover:bg-transparent"
+              className="flex h-10 w-10 items-center justify-center rounded-2xl text-neutral-800 dark:text-theme-text hover:bg-slate-200 dark:hover:bg-theme-hover disabled:cursor-not-allowed
+              disabled:text-gray-300 dark:disabled:text-theme-disabled disabled:hover:bg-transparent"
             >
               ›
             </button>

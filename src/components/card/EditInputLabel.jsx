@@ -12,7 +12,7 @@ function EditInputLabel({
     <div className={`w-full flex flex-col gap-1 ${className}`}>
       
       {/* 라벨 */}
-      <label className="text-gray-900 text-xs font-medium leading-4">
+      <label className="text-gray-900 dark:text-theme-text text-xs font-medium leading-4">
         {label}
       </label>
 
@@ -21,9 +21,9 @@ function EditInputLabel({
           value={inputValue}
           placeholder={placeholder}
           onChange={onChange}
-          className="w-full min-h-30 px-3.5 py-2.5 bg-blue-900/10 rounded-[10px] 
-          outline-none border-none text-black text-base leading-5 resize-none
-          focus:ring-2 focus:ring-blue-500"
+          className="w-full min-h-30 px-3.5 py-2.5 bg-blue-900/10 dark:bg-theme-accent rounded-[10px]
+          outline-none border-none text-black dark:text-theme-text text-base leading-5 resize-none
+          focus:ring-2 focus:ring-blue-500 dark:focus:ring-theme-focus"
         />
       ) : ( 
         <input // 한 줄 입력
@@ -31,8 +31,8 @@ function EditInputLabel({
           value={inputValue}
           placeholder={placeholder}
           onChange={onChange}
-          className="w-full px-3.5 py-2.5 bg-blue-900/10 rounded-[10px] outline-none border-none 
-          text-black text-base leading-5 focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3.5 py-2.5 bg-blue-900/10 dark:bg-theme-accent rounded-[10px] outline-none border-none
+          text-black dark:text-theme-text text-base leading-5 focus:ring-2 focus:ring-blue-500 dark:focus:ring-theme-focus"
         />
       )}
     </div>

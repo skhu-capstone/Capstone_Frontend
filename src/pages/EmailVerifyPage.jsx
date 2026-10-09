@@ -127,10 +127,10 @@ export default function EmailVerifyPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-8 flex justify-center">
+    <main className="min-h-screen bg-slate-50 dark:bg-theme-page px-6 py-8 flex justify-center">
       <div className="w-full max-w-100 flex flex-col items-center">
         <section className="w-full flex flex-col items-center gap-10">
-          <h1 className="text-center text-gray-900 text-3xl font-bold leading-8">
+          <h1 className="text-center text-gray-900 dark:text-theme-text text-3xl font-bold leading-8">
             학생 인증을 위해
             <br />
             학교 이메일을 작성해주세요
@@ -140,13 +140,13 @@ export default function EmailVerifyPage() {
             value={schoolEmail}
             onChange={(e) => setSchoolEmail(e.target.value)}
             placeholder="학교 이메일 입력"
-            className="w-full h-10 px-4 bg-blue-900/10 rounded-2xl outline-none text-base text-slate-900 placeholder:text-slate-900/40"
+            className="w-full h-10 px-4 bg-blue-900/10 dark:bg-theme-accent rounded-2xl outline-none text-base text-slate-900 dark:text-theme-text placeholder:text-slate-900/40 dark:placeholder:text-theme-muted"
           />
 
           <button
             onClick={handleSendCode}
             disabled={!isValidSchoolEmail || isCodeSent}
-            className="w-full h-10 rounded-2xl bg-blue-600 text-slate-50 text-base font-medium transition
+            className="w-full h-10 rounded-2xl bg-blue-600 dark:bg-theme-primary text-slate-50 text-base font-medium transition
             enabled:hover:cursor-pointer disabled:opacity-50 disabled:hover:cursor-not-allowed"
           >
             {isCodeSent ? "인증번호 전송 완료" : "인증번호 발송"}
@@ -154,11 +154,11 @@ export default function EmailVerifyPage() {
         </section>
 
         <section className="w-full mt-5 flex flex-col items-center">
-          <h2 className="text-center text-gray-900 text-3xl font-bold leading-8">
+          <h2 className="text-center text-gray-900 dark:text-theme-text text-3xl font-bold leading-8">
             인증코드
           </h2>
 
-          <p className="mt-2.5 text-center text-gray-900 text-base leading-5">
+          <p className="mt-2.5 text-center text-gray-900 dark:text-theme-text text-base leading-5">
             이메일로 전송된 코드를 아래에 작성해주세요
           </p>
 
@@ -173,7 +173,7 @@ export default function EmailVerifyPage() {
                 maxLength={1}
                 inputMode="numeric"
                 disabled={!isCodeSent}
-                className="w-14 h-16 bg-blue-900/10 rounded-2xl outline-none text-center text-slate-900 text-xl placeholder:text-slate-900/40 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-14 h-16 bg-blue-900/10 dark:bg-theme-accent rounded-2xl outline-none text-center text-slate-900 dark:text-theme-text text-xl placeholder:text-slate-900/40 dark:placeholder:text-theme-muted disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder=""
               />
             ))}
@@ -182,7 +182,7 @@ export default function EmailVerifyPage() {
             <button
               onClick={handleSubmit}
               disabled={!isCodeSent || !isCodeComplete}
-            className="w-full h-10 mt-10 rounded-2xl bg-blue-600 text-slate-50 text-base font-medium transition
+            className="w-full h-10 mt-10 rounded-2xl bg-blue-600 dark:bg-theme-primary text-slate-50 text-base font-medium transition
             enabled:hover:cursor-pointer disabled:opacity-50 disabled:hover:cursor-not-allowed"
           >
             Submit
@@ -192,7 +192,7 @@ export default function EmailVerifyPage() {
             <button
               type="button"
               onClick={handleResendCode}
-              className="mt-10 text-blue-600 text-base hover:cursor-pointer"
+              className="mt-10 text-blue-600 dark:text-theme-link text-base hover:cursor-pointer"
             >
               메일을 받지 못하셨나요? 인증번호 재전송
             </button>

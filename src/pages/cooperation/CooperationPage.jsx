@@ -22,9 +22,9 @@ function authHeader() {
 
 function getDdayClass(dday) {
   const n = parseInt((dday ?? "D-99").replace("D-", ""));
-  if (n <= 7) return "bg-yellow-100 text-yellow-700";
-  if (n <= 14) return "bg-cyan-100 text-cyan-700";
-  return "bg-green-100 text-green-700";
+  if (n <= 7) return "bg-yellow-100 dark:bg-theme-warning-bg text-yellow-700 dark:text-theme-warning";
+  if (n <= 14) return "bg-cyan-100 dark:bg-theme-accent text-cyan-700 dark:text-theme-link";
+  return "bg-green-100 dark:bg-theme-success-bg text-green-700 dark:text-theme-success";
 }
 
 // ─── 카드 컴포넌트 ────────────────────────────────────────────────────────────
@@ -36,11 +36,11 @@ function ClubPostCard({ post, onClick }) {
 
   return (
     <div
-      className="bg-white rounded-2xl px-6 py-5 shadow-sm flex flex-col gap-2 cursor-pointer hover:shadow-md transition-shadow duration-150"
+      className="bg-white dark:bg-theme-surface rounded-2xl px-6 py-5 shadow-sm dark:shadow-theme-shadow flex flex-col gap-2 cursor-pointer hover:shadow-md dark:hover:shadow-theme-shadow transition-shadow duration-150"
       onClick={onClick}
     >
       <div className="flex justify-between items-start gap-3">
-        <span className="font-semibold text-sm text-gray-900 leading-snug flex-1">
+        <span className="font-semibold text-sm text-gray-900 dark:text-theme-text leading-snug flex-1">
           {post.title}
         </span>
         <div className="flex flex-col items-end gap-1 shrink-0">
@@ -51,21 +51,21 @@ function ClubPostCard({ post, onClick }) {
           >
             {dday}
           </span>
-          <span className="text-xs text-gray-400">{club}</span>
+          <span className="text-xs text-gray-400 dark:text-theme-muted">{club}</span>
         </div>
       </div>
       <div className="flex items-center gap-2 flex-wrap">
         {tags.map((tag) => (
           <span
             key={tag}
-            className="bg-indigo-50 text-indigo-600 text-xs font-medium px-2.5 py-0.5 rounded-full"
+            className="bg-indigo-50 dark:bg-theme-accent text-indigo-600 dark:text-theme-link text-xs font-medium px-2.5 py-0.5 rounded-full"
           >
             {tag}
           </span>
         ))}
-        <span className="text-xs text-gray-400">{deadline}</span>
+        <span className="text-xs text-gray-400 dark:text-theme-muted">{deadline}</span>
       </div>
-      <p className="text-xs text-gray-500">{post.content}</p>
+      <p className="text-xs text-gray-500 dark:text-theme-muted">{post.content}</p>
     </div>
   );
 }
@@ -74,7 +74,7 @@ function ProjectPostCard({ post, onClick }) {
   const dday = post.dDay ?? "D-?";
   return (
     <div
-      className="bg-white rounded-2xl p-5 shadow-sm flex flex-col gap-2.5 cursor-pointer hover:shadow-md transition-shadow duration-150"
+      className="bg-white dark:bg-theme-surface rounded-2xl p-5 shadow-sm dark:shadow-theme-shadow flex flex-col gap-2.5 cursor-pointer hover:shadow-md dark:hover:shadow-theme-shadow transition-shadow duration-150"
       onClick={onClick}
     >
       <span
@@ -84,11 +84,11 @@ function ProjectPostCard({ post, onClick }) {
       >
         {dday}
       </span>
-      <p className="font-bold text-sm text-gray-900 leading-snug">
+      <p className="font-bold text-sm text-gray-900 dark:text-theme-text leading-snug">
         {post.title}
       </p>
-      <p className="text-xs text-gray-500 flex-1">{post.content}</p>
-      <p className="text-xs text-gray-400">
+      <p className="text-xs text-gray-500 dark:text-theme-muted flex-1">{post.content}</p>
+      <p className="text-xs text-gray-400 dark:text-theme-muted">
         {post.deadline ? `~ ${post.deadline}` : ""}
       </p>
       <button
@@ -211,42 +211,42 @@ function CreateClubCollabModal({ onClose: closeModal, onSuccess }) {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+      <div className="bg-white dark:bg-theme-surface rounded-2xl shadow-xl dark:shadow-theme-shadow w-full max-w-lg max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-theme-border">
           <div>
-            <h2 className="text-base font-semibold text-gray-900">
+            <h2 className="text-base font-semibold text-gray-900 dark:text-theme-text">
               새 협업 모집하기
             </h2>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-xs text-gray-400 dark:text-theme-muted mt-0.5">
               동아리 협업 팀원을 모집해보세요
             </p>
           </div>
           <button
             onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
+            className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-theme-hover transition-colors cursor-pointer"
           >
-            <X size={16} strokeWidth={2} className="text-gray-500" />
+            <X size={16} strokeWidth={2} className="text-gray-500 dark:text-theme-muted" />
           </button>
         </div>
 
         <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4">
           {apiError && (
-            <div className="flex items-start gap-2 bg-red-50 border border-red-100 rounded-lg px-3 py-2.5">
+            <div className="flex items-start gap-2 bg-red-50 dark:bg-theme-danger-bg border border-red-100 dark:border-theme-danger-border rounded-lg px-3 py-2.5">
               <AlertCircle
                 size={14}
-                className="text-red-500 mt-0.5 shrink-0"
+                className="text-red-500 dark:text-theme-danger mt-0.5 shrink-0"
                 strokeWidth={2}
               />
-              <p className="text-sm text-red-600">{apiError}</p>
+              <p className="text-sm text-red-600 dark:text-theme-danger">{apiError}</p>
             </div>
           )}
 
           {/* 소속 동아리 */}
           <fieldset disabled={loading || !!createdPost} className="space-y-4">
           <div>
-            <label htmlFor="collab-club" className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+            <label htmlFor="collab-club" className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-theme-muted mb-1.5">
               <Users size={12} strokeWidth={2} />
-              소속 동아리 <span className="text-red-400">*</span>
+              소속 동아리 <span className="text-red-400 dark:text-theme-danger">*</span>
             </label>
             <select
               id="collab-club"
@@ -255,26 +255,26 @@ function CreateClubCollabModal({ onClose: closeModal, onSuccess }) {
               disabled={loading || isChecking || hasError || clubs.length === 0}
               className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors ${
                 errors.clubId
-                  ? "border-red-300 bg-red-50"
-                  : "border-gray-200 focus:border-green-400"
+                  ? "border-red-300 dark:border-theme-danger-border bg-red-50 dark:bg-theme-danger-bg"
+                  : "border-gray-200 dark:border-theme-border focus:border-green-400 dark:focus:border-theme-success"
               }`}
             >
               <option value="">{isChecking ? "소속 동아리 불러오는 중..." : "동아리를 선택해주세요"}</option>
               {clubs.map((club) => <option key={club.clubId} value={String(club.clubId)}>{club.clubName}</option>)}
             </select>
-            {!isAuthenticated && <p className="mt-1 text-xs text-red-500">로그인 후 모집글을 등록해주세요.</p>}
-            {isAuthenticated && !isChecking && !hasError && clubs.length === 0 && <p className="mt-1 text-xs text-gray-500">소속된 동아리가 있어야 협업 모집을 등록할 수 있습니다.</p>}
-            {hasError && <p role="alert" className="mt-1 text-xs text-red-500">소속 동아리를 불러오지 못했습니다. <button type="button" onClick={() => refetch()} className="underline">다시 시도</button></p>}
+            {!isAuthenticated && <p className="mt-1 text-xs text-red-500 dark:text-theme-danger">로그인 후 모집글을 등록해주세요.</p>}
+            {isAuthenticated && !isChecking && !hasError && clubs.length === 0 && <p className="mt-1 text-xs text-gray-500 dark:text-theme-muted">소속된 동아리가 있어야 협업 모집을 등록할 수 있습니다.</p>}
+            {hasError && <p role="alert" className="mt-1 text-xs text-red-500 dark:text-theme-danger">소속 동아리를 불러오지 못했습니다. <button type="button" onClick={() => refetch()} className="underline">다시 시도</button></p>}
             {errors.clubId && (
-              <p className="mt-1 text-xs text-red-500">{errors.clubId}</p>
+              <p className="mt-1 text-xs text-red-500 dark:text-theme-danger">{errors.clubId}</p>
             )}
           </div>
 
           {/* 제목 */}
           <div>
-            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-theme-muted mb-1.5">
               <FileText size={12} strokeWidth={2} />
-              제목 <span className="text-red-400">*</span>
+              제목 <span className="text-red-400 dark:text-theme-danger">*</span>
             </label>
             <input
               type="text"
@@ -284,20 +284,20 @@ function CreateClubCollabModal({ onClose: closeModal, onSuccess }) {
               maxLength={100}
               className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors ${
                 errors.title
-                  ? "border-red-300 bg-red-50"
-                  : "border-gray-200 focus:border-green-400"
+                  ? "border-red-300 dark:border-theme-danger-border bg-red-50 dark:bg-theme-danger-bg"
+                  : "border-gray-200 dark:border-theme-border focus:border-green-400 dark:focus:border-theme-success"
               }`}
             />
             {errors.title && (
-              <p className="mt-1 text-xs text-red-500">{errors.title}</p>
+              <p className="mt-1 text-xs text-red-500 dark:text-theme-danger">{errors.title}</p>
             )}
           </div>
 
           {/* 대회명 */}
           <div>
-            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-theme-muted mb-1.5">
               <FileText size={12} strokeWidth={2} />
-              대회명 <span className="text-red-400">*</span>
+              대회명 <span className="text-red-400 dark:text-theme-danger">*</span>
             </label>
             <input
               type="text"
@@ -306,20 +306,20 @@ function CreateClubCollabModal({ onClose: closeModal, onSuccess }) {
               placeholder="예) 간지톤"
               className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors ${
                 errors.contestName
-                  ? "border-red-300 bg-red-50"
-                  : "border-gray-200 focus:border-green-400"
+                  ? "border-red-300 dark:border-theme-danger-border bg-red-50 dark:bg-theme-danger-bg"
+                  : "border-gray-200 dark:border-theme-border focus:border-green-400 dark:focus:border-theme-success"
               }`}
             />
             {errors.contestName && (
-              <p className="mt-1 text-xs text-red-500">{errors.contestName}</p>
+              <p className="mt-1 text-xs text-red-500 dark:text-theme-danger">{errors.contestName}</p>
             )}
           </div>
 
           {/* 대회 날짜 */}
           <div>
-            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-theme-muted mb-1.5">
               <CalendarDays size={12} strokeWidth={2} />
-              대회 날짜 <span className="text-red-400">*</span>
+              대회 날짜 <span className="text-red-400 dark:text-theme-danger">*</span>
             </label>
             <input
               type="date"
@@ -328,20 +328,20 @@ function CreateClubCollabModal({ onClose: closeModal, onSuccess }) {
               onChange={(e) => setField("contestDate", e.target.value)}
               className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors ${
                 errors.contestDate
-                  ? "border-red-300 bg-red-50"
-                  : "border-gray-200 focus:border-green-400"
+                  ? "border-red-300 dark:border-theme-danger-border bg-red-50 dark:bg-theme-danger-bg"
+                  : "border-gray-200 dark:border-theme-border focus:border-green-400 dark:focus:border-theme-success"
               }`}
             />
             {errors.contestDate && (
-              <p className="mt-1 text-xs text-red-500">{errors.contestDate}</p>
+              <p className="mt-1 text-xs text-red-500 dark:text-theme-danger">{errors.contestDate}</p>
             )}
           </div>
 
           {/* 모집 마감일 */}
           <div>
-            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-theme-muted mb-1.5">
               <CalendarDays size={12} strokeWidth={2} />
-              모집 마감일 <span className="text-red-400">*</span>
+              모집 마감일 <span className="text-red-400 dark:text-theme-danger">*</span>
             </label>
             <input
               type="date"
@@ -350,20 +350,20 @@ function CreateClubCollabModal({ onClose: closeModal, onSuccess }) {
               onChange={(e) => setField("deadline", e.target.value)}
               className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors ${
                 errors.deadline
-                  ? "border-red-300 bg-red-50"
-                  : "border-gray-200 focus:border-green-400"
+                  ? "border-red-300 dark:border-theme-danger-border bg-red-50 dark:bg-theme-danger-bg"
+                  : "border-gray-200 dark:border-theme-border focus:border-green-400 dark:focus:border-theme-success"
               }`}
             />
             {errors.deadline && (
-              <p className="mt-1 text-xs text-red-500">{errors.deadline}</p>
+              <p className="mt-1 text-xs text-red-500 dark:text-theme-danger">{errors.deadline}</p>
             )}
           </div>
 
           {/* 내용 */}
           <div>
-            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-theme-muted mb-1.5">
               <FileText size={12} strokeWidth={2} />
-              내용 <span className="text-red-400">*</span>
+              내용 <span className="text-red-400 dark:text-theme-danger">*</span>
             </label>
             <textarea
               value={form.content}
@@ -372,31 +372,31 @@ function CreateClubCollabModal({ onClose: closeModal, onSuccess }) {
               rows={4}
               className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors resize-none ${
                 errors.content
-                  ? "border-red-300 bg-red-50"
-                  : "border-gray-200 focus:border-green-400"
+                  ? "border-red-300 dark:border-theme-danger-border bg-red-50 dark:bg-theme-danger-bg"
+                  : "border-gray-200 dark:border-theme-border focus:border-green-400 dark:focus:border-theme-success"
               }`}
             />
             {errors.content && (
-              <p className="mt-1 text-xs text-red-500">{errors.content}</p>
+              <p className="mt-1 text-xs text-red-500 dark:text-theme-danger">{errors.content}</p>
             )}
           </div>
 
           </fieldset>
           <ImageFilePicker file={imageFile} onChange={setImageFile} disabled={loading} />
-          {createdPost && <p className="text-xs text-gray-500">모집글은 이미 등록되었습니다. 사진 업로드를 재시도하거나 목록으로 이동할 수 있습니다.</p>}
+          {createdPost && <p className="text-xs text-gray-500 dark:text-theme-muted">모집글은 이미 등록되었습니다. 사진 업로드를 재시도하거나 목록으로 이동할 수 있습니다.</p>}
         </div>
 
-        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-gray-100">
+        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-gray-100 dark:border-theme-border">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+            className="px-4 py-2 text-sm text-gray-500 dark:text-theme-muted bg-white dark:bg-theme-surface border border-gray-200 dark:border-theme-border rounded-lg hover:bg-gray-50 dark:hover:bg-theme-hover transition-colors cursor-pointer"
           >
             취소
           </button>
           <button
             onClick={handleSubmit}
             disabled={loading || !isAuthenticated || (!createdPost && (isChecking || hasError || !selectedClub))}
-            className="px-4 py-2 text-sm text-white bg-green-500 rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer font-medium"
+            className="px-4 py-2 text-sm text-white bg-green-500 dark:bg-theme-success-action rounded-lg hover:bg-green-600 dark:hover:bg-theme-success-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer font-medium"
           >
             {loading ? "등록 중..." : createdPost ? (imageFile ? "사진 업로드 재시도" : "완료") : "모집 등록"}
           </button>
@@ -505,40 +505,40 @@ function CreateProjectModal({ onClose: closeModal, onSuccess }) {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+      <div className="bg-white dark:bg-theme-surface rounded-2xl shadow-xl dark:shadow-theme-shadow w-full max-w-lg max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-theme-border">
           <div>
-            <h2 className="text-base font-semibold text-gray-900">
+            <h2 className="text-base font-semibold text-gray-900 dark:text-theme-text">
               새 팀원 모집하기
             </h2>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-xs text-gray-400 dark:text-theme-muted mt-0.5">
               프로젝트 팀원을 모집해보세요
             </p>
           </div>
           <button
             onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
+            className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-theme-hover transition-colors cursor-pointer"
           >
-            <X size={16} strokeWidth={2} className="text-gray-500" />
+            <X size={16} strokeWidth={2} className="text-gray-500 dark:text-theme-muted" />
           </button>
         </div>
 
         <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4">
           {apiError && (
-            <div className="flex items-start gap-2 bg-red-50 border border-red-100 rounded-lg px-3 py-2.5">
+            <div className="flex items-start gap-2 bg-red-50 dark:bg-theme-danger-bg border border-red-100 dark:border-theme-danger-border rounded-lg px-3 py-2.5">
               <AlertCircle
                 size={14}
-                className="text-red-500 mt-0.5 shrink-0"
+                className="text-red-500 dark:text-theme-danger mt-0.5 shrink-0"
                 strokeWidth={2}
               />
-              <p className="text-sm text-red-600">{apiError}</p>
+              <p className="text-sm text-red-600 dark:text-theme-danger">{apiError}</p>
             </div>
           )}
 
           <div>
-            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-theme-muted mb-1.5">
               <FileText size={12} strokeWidth={2} />
-              제목 <span className="text-red-400">*</span>
+              제목 <span className="text-red-400 dark:text-theme-danger">*</span>
             </label>
             <input
               type="text"
@@ -549,19 +549,19 @@ function CreateProjectModal({ onClose: closeModal, onSuccess }) {
               maxLength={100}
               className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors ${
                 errors.title
-                  ? "border-red-300 bg-red-50"
-                  : "border-gray-200 focus:border-indigo-400"
+                  ? "border-red-300 dark:border-theme-danger-border bg-red-50 dark:bg-theme-danger-bg"
+                  : "border-gray-200 dark:border-theme-border focus:border-indigo-400 dark:focus:border-theme-focus"
               }`}
             />
             {errors.title && (
-              <p className="mt-1 text-xs text-red-500">{errors.title}</p>
+              <p className="mt-1 text-xs text-red-500 dark:text-theme-danger">{errors.title}</p>
             )}
           </div>
 
           <div>
-            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-theme-muted mb-1.5">
               <FileText size={12} strokeWidth={2} />내 스택/분야
-              <span className="text-gray-400 font-normal">(선택)</span>
+              <span className="text-gray-400 dark:text-theme-muted font-normal">(선택)</span>
             </label>
             <input
               type="text"
@@ -569,15 +569,15 @@ function CreateProjectModal({ onClose: closeModal, onSuccess }) {
               disabled={loading || !!createdPost}
               onChange={(e) => setField("writerStack", e.target.value)}
               placeholder="예) 백엔드, 프론트엔드, 디자인"
-              className="w-full text-sm px-3 py-2 rounded-lg border border-gray-200 focus:border-indigo-400 outline-none transition-colors"
+              className="w-full text-sm px-3 py-2 rounded-lg border border-gray-200 dark:border-theme-border focus:border-indigo-400 dark:focus:border-theme-focus outline-none transition-colors"
             />
           </div>
 
           <div>
-            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-theme-muted mb-1.5">
               <Users size={12} strokeWidth={2} />
               모집 포지션
-              <span className="text-gray-400 font-normal">(선택)</span>
+              <span className="text-gray-400 dark:text-theme-muted font-normal">(선택)</span>
             </label>
             <input
               type="text"
@@ -585,14 +585,14 @@ function CreateProjectModal({ onClose: closeModal, onSuccess }) {
               disabled={loading || !!createdPost}
               onChange={(e) => setField("positions", e.target.value)}
               placeholder="예) 프론트 2명, 백엔드 1명"
-              className="w-full text-sm px-3 py-2 rounded-lg border border-gray-200 focus:border-indigo-400 outline-none transition-colors"
+              className="w-full text-sm px-3 py-2 rounded-lg border border-gray-200 dark:border-theme-border focus:border-indigo-400 dark:focus:border-theme-focus outline-none transition-colors"
             />
           </div>
 
           <div>
-            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-theme-muted mb-1.5">
               <CalendarDays size={12} strokeWidth={2} />
-              마감일 <span className="text-red-400">*</span>
+              마감일 <span className="text-red-400 dark:text-theme-danger">*</span>
             </label>
             <input
               type="date"
@@ -601,20 +601,20 @@ function CreateProjectModal({ onClose: closeModal, onSuccess }) {
               onChange={(e) => setField("deadline", e.target.value)}
               className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors ${
                 errors.deadline
-                  ? "border-red-300 bg-red-50"
-                  : "border-gray-200 focus:border-indigo-400"
+                  ? "border-red-300 dark:border-theme-danger-border bg-red-50 dark:bg-theme-danger-bg"
+                  : "border-gray-200 dark:border-theme-border focus:border-indigo-400 dark:focus:border-theme-focus"
               }`}
               disabled={loading || !!createdPost}
             />
             {errors.deadline && (
-              <p className="mt-1 text-xs text-red-500">{errors.deadline}</p>
+              <p className="mt-1 text-xs text-red-500 dark:text-theme-danger">{errors.deadline}</p>
             )}
           </div>
 
           <div>
-            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-1.5">
+            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-theme-muted mb-1.5">
               <FileText size={12} strokeWidth={2} />
-              내용 <span className="text-red-400">*</span>
+              내용 <span className="text-red-400 dark:text-theme-danger">*</span>
             </label>
             <textarea
               value={form.content}
@@ -624,23 +624,23 @@ function CreateProjectModal({ onClose: closeModal, onSuccess }) {
               rows={5}
               className={`w-full text-sm px-3 py-2 rounded-lg border outline-none transition-colors resize-none ${
                 errors.content
-                  ? "border-red-300 bg-red-50"
-                  : "border-gray-200 focus:border-indigo-400"
+                  ? "border-red-300 dark:border-theme-danger-border bg-red-50 dark:bg-theme-danger-bg"
+                  : "border-gray-200 dark:border-theme-border focus:border-indigo-400 dark:focus:border-theme-focus"
               }`}
             />
             {errors.content && (
-              <p className="mt-1 text-xs text-red-500">{errors.content}</p>
+              <p className="mt-1 text-xs text-red-500 dark:text-theme-danger">{errors.content}</p>
             )}
           </div>
 
           <ImageFilePicker file={imageFile} onChange={setImageFile} disabled={loading} />
-          {createdPost && <p className="text-xs text-gray-500">모집글은 이미 등록되었습니다. 사진 업로드를 재시도하거나 목록으로 이동할 수 있습니다.</p>}
+          {createdPost && <p className="text-xs text-gray-500 dark:text-theme-muted">모집글은 이미 등록되었습니다. 사진 업로드를 재시도하거나 목록으로 이동할 수 있습니다.</p>}
         </div>
 
-        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-gray-100">
+        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-gray-100 dark:border-theme-border">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+            className="px-4 py-2 text-sm text-gray-500 dark:text-theme-muted bg-white dark:bg-theme-surface border border-gray-200 dark:border-theme-border rounded-lg hover:bg-gray-50 dark:hover:bg-theme-hover transition-colors cursor-pointer"
           >
             취소
           </button>
@@ -664,7 +664,7 @@ function SkeletonList() {
       {Array.from({ length: 3 }).map((_, i) => (
         <div
           key={i}
-          className="bg-white rounded-2xl px-6 py-5 h-24 animate-pulse"
+          className="bg-white dark:bg-theme-surface rounded-2xl px-6 py-5 h-24 animate-pulse"
         />
       ))}
     </div>
@@ -674,7 +674,7 @@ function SkeletonGrid() {
   return (
     <div className="grid grid-cols-2 gap-4">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="bg-white rounded-2xl p-5 h-44 animate-pulse" />
+        <div key={i} className="bg-white dark:bg-theme-surface rounded-2xl p-5 h-44 animate-pulse" />
       ))}
     </div>
   );
@@ -762,17 +762,17 @@ export default function CooperationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col">
+    <div className="min-h-screen bg-slate-100 dark:bg-theme-page flex flex-col">
       <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-8 flex flex-col gap-5">
         {/* 탭 */}
-        <div className="grid grid-cols-2 bg-slate-200 rounded-full p-1 gap-1">
+        <div className="grid grid-cols-2 bg-slate-200 dark:bg-theme-raised rounded-full p-1 gap-1">
           <button
             onClick={() => handleTabChange("club")}
             className={[
               "rounded-full py-2.5 text-sm font-semibold transition-all duration-200 cursor-pointer",
               isClub
-                ? "bg-green-500 text-white shadow"
-                : "text-gray-500 hover:text-gray-700",
+                ? "bg-green-500 dark:bg-theme-success-action text-white shadow"
+                : "text-gray-500 dark:text-theme-muted hover:text-gray-700 dark:hover:text-theme-secondary",
             ].join(" ")}
           >
             동아리 협업모집
@@ -783,7 +783,7 @@ export default function CooperationPage() {
               "rounded-full py-2.5 text-sm font-semibold transition-all duration-200 cursor-pointer",
               !isClub
                 ? "bg-indigo-600 text-white shadow"
-                : "text-gray-500 hover:text-gray-700",
+                : "text-gray-500 dark:text-theme-muted hover:text-gray-700 dark:hover:text-theme-secondary",
             ].join(" ")}
           >
             프로젝트 팀원 모집
@@ -791,7 +791,7 @@ export default function CooperationPage() {
         </div>
 
         {/* 검색창 */}
-        <div className="flex items-center bg-white rounded-xl px-4 py-2.5 gap-2.5 shadow-sm">
+        <div className="flex items-center bg-white dark:bg-theme-surface rounded-xl px-4 py-2.5 gap-2.5 shadow-sm dark:shadow-theme-shadow">
           <input
             type="text"
             placeholder="검색어를 입력하세요..."
@@ -800,10 +800,10 @@ export default function CooperationPage() {
             onKeyDown={(e) => {
               if (e.key === "Enter") handleSearch();
             }}
-            className="flex-1 text-sm text-gray-700 placeholder-gray-400 outline-none bg-transparent"
+            className="flex-1 text-sm text-gray-700 dark:text-theme-secondary placeholder-gray-400 dark:placeholder:text-theme-muted outline-none bg-transparent"
           />
           <button onClick={handleSearch} className="cursor-pointer">
-            <Search size={17} className="text-gray-400 shrink-0" />
+            <Search size={17} className="text-gray-400 dark:text-theme-muted shrink-0" />
           </button>
         </div>
 
@@ -813,12 +813,12 @@ export default function CooperationPage() {
             <SkeletonList />
           ) : clubError ? (
             <div className="flex flex-col items-center py-12 gap-2">
-              <AlertCircle size={20} className="text-red-300" />
-              <p className="text-sm text-gray-400">{clubError}</p>
+              <AlertCircle size={20} className="text-red-300 dark:text-theme-danger" />
+              <p className="text-sm text-gray-400 dark:text-theme-muted">{clubError}</p>
             </div>
           ) : clubPosts.length === 0 ? (
             <div className="flex flex-col items-center py-12">
-              <p className="text-sm text-gray-400">모집글이 없습니다</p>
+              <p className="text-sm text-gray-400 dark:text-theme-muted">모집글이 없습니다</p>
             </div>
           ) : (
             <div className="flex flex-col gap-3">
@@ -835,12 +835,12 @@ export default function CooperationPage() {
           <SkeletonGrid />
         ) : projectError ? (
           <div className="flex flex-col items-center py-12 gap-2">
-            <AlertCircle size={20} className="text-red-300" />
-            <p className="text-sm text-gray-400">{projectError}</p>
+            <AlertCircle size={20} className="text-red-300 dark:text-theme-danger" />
+            <p className="text-sm text-gray-400 dark:text-theme-muted">{projectError}</p>
           </div>
         ) : projectPosts.length === 0 ? (
           <div className="flex flex-col items-center py-12">
-            <p className="text-sm text-gray-400">모집글이 없습니다</p>
+            <p className="text-sm text-gray-400 dark:text-theme-muted">모집글이 없습니다</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
@@ -863,8 +863,8 @@ export default function CooperationPage() {
               isClub ? setShowClubModal(true) : setShowProjectModal(true)
             }
             className={[
-              "flex items-center gap-2 px-12 py-3.5 rounded-full text-white font-bold text-sm shadow-lg hover:opacity-90 transition-opacity duration-150 cursor-pointer",
-              isClub ? "bg-green-500" : "bg-indigo-600",
+              "flex items-center gap-2 px-12 py-3.5 rounded-full text-white font-bold text-sm shadow-lg dark:shadow-theme-shadow hover:opacity-90 transition-opacity duration-150 cursor-pointer",
+              isClub ? "bg-green-500 dark:bg-theme-success-action" : "bg-indigo-600",
             ].join(" ")}
           >
             <Plus size={18} strokeWidth={2.5} />

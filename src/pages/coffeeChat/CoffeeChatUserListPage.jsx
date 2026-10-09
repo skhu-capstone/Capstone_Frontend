@@ -59,10 +59,10 @@ export default function CoffeeChatUserListPage() {
     );
 
   return (
-    <main className="min-h-screen bg-[#F8FAFC] px-4 py-8 sm:px-6 sm:py-10 lg:px-12 lg:py-14">
+    <main className="min-h-screen bg-[#F8FAFC] dark:bg-theme-page px-4 py-8 sm:px-6 sm:py-10 lg:px-12 lg:py-14">
       <section className="mx-auto max-w-360">
         <div className="mb-6 flex flex-col gap-4 sm:mb-10 lg:flex-row lg:items-center lg:justify-between">
-          <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-theme-text sm:text-3xl">
             Coffee Chat User List
           </h1>
 
@@ -79,23 +79,23 @@ export default function CoffeeChatUserListPage() {
               onChange={(e) => setInputKeyword(e.target.value)}
               aria-label="이름, 관심 분야 검색"
               placeholder="이름, 관심 분야 검색"
-              className="h-12 min-w-0 flex-1 rounded-lg border border-blue-400 bg-white px-3 outline-none focus:ring-2 focus:ring-blue-400 sm:px-4 lg:w-80"
+              className="h-12 min-w-0 flex-1 rounded-lg border border-blue-400 dark:border-theme-focus bg-white dark:bg-theme-surface px-3 outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-theme-focus sm:px-4 lg:w-80"
             />
 
             <button
               type="submit"
-              className="h-12 shrink-0 rounded-lg bg-blue-600 px-4 text-white hover:cursor-pointer"
+              className="h-12 shrink-0 rounded-lg bg-blue-600 dark:bg-theme-primary px-4 text-white hover:cursor-pointer"
             >
               검색
             </button>
           </form>
         </div>
 
-        {(authLoading || isLoading) && <p className="text-gray-500">로딩중...</p>}
+        {(authLoading || isLoading) && <p className="text-gray-500 dark:text-theme-muted">로딩중...</p>}
 
-        {isError && (<p className="text-red-500">목록을 불러오지 못했습니다.</p>)}
+        {isError && (<p className="text-red-500 dark:text-theme-danger">목록을 불러오지 못했습니다.</p>)}
 
-        {!isLoading && !isError && users.length === 0 && (<p className="text-gray-500">검색 결과가 없습니다.</p>)}
+        {!isLoading && !isError && users.length === 0 && (<p className="text-gray-500 dark:text-theme-muted">검색 결과가 없습니다.</p>)}
 
         {!isLoading && !isError && users.length > 0 && (
           <div className="grid grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-2 xl:gap-10">
@@ -121,18 +121,18 @@ export default function CoffeeChatUserListPage() {
               onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
               disabled={page === 1}
               aria-label="이전 페이지"
-              className="flex h-11 w-11 shrink-0 items-center justify-center text-2xl text-gray-600 disabled:text-gray-300"
+              className="flex h-11 w-11 shrink-0 items-center justify-center text-2xl text-gray-600 dark:text-theme-secondary disabled:text-gray-300 dark:disabled:text-theme-disabled"
             >
               ‹
             </button>
-            <span className="text-sm text-gray-600 sm:hidden" aria-live="polite">
+            <span className="text-sm text-gray-600 dark:text-theme-secondary sm:hidden" aria-live="polite">
               {page} / {totalPage}
             </span>
             <div className="hidden items-center gap-2 sm:flex">
             {pageNumbers.map((pageNumber, index) => (
               <div key={pageNumber} className="flex items-center gap-2">
                 {index > 0 && pageNumber - pageNumbers[index - 1] > 1 && (
-                  <span className="text-sm text-gray-400">...</span>
+                  <span className="text-sm text-gray-400 dark:text-theme-muted">...</span>
                 )}
                 <button
                   onClick={() => setPage(pageNumber)}
@@ -140,8 +140,8 @@ export default function CoffeeChatUserListPage() {
                   aria-current={page === pageNumber ? "page" : undefined}
                   className={`h-9 w-9 rounded-full text-sm ${
                     page === pageNumber
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-500"
+                      ? "bg-blue-600 dark:bg-theme-primary text-white"
+                      : "text-gray-500 dark:text-theme-muted"
                   }`}
                 >
                   {pageNumber}
@@ -154,7 +154,7 @@ export default function CoffeeChatUserListPage() {
               onClick={() => setPage((prev) => Math.min(prev + 1, totalPage))}
               disabled={page === totalPage}
               aria-label="다음 페이지"
-              className="flex h-11 w-11 shrink-0 items-center justify-center text-2xl text-gray-600 disabled:text-gray-300"
+              className="flex h-11 w-11 shrink-0 items-center justify-center text-2xl text-gray-600 dark:text-theme-secondary disabled:text-gray-300 dark:disabled:text-theme-disabled"
             >
               ›
             </button>

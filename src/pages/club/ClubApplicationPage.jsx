@@ -34,9 +34,9 @@ function ClubCard({ club, isMember, isApplied, canReapply, membershipUnavailable
         }
       }}
       aria-label={`${club.clubName} 상세 정보 보기`}
-      className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-blue-100 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+      className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-gray-100 dark:border-theme-border bg-white dark:bg-theme-surface shadow-sm dark:shadow-theme-shadow transition-all duration-200 hover:-translate-y-1 hover:border-blue-100 dark:hover:border-theme-border hover:shadow-md dark:hover:shadow-theme-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-theme-focus focus-visible:ring-offset-2 dark:ring-offset-theme-surface"
     >
-      <div className="relative aspect-[16/9] overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="relative aspect-[16/9] overflow-hidden bg-gradient-to-br from-blue-50 dark:from-theme-page to-indigo-100 dark:to-theme-accent">
         {club.imageUrl && !hasImageError ? (
           <img
             src={club.imageUrl}
@@ -49,16 +49,16 @@ function ClubCard({ club, isMember, isApplied, canReapply, membershipUnavailable
         )}
 
         {club.category && (
-          <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-blue-700 shadow-sm backdrop-blur-sm">
+          <span className="absolute left-4 top-4 rounded-full bg-white/90 dark:bg-theme-surface/90 px-3 py-1 text-xs font-semibold text-blue-700 dark:text-theme-link shadow-sm dark:shadow-theme-shadow backdrop-blur-sm">
             {club.category}
           </span>
         )}
       </div>
 
       <div className="flex flex-1 flex-col p-5">
-        <h2 className="text-lg font-bold text-gray-900">{club.clubName}</h2>
+        <h2 className="text-lg font-bold text-gray-900 dark:text-theme-text">{club.clubName}</h2>
 
-        <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-gray-500">
+        <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-gray-500 dark:text-theme-muted">
           {club.shortDescription || "동아리 소개가 아직 등록되지 않았습니다."}
         </p>
 
@@ -70,7 +70,7 @@ function ClubCard({ club, isMember, isApplied, canReapply, membershipUnavailable
               event.stopPropagation();
               goToDetail();
             }}
-            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500"
+            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 dark:bg-theme-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 dark:hover:bg-theme-primary-hover disabled:cursor-not-allowed disabled:bg-gray-200 dark:disabled:bg-theme-raised disabled:text-gray-500 dark:disabled:text-theme-disabled"
           >
             {isMember ? "이미 소속된 동아리 입니다." : isApplied ? "승인 대기 · 신청 관리" : membershipUnavailable ? "소속 확인 중" : canReapply ? "다시 신청하기" : "신청하기"}
             {!isMember && !isApplied && !membershipUnavailable && <ArrowRight size={16} />}
@@ -104,48 +104,48 @@ export default function ClubApplicationPage() {
   const clubs = clubData?.content ?? [];
 
   return (
-    <main className="min-h-[calc(100vh-64px)] bg-slate-50 px-5 py-10 sm:px-8 sm:py-14">
+    <main className="min-h-[calc(100vh-64px)] bg-slate-50 dark:bg-theme-subtle px-5 py-10 sm:px-8 sm:py-14">
       <div className="mx-auto max-w-6xl">
         <header className="mb-8 flex items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 dark:bg-theme-accent text-blue-600 dark:text-theme-link">
             <ClipboardCheck size={24} />
           </div>
 
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-theme-text sm:text-3xl">
               동아리 신청
             </h1>
 
-            <p className="mt-1.5 text-sm text-gray-500">
+            <p className="mt-1.5 text-sm text-gray-500 dark:text-theme-muted">
               관심 있는 동아리를 살펴보고 나에게 맞는 활동을 찾아보세요.
             </p>
           </div>
         </header>
         {hasError && (
-          <p role="alert" className="mb-4 text-sm text-red-500">
+          <p role="alert" className="mb-4 text-sm text-red-500 dark:text-theme-danger">
             소속 또는 가입 신청 상태를 확인하지 못했습니다.
             <button type="button" onClick={() => { refetchMyClubs(); refetchJoins(); }} className="ml-2 underline">다시 시도</button>
           </p>
         )}
 
         {isLoading && (
-          <div className="flex min-h-80 flex-col items-center justify-center gap-3 rounded-2xl border border-gray-100 bg-white text-gray-400 shadow-sm">
-            <Loader2 size={28} className="animate-spin text-blue-500" />
+          <div className="flex min-h-80 flex-col items-center justify-center gap-3 rounded-2xl border border-gray-100 dark:border-theme-border bg-white dark:bg-theme-surface text-gray-400 dark:text-theme-muted shadow-sm dark:shadow-theme-shadow">
+            <Loader2 size={28} className="animate-spin text-blue-500 dark:text-theme-link" />
 
             <p className="text-sm">동아리 목록을 불러오는 중입니다.</p>
           </div>
         )}
 
         {isError && (
-          <div className="flex min-h-80 flex-col items-center justify-center gap-3 rounded-2xl border border-red-100 bg-white px-6 text-center shadow-sm">
-            <AlertCircle size={30} className="text-red-400" />
+          <div className="flex min-h-80 flex-col items-center justify-center gap-3 rounded-2xl border border-red-100 dark:border-theme-danger-border bg-white dark:bg-theme-surface px-6 text-center shadow-sm dark:shadow-theme-shadow">
+            <AlertCircle size={30} className="text-red-400 dark:text-theme-danger" />
 
             <div>
-              <p className="font-medium text-gray-700">
+              <p className="font-medium text-gray-700 dark:text-theme-secondary">
                 동아리 목록을 불러오지 못했습니다.
               </p>
 
-              <p className="mt-1 text-sm text-gray-400">
+              <p className="mt-1 text-sm text-gray-400 dark:text-theme-muted">
                 잠시 후 다시 시도해주세요.
               </p>
             </div>
@@ -153,7 +153,7 @@ export default function ClubApplicationPage() {
             <button
               type="button"
               onClick={() => refetch()}
-              className="mt-1 cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+              className="mt-1 cursor-pointer rounded-lg bg-blue-600 dark:bg-theme-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 dark:hover:bg-theme-primary-hover"
             >
               다시 시도
             </button>
@@ -161,15 +161,15 @@ export default function ClubApplicationPage() {
         )}
 
         {!isLoading && !isError && clubs.length === 0 && (
-          <div className="flex min-h-80 flex-col items-center justify-center gap-3 rounded-2xl border border-gray-100 bg-white px-6 text-center shadow-sm">
-            <ClipboardCheck size={32} className="text-gray-300" />
+          <div className="flex min-h-80 flex-col items-center justify-center gap-3 rounded-2xl border border-gray-100 dark:border-theme-border bg-white dark:bg-theme-surface px-6 text-center shadow-sm dark:shadow-theme-shadow">
+            <ClipboardCheck size={32} className="text-gray-300 dark:text-theme-muted" />
 
             <div>
-              <p className="font-medium text-gray-700">
+              <p className="font-medium text-gray-700 dark:text-theme-secondary">
                 현재 등록된 동아리가 없습니다.
               </p>
 
-              <p className="mt-1 text-sm text-gray-400">
+              <p className="mt-1 text-sm text-gray-400 dark:text-theme-muted">
                 새로운 동아리가 등록되면 이곳에 표시됩니다.
               </p>
             </div>
@@ -178,9 +178,9 @@ export default function ClubApplicationPage() {
 
         {!isLoading && !isError && clubs.length > 0 && (
           <>
-            <p className="mb-4 text-sm text-gray-500">
+            <p className="mb-4 text-sm text-gray-500 dark:text-theme-muted">
               총{" "}
-              <span className="font-semibold text-blue-600">
+              <span className="font-semibold text-blue-600 dark:text-theme-link">
                 {clubData?.totalElements ?? clubs.length}
               </span>
               개의 동아리

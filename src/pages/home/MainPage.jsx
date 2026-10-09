@@ -127,14 +127,14 @@ export default function MainPage() {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-slate-50 px-5 py-8 md:px-8 lg:px-14 lg:pt-14 lg:pb-7">
+      <main className="min-h-screen bg-slate-50 dark:bg-theme-page px-5 py-8 md:px-8 lg:px-14 lg:pt-14 lg:pb-7">
         <div className="mx-auto flex w-full max-w-332 flex-col gap-12">
-          <div className="h-9 w-48 animate-pulse rounded-lg bg-slate-200 md:h-10 md:w-56" />
+          <div className="h-9 w-48 animate-pulse rounded-lg bg-slate-200 dark:bg-theme-raised md:h-10 md:w-56" />
           <div className="flex gap-5 overflow-x-auto pb-2 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:pb-0 lg:grid-cols-3 lg:gap-12">
             {Array.from({ length: 3 }).map((_, index) => (
               <div
                 key={index}
-                className="h-96 min-w-72 flex-1 animate-pulse rounded-2xl bg-white shadow-[0px_8px_24px_rgba(0,0,0,0.08)] md:h-125.75 md:min-w-0"
+                className="h-96 min-w-72 flex-1 animate-pulse rounded-2xl bg-white dark:bg-theme-surface shadow-[0px_8px_24px_rgba(0,0,0,0.08)] dark:shadow-theme-shadow md:h-125.75 md:min-w-0"
               />
             ))}
           </div>
@@ -145,12 +145,12 @@ export default function MainPage() {
 
   if (isError) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 px-6">
-        <div className="rounded-2xl bg-white px-8 py-7 text-center shadow-[0px_8px_24px_rgba(0,0,0,0.08)]">
-          <h1 className="text-2xl font-bold text-gray-900">
+      <main className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-theme-page px-6">
+        <div className="rounded-2xl bg-white dark:bg-theme-surface px-8 py-7 text-center shadow-[0px_8px_24px_rgba(0,0,0,0.08)] dark:shadow-theme-shadow">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-theme-text">
             메인 정보를 불러오지 못했습니다.
           </h1>
-          <p className="mt-3 text-base text-gray-500">
+          <p className="mt-3 text-base text-gray-500 dark:text-theme-muted">
             잠시 후 다시 시도해주세요.
           </p>
         </div>
@@ -159,10 +159,10 @@ export default function MainPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-5 py-8 md:px-8 lg:px-14 lg:pt-14 lg:pb-7">
+    <main className="min-h-screen bg-slate-50 dark:bg-theme-page px-5 py-8 md:px-8 lg:px-14 lg:pt-14 lg:pb-7">
       <div className="mx-auto flex w-full max-w-332 flex-col gap-10 lg:gap-12">
         <section className="flex flex-col gap-5 md:gap-6">
-          <h1 className="text-3xl font-bold leading-9 text-gray-900 md:text-4xl md:leading-10">
+          <h1 className="text-3xl font-bold leading-9 text-gray-900 dark:text-theme-text md:text-4xl md:leading-10">
             추천 커피챗
           </h1>
 
@@ -181,14 +181,14 @@ export default function MainPage() {
               ))}
             </div>
           ) : (
-            <p className="rounded-2xl bg-white px-6 py-8 text-center text-gray-500 shadow-[0px_4px_12px_rgba(0,0,0,0.06)]">
+            <p className="rounded-2xl bg-white dark:bg-theme-surface px-6 py-8 text-center text-gray-500 dark:text-theme-muted shadow-[0px_4px_12px_rgba(0,0,0,0.06)] dark:shadow-theme-shadow">
               추천 커피챗이 없습니다.
             </p>
           )}
         </section>
 
         <section className="flex flex-col gap-3.5">
-          <h2 className="text-xl font-bold leading-6 text-black md:text-2xl">
+          <h2 className="text-xl font-bold leading-6 text-black dark:text-theme-text md:text-2xl">
             Find Collaboration
           </h2>
 
@@ -214,14 +214,14 @@ export default function MainPage() {
               })}
             </div>
           ) : (
-            <p className="rounded-2xl bg-white px-6 py-8 text-center text-gray-500 shadow-[0px_4px_12px_rgba(0,0,0,0.06)]">
+            <p className="rounded-2xl bg-white dark:bg-theme-surface px-6 py-8 text-center text-gray-500 dark:text-theme-muted shadow-[0px_4px_12px_rgba(0,0,0,0.06)] dark:shadow-theme-shadow">
               표시할 협업/모집 글이 없습니다.
             </p>
           )}
         </section>
 
         <section className="flex flex-col gap-3.5">
-          <h2 className="text-xl font-bold leading-6 text-black md:text-2xl">
+          <h2 className="text-xl font-bold leading-6 text-black dark:text-theme-text md:text-2xl">
             Club Feeds
           </h2>
 
@@ -242,7 +242,7 @@ export default function MainPage() {
               ))}
             </div>
           ) : (
-            <p className="rounded-2xl bg-white px-6 py-8 text-center text-gray-500 shadow-[0px_4px_12px_rgba(0,0,0,0.06)]">
+            <p className="rounded-2xl bg-white dark:bg-theme-surface px-6 py-8 text-center text-gray-500 dark:text-theme-muted shadow-[0px_4px_12px_rgba(0,0,0,0.06)] dark:shadow-theme-shadow">
               표시할 동아리 피드가 없습니다.
             </p>
           )}

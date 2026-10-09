@@ -307,11 +307,11 @@ export default function ClubCalendar({ clubId, canManage = false }) {
 
   return (
     <section className="club-calendar-wrap py-7">
-      <div className="rounded-xl bg-white p-6 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)]">
+      <div className="rounded-xl bg-white dark:bg-theme-surface p-6 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] dark:shadow-theme-shadow">
         <div className="mb-5 flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Calendar</h2>
-            <p className="mt-1 text-sm text-slate-900/60">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-theme-text">Calendar</h2>
+            <p className="mt-1 text-sm text-slate-900/60 dark:text-theme-muted">
               동아리 일정을 확인하세요
             </p>
           </div>
@@ -320,7 +320,7 @@ export default function ClubCalendar({ clubId, canManage = false }) {
             <button
               type="button"
               onClick={() => openCreateModal()}
-              className="rounded-xl bg-sky-700 px-5 py-3 text-sm font-semibold text-white hover:bg-sky-800"
+              className="rounded-xl bg-sky-700 dark:bg-theme-primary px-5 py-3 text-sm font-semibold text-white hover:bg-sky-800 dark:hover:bg-theme-primary-hover"
             >
               일정 추가
             </button>
@@ -328,25 +328,25 @@ export default function ClubCalendar({ clubId, canManage = false }) {
         </div>
 
         {isLoading && (
-          <p className="mb-3 text-sm text-slate-900/50">
+          <p className="mb-3 text-sm text-slate-900/50 dark:text-theme-muted">
             일정을 불러오는 중입니다.
           </p>
         )}
 
         {isAuthenticated && isMembersLoading && (
-          <p className="mb-3 text-sm text-slate-900/50">
+          <p className="mb-3 text-sm text-slate-900/50 dark:text-theme-muted">
             일정 관리 권한을 확인하는 중입니다.
           </p>
         )}
 
         {isError && (
-          <p className="mb-3 text-sm text-red-500">
+          <p className="mb-3 text-sm text-red-500 dark:text-theme-danger">
             일정을 불러오지 못했습니다.
           </p>
         )}
 
         {!isValidClubId && (
-          <p className="mb-3 text-sm text-red-500">
+          <p className="mb-3 text-sm text-red-500 dark:text-theme-danger">
             잘못된 동아리 정보입니다.
           </p>
         )}
@@ -439,14 +439,14 @@ function EventModal({
     >
       <form
         onSubmit={onSubmit}
-        className="flex w-full max-w-lg flex-col gap-5 rounded-2xl bg-white p-6 shadow-xl"
+        className="flex w-full max-w-lg flex-col gap-5 rounded-2xl bg-white dark:bg-theme-surface p-6 shadow-xl dark:shadow-theme-shadow"
       >
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="text-xl font-bold text-gray-900">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-theme-text">
               {isEditMode ? "일정 수정" : "일정 추가"}
             </h3>
-            <p className="mt-1 text-sm text-slate-900/60">
+            <p className="mt-1 text-sm text-slate-900/60 dark:text-theme-muted">
               동아리 캘린더에 표시할 일정을 입력하세요
             </p>
           </div>
@@ -455,7 +455,7 @@ function EventModal({
 	            type="button"
 	            onClick={onClose}
 	            disabled={isSubmitting}
-	            className="flex h-8 w-8 items-center justify-center rounded-full text-xl text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+	            className="flex h-8 w-8 items-center justify-center rounded-full text-xl text-slate-400 dark:text-theme-muted hover:bg-slate-100 dark:hover:bg-theme-hover hover:text-slate-700 dark:hover:text-theme-secondary"
 	            aria-label="닫기"
           >
             ×
@@ -463,76 +463,76 @@ function EventModal({
         </div>
 
         <label className="flex flex-col gap-2">
-          <span className="text-sm font-semibold text-slate-700">제목</span>
+          <span className="text-sm font-semibold text-slate-700 dark:text-theme-secondary">제목</span>
           <input
             type="text"
             value={form.title}
             onChange={(event) => onChange("title", event.target.value)}
             maxLength={MAX_EVENT_TITLE_LENGTH}
             placeholder="예) 정기 회의"
-            className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-sky-700"
+            className="rounded-xl border border-slate-200 dark:border-theme-border px-4 py-3 text-sm outline-none focus:border-sky-700 dark:focus:border-theme-focus"
             required
           />
-          <span className="text-right text-xs text-slate-400">
+          <span className="text-right text-xs text-slate-400 dark:text-theme-muted">
             {form.title.length}/{MAX_EVENT_TITLE_LENGTH}
           </span>
         </label>
 
         <div className="grid grid-cols-2 gap-4">
           <label className="flex flex-col gap-2">
-            <span className="text-sm font-semibold text-slate-700">시작일</span>
+            <span className="text-sm font-semibold text-slate-700 dark:text-theme-secondary">시작일</span>
             <input
               type="date"
               value={form.start}
               onChange={(event) => onChange("start", event.target.value)}
-              className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-sky-700"
+              className="rounded-xl border border-slate-200 dark:border-theme-border px-4 py-3 text-sm outline-none focus:border-sky-700 dark:focus:border-theme-focus"
               required
             />
           </label>
 
           <label className="flex flex-col gap-2">
-            <span className="text-sm font-semibold text-slate-700">종료일</span>
+            <span className="text-sm font-semibold text-slate-700 dark:text-theme-secondary">종료일</span>
             <input
               type="date"
               value={form.end}
               min={form.start}
               onChange={(event) => onChange("end", event.target.value)}
-              className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-sky-700"
+              className="rounded-xl border border-slate-200 dark:border-theme-border px-4 py-3 text-sm outline-none focus:border-sky-700 dark:focus:border-theme-focus"
             />
           </label>
         </div>
 
         <label className="flex flex-col gap-2">
-          <span className="text-sm font-semibold text-slate-700">메모</span>
+          <span className="text-sm font-semibold text-slate-700 dark:text-theme-secondary">메모</span>
 		          <textarea
 		            value={form.description}
 		            onChange={(event) => onChange("description", event.target.value)}
 		            maxLength={MAX_EVENT_DESCRIPTION_LENGTH}
 		            placeholder="일정 내용을 입력하세요"
-		            className="min-h-28 resize-none rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-sky-700"
+		            className="min-h-28 resize-none rounded-xl border border-slate-200 dark:border-theme-border px-4 py-3 text-sm outline-none focus:border-sky-700 dark:focus:border-theme-focus"
 		          />
-          <span className="text-right text-xs text-slate-400">
+          <span className="text-right text-xs text-slate-400 dark:text-theme-muted">
             {form.description.length}/{MAX_EVENT_DESCRIPTION_LENGTH}
           </span>
         </label>
 
         <label className="flex flex-col gap-2">
-          <span className="text-sm font-semibold text-slate-700">장소</span>
+          <span className="text-sm font-semibold text-slate-700 dark:text-theme-secondary">장소</span>
           <input
             type="text"
             value={form.location}
             onChange={(event) => onChange("location", event.target.value)}
             maxLength={MAX_EVENT_LOCATION_LENGTH}
             placeholder="예) 미가엘관 M301"
-            className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-sky-700"
+            className="rounded-xl border border-slate-200 dark:border-theme-border px-4 py-3 text-sm outline-none focus:border-sky-700 dark:focus:border-theme-focus"
           />
-          <span className="text-right text-xs text-slate-400">
+          <span className="text-right text-xs text-slate-400 dark:text-theme-muted">
             {form.location.length}/{MAX_EVENT_LOCATION_LENGTH}
           </span>
 		        </label>
 
 	        {formError && (
-	          <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-500">
+	          <p className="rounded-xl bg-red-50 dark:bg-theme-danger-bg px-4 py-3 text-sm font-semibold text-red-500 dark:text-theme-danger">
 	            {formError}
 	          </p>
 	        )}
@@ -543,7 +543,7 @@ function EventModal({
 	              type="button"
 	              onClick={onDelete}
 	              disabled={isSubmitting}
-	              className="rounded-xl px-4 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+	              className="rounded-xl px-4 py-2.5 text-sm font-semibold text-red-500 dark:text-theme-danger hover:bg-red-50 dark:hover:bg-theme-danger-bg disabled:cursor-not-allowed disabled:opacity-60"
 	            >
 	              {isSubmitting ? "삭제 중..." : "삭제"}
 	            </button>
@@ -556,14 +556,14 @@ function EventModal({
 	              type="button"
 	              onClick={onClose}
 	              disabled={isSubmitting}
-	              className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+	              className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-500 dark:text-theme-muted hover:bg-slate-100 dark:hover:bg-theme-hover disabled:cursor-not-allowed disabled:opacity-60"
 	            >
 	              취소
 	            </button>
 	            <button
 	              type="submit"
 	              disabled={isSubmitting}
-	              className="rounded-xl bg-sky-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
+	              className="rounded-xl bg-sky-700 dark:bg-theme-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-800 dark:hover:bg-theme-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
 	            >
 	              {isSubmitting ? "저장 중..." : isEditMode ? "저장" : "추가"}
 	            </button>

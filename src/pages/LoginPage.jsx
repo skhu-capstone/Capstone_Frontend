@@ -52,35 +52,35 @@ export default function LoginPage() {
   });
 
   return (
-    <main className="min-h-screen bg-linear-to-br from-slate-50 via-slate-50 to-slate-300 px-6 py-12 flex flex-col items-center overflow-hidden">
+    <main className="min-h-screen bg-linear-to-br from-slate-50 dark:from-theme-page via-slate-50 dark:via-theme-page to-slate-300 dark:to-theme-accent px-6 py-12 flex flex-col items-center overflow-hidden">
       <section className="text-center mb-10">
-        <h1 className="text-neutral-800 text-6xl md:text-8xl font-bold leading-tight">
+        <h1 className="text-neutral-800 dark:text-theme-text text-6xl md:text-8xl font-bold leading-tight">
           같은 학교, 더 가까운 연결
         </h1>
-        <p className="mt-6 text-zinc-500 text-2xl md:text-4xl font-semibold">
+        <p className="mt-6 text-zinc-500 dark:text-theme-muted text-2xl md:text-4xl font-semibold">
           동아리 관리와 커피챗을 통한 협업 제안을 더 쉽게 해보세요
         </p>
       </section>
 
-      <section className="w-full max-w-127.5 min-h-180 bg-slate-50 rounded-[44px] border border-slate-600/20 flex flex-col items-center px-10 py-14">
+      <section className="w-full max-w-127.5 min-h-180 bg-slate-50 dark:bg-theme-subtle rounded-[44px] border border-slate-600/20 dark:border-theme-border-strong flex flex-col items-center px-10 py-14">
         <img
           src={logo}
           alt="LOGO"
-          className="h-40 w-auto mb-10 cursor-pointer"
+          className="theme-logo h-40 w-auto mb-10 cursor-pointer"
           onClick={() => navigate("/")}
         />
 
         <div className="w-full text-center mb-10">
-          <h3 className="text-neutral-800 text-3xl font-bold mb-3">로그인</h3>
-          <p className="text-neutral-800 text-sm">
+          <h3 className="text-neutral-800 dark:text-theme-text text-3xl font-bold mb-3">로그인</h3>
+          <p className="text-neutral-800 dark:text-theme-text text-sm">
             로그인 시 서비스 이용약관 및 개인정보처리방침에 동의하게 됩니다
           </p>
         </div>
 
         {/* 구글 로그인 버튼 - 여기는 살짝 달라질 수도 있음 */}
         <button
-          className="w-full h-12 rounded-full border border-zinc-900 flex items-center justify-center
-          relative hover:bg-slate-100 transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full h-12 rounded-full border border-zinc-900 dark:border-theme-border-strong flex items-center justify-center
+          relative hover:bg-slate-100 dark:hover:bg-theme-hover transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
           disabled={loginMutation.isPending}
           onClick={() => startGoogleLogin()}
         >
@@ -89,19 +89,19 @@ export default function LoginPage() {
             src="https://www.svgrepo.com/show/475656/google-color.svg"
             alt="Google"
           />
-          <span className="text-black text-base font-medium">
+          <span className="text-black dark:text-theme-text text-base font-medium">
             {loginMutation.isPending ? "로그인 중..." : "Google로 로그인"}
           </span>
         </button>
 
         <div className="mt-16 text-center">
-          <h3 className="text-sky-950 text-5xl font-extrabold">CoffeeChat</h3>
-          <p className="mt-4 text-neutral-800/80 text-base">
+          <h3 className="text-sky-950 dark:text-theme-link text-5xl font-extrabold">CoffeeChat</h3>
+          <p className="mt-4 text-neutral-800/80 dark:text-theme-text text-base">
             쉽게 접근할 수 있는 커피챗을 활용해보세요!
           </p>
         </div>
 
-        <div className="w-full mt-6 bg-slate-50 rounded-[20px] shadow-[0px_4px_12px_rgba(0,0,0,0.15)] p-5 flex flex-col gap-4">
+        <div className="w-full mt-6 bg-slate-50 dark:bg-theme-subtle rounded-[20px] shadow-[0px_4px_12px_rgba(0,0,0,0.15)] dark:shadow-theme-shadow p-5 flex flex-col gap-4">
           <ChatBubble align="left">
             안녕하세요~ 프로필 보고 연락드렸습니다~
           </ChatBubble>
@@ -124,7 +124,7 @@ function ChatBubble({ children, align = "left" }) {
 
   return (
     <div className={`flex ${isRight ? "justify-end" : "justify-start"}`}>
-      <div className="max-w-[85%] rounded-2xl bg-neutral-800/20 px-4 py-3 text-black text-sm md:text-base">
+      <div className="max-w-[85%] rounded-2xl bg-neutral-800/20 dark:bg-theme-disabled-bg px-4 py-3 text-black dark:text-theme-text text-sm md:text-base">
         {children}
       </div>
     </div>

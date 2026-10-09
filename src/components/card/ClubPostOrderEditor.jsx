@@ -45,20 +45,20 @@ export default function ClubPostOrderEditor({ clubId, onClose, onSaved }) {
   }
 
   return (
-    <section className="my-7 rounded-2xl border border-slate-200 bg-white p-5" aria-label="게시물 순서 편집" aria-busy={saving}>
+    <section className="my-7 rounded-2xl border border-slate-200 dark:border-theme-border bg-white dark:bg-theme-surface p-5" aria-label="게시물 순서 편집" aria-busy={saving}>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-bold text-gray-900">게시물 순서 편집</h2>
-          <p className="mt-1 text-sm text-slate-500">드래그하거나 위·아래 버튼으로 이동하세요. 맨 위 게시물이 먼저 표시됩니다.</p>
+          <h2 className="text-lg font-bold text-gray-900 dark:text-theme-text">게시물 순서 편집</h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-theme-muted">드래그하거나 위·아래 버튼으로 이동하세요. 맨 위 게시물이 먼저 표시됩니다.</p>
         </div>
         <div className="flex gap-2">
-          <button type="button" disabled={saving} onClick={onClose} className="rounded-lg border border-slate-300 px-4 py-2 text-sm disabled:opacity-40">취소</button>
-          <button type="button" disabled={saving || isPending || isError || !changed} onClick={save} className="rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">{saving ? "저장 중…" : "순서 저장"}</button>
+          <button type="button" disabled={saving} onClick={onClose} className="rounded-lg border border-slate-300 dark:border-theme-border-strong px-4 py-2 text-sm disabled:opacity-40">취소</button>
+          <button type="button" disabled={saving || isPending || isError || !changed} onClick={save} className="rounded-lg bg-sky-700 dark:bg-theme-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">{saving ? "저장 중…" : "순서 저장"}</button>
         </div>
       </div>
       {isPending && <p className="mt-5" role="status">전체 게시물을 불러오는 중입니다…</p>}
-      {isError && <div className="mt-5" role="alert">게시물을 불러오지 못했습니다. <button type="button" onClick={() => refetch()} className="text-sky-700 underline">다시 시도</button></div>}
-      {error && <p role="alert" className="mt-4 text-sm text-red-600">{error}</p>}
+      {isError && <div className="mt-5" role="alert">게시물을 불러오지 못했습니다. <button type="button" onClick={() => refetch()} className="text-sky-700 dark:text-theme-link underline">다시 시도</button></div>}
+      {error && <p role="alert" className="mt-4 text-sm text-red-600 dark:text-theme-danger">{error}</p>}
       {!isPending && !isError && (
         <ol className="mt-5 flex flex-col gap-3">
           {posts.map((post, index) => (
@@ -77,21 +77,21 @@ export default function ClubPostOrderEditor({ clubId, onClose, onSaved }) {
                 move(posts.findIndex((item) => item.postId === draggedId), index);
                 setDraggedId(null);
               }}
-              className={`flex items-center gap-3 rounded-xl border p-3 ${draggedId === post.postId ? "border-sky-500 bg-sky-50" : "border-slate-200"}`}>
-              <GripVertical size={18} className="shrink-0 cursor-grab text-slate-400" aria-hidden="true" />
-              <span className="w-7 shrink-0 text-center text-sm text-slate-500">{index + 1}</span>
+              className={`flex items-center gap-3 rounded-xl border p-3 ${draggedId === post.postId ? "border-sky-500 dark:border-theme-focus bg-sky-50 dark:bg-theme-accent" : "border-slate-200 dark:border-theme-border"}`}>
+              <GripVertical size={18} className="shrink-0 cursor-grab text-slate-400 dark:text-theme-muted" aria-hidden="true" />
+              <span className="w-7 shrink-0 text-center text-sm text-slate-500 dark:text-theme-muted">{index + 1}</span>
               <SafeImage src={post.imageUrls?.[0]} fallbackSrc={DEFAULT_FEED_IMAGE} getSrc={getContentImageUrl} alt="" className="h-14 w-14 shrink-0 rounded-lg object-cover" draggable={false} />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold">{post.title || post.content || "제목 없는 게시물"}</p>
-                <p className="mt-1 text-xs text-slate-500">{post.writerName} · {post.createdAt?.slice(0, 10)}</p>
+                <p className="mt-1 text-xs text-slate-500 dark:text-theme-muted">{post.writerName} · {post.createdAt?.slice(0, 10)}</p>
               </div>
               <div className="flex shrink-0 gap-1">
-                <button type="button" aria-label={`${index + 1}번째 게시물 위로 이동`} disabled={saving || index === 0} onClick={() => move(index, index - 1)} className="rounded-lg p-2 hover:bg-slate-100 disabled:opacity-30"><ArrowUp size={18} /></button>
-                <button type="button" aria-label={`${index + 1}번째 게시물 아래로 이동`} disabled={saving || index === posts.length - 1} onClick={() => move(index, index + 1)} className="rounded-lg p-2 hover:bg-slate-100 disabled:opacity-30"><ArrowDown size={18} /></button>
+                <button type="button" aria-label={`${index + 1}번째 게시물 위로 이동`} disabled={saving || index === 0} onClick={() => move(index, index - 1)} className="rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-theme-hover disabled:opacity-30"><ArrowUp size={18} /></button>
+                <button type="button" aria-label={`${index + 1}번째 게시물 아래로 이동`} disabled={saving || index === posts.length - 1} onClick={() => move(index, index + 1)} className="rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-theme-hover disabled:opacity-30"><ArrowDown size={18} /></button>
               </div>
             </li>
           ))}
-          {posts.length === 0 && <li className="py-8 text-center text-slate-500">정렬할 게시물이 없습니다.</li>}
+          {posts.length === 0 && <li className="py-8 text-center text-slate-500 dark:text-theme-muted">정렬할 게시물이 없습니다.</li>}
         </ol>
       )}
     </section>

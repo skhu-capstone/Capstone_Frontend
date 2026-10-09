@@ -16,20 +16,20 @@ const TEAM = {
 
 export default function Footer() {
   return (
-    <footer className="w-full" style={{ backgroundColor: "#C5C4C4" }}>
+    <footer className="w-full" style={{ backgroundColor: "var(--theme-footer)" }}>
       {/* 상단 구분선 */}
-      <div className="w-full h-px" style={{ backgroundColor: "#21212130" }} />
+      <div className="w-full h-px" style={{ backgroundColor: "var(--theme-footer-border)" }} />
 
       <div className="max-w-[2000px] mx-auto px-6 py-8">
         <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-8 items-start">
           {/* 왼쪽: 로고 + 슬로건 */}
           <div className="flex flex-col gap-3 min-w-[140px]">
-            <a href="/" className="inline-block">
-              <img src={logo} alt="logo" className="h-10 w-auto" />
+            <a href="/" className="theme-footer-link inline-block">
+              <img src={logo} alt="logo" className="theme-logo h-10 w-auto" />
             </a>
             <p
               className="text-xs leading-relaxed max-w-[160px]"
-              style={{ color: "#21212199" }}
+              style={{ color: "var(--theme-footer-secondary)" }}
             >
               대학생을 위한 동아리·협업 커뮤니티 플랫폼
             </p>
@@ -41,7 +41,7 @@ export default function Footer() {
             <div className="flex flex-col gap-2">
               <p
                 className="text-[11px] font-semibold uppercase tracking-widest mb-1"
-                style={{ color: "#21212180" }}
+                style={{ color: "var(--theme-footer-muted)" }}
               >
                 Navigation
               </p>
@@ -49,10 +49,7 @@ export default function Footer() {
                 <a
                   key={label}
                   href={href}
-                  className="text-sm transition-colors duration-150 hover:opacity-100"
-                  style={{ color: "#212121CC" }}
-                  onMouseEnter={(e) => (e.target.style.color = "#212121")}
-                  onMouseLeave={(e) => (e.target.style.color = "#212121CC")}
+                  className="theme-footer-link text-sm transition-colors duration-150 hover:opacity-100"
                 >
                   {label}
                 </a>
@@ -63,7 +60,7 @@ export default function Footer() {
             <div className="flex flex-col gap-2">
               <p
                 className="text-[11px] font-semibold uppercase tracking-widest mb-1"
-                style={{ color: "#21212180" }}
+                style={{ color: "var(--theme-footer-muted)" }}
               >
                 Team
               </p>
@@ -72,12 +69,12 @@ export default function Footer() {
                   <Server
                     size={13}
                     className="shrink-0"
-                    style={{ color: "#21212199" }}
+                    style={{ color: "var(--theme-footer-secondary)" }}
                   />
-                  <span className="text-xs" style={{ color: "#21212180" }}>
+                  <span className="text-xs" style={{ color: "var(--theme-footer-muted)" }}>
                     Backend
                   </span>
-                  <span className="text-xs" style={{ color: "#212121CC" }}>
+                  <span className="text-xs" style={{ color: "var(--theme-footer-text)" }}>
                     {TEAM.backend.join(", ")}
                   </span>
                 </div>
@@ -85,12 +82,12 @@ export default function Footer() {
                   <Code2
                     size={13}
                     className="shrink-0"
-                    style={{ color: "#21212199" }}
+                    style={{ color: "var(--theme-footer-secondary)" }}
                   />
-                  <span className="text-xs" style={{ color: "#21212180" }}>
+                  <span className="text-xs" style={{ color: "var(--theme-footer-muted)" }}>
                     Frontend
                   </span>
-                  <span className="text-xs" style={{ color: "#212121CC" }}>
+                  <span className="text-xs" style={{ color: "var(--theme-footer-text)" }}>
                     {TEAM.frontend.join(", ")}
                   </span>
                 </div>
@@ -101,7 +98,7 @@ export default function Footer() {
             <div className="flex flex-col gap-2">
               <p
                 className="text-[11px] font-semibold uppercase tracking-widest mb-1"
-                style={{ color: "#21212180" }}
+                style={{ color: "var(--theme-footer-muted)" }}
               >
                 Contact
               </p>
@@ -109,20 +106,14 @@ export default function Footer() {
                 href="https://github.com/skhu-capstone"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm transition-colors duration-150"
-                style={{ color: "#212121CC" }}
-                onMouseEnter={(e) => (e.target.style.color = "#212121")}
-                onMouseLeave={(e) => (e.target.style.color = "#212121CC")}
+                className="theme-footer-link flex items-center gap-2 text-sm transition-colors duration-150"
               >
                 <GitFork size={14} className="shrink-0" />
                 GitHub
               </a>
               <a
                 href="mailto:hyun136000@gmail.com"
-                className="flex items-center gap-2 text-sm transition-colors duration-150"
-                style={{ color: "#212121CC" }}
-                onMouseEnter={(e) => (e.target.style.color = "#212121")}
-                onMouseLeave={(e) => (e.target.style.color = "#212121CC")}
+                className="theme-footer-link flex items-center gap-2 text-sm transition-colors duration-150"
               >
                 <Mail size={14} className="shrink-0" />
                 hyun136000@gmail.com
@@ -134,25 +125,19 @@ export default function Footer() {
           <div className="flex flex-col gap-2 text-right">
             <p
               className="text-[11px] font-semibold uppercase tracking-widest mb-1"
-              style={{ color: "#21212180" }}
+              style={{ color: "var(--theme-footer-muted)" }}
             >
               Legal
             </p>
             <a
               href="/terms"
-              className="text-ls transition-colors duration-150"
-              style={{ color: "#212121AA" }}
-              onMouseEnter={(e) => (e.target.style.color = "#212121")}
-              onMouseLeave={(e) => (e.target.style.color = "#212121AA")}
+              className="theme-footer-link theme-footer-legal text-ls transition-colors duration-150"
             >
               이용약관
             </a>
             <a
               href="/privacy"
-              className="text-ls transition-colors duration-150"
-              style={{ color: "#212121AA" }}
-              onMouseEnter={(e) => (e.target.style.color = "#212121")}
-              onMouseLeave={(e) => (e.target.style.color = "#212121AA")}
+              className="theme-footer-link theme-footer-legal text-ls transition-colors duration-150"
             >
               개인정보처리방침
             </a>
@@ -162,12 +147,12 @@ export default function Footer() {
         {/* 하단 카피라이트 바 */}
         <div
           className="mt-8 pt-4 flex flex-col sm:flex-row items-center justify-between gap-2"
-          style={{ borderTop: "1px solid #21212125" }}
+          style={{ borderTop: "1px solid var(--theme-footer-divider)" }}
         >
-          <p className="text-ls" style={{ color: "#21212180" }}>
+          <p className="text-ls" style={{ color: "var(--theme-footer-muted)" }}>
             © 2026 SKHU Capstone. All rights reserved.
           </p>
-          <p className="text-ls" style={{ color: "#21212160" }}>
+          <p className="text-ls" style={{ color: "var(--theme-footer-caption)" }}>
             성공회대학교 캡스톤디자인 프로젝트
           </p>
         </div>

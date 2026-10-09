@@ -21,8 +21,8 @@ import { DEFAULT_FEED_IMAGE } from "../../utils/imageUtils";
 
 function InfoItem({ icon: Icon, label, value }) {
   return (
-    <div className="flex gap-3 rounded-xl bg-slate-50 p-4">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-blue-600 shadow-sm">
+    <div className="flex gap-3 rounded-xl bg-slate-50 dark:bg-theme-subtle p-4">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white dark:bg-theme-surface text-blue-600 dark:text-theme-link shadow-sm dark:shadow-theme-shadow">
         {createElement(Icon, {
           size: 18,
           strokeWidth: 2,
@@ -30,9 +30,9 @@ function InfoItem({ icon: Icon, label, value }) {
       </div>
 
       <div className="min-w-0">
-        <p className="text-xs font-medium text-gray-400">{label}</p>
+        <p className="text-xs font-medium text-gray-400 dark:text-theme-muted">{label}</p>
 
-        <p className="mt-1 break-words text-sm font-medium text-gray-700">
+        <p className="mt-1 break-words text-sm font-medium text-gray-700 dark:text-theme-secondary">
           {value || "정보 없음"}
         </p>
       </div>
@@ -153,9 +153,9 @@ export default function ClubDetailPage() {
 
   if (isLoading) {
     return (
-      <main className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-slate-50">
-        <div className="flex flex-col items-center gap-3 text-gray-400">
-          <Loader2 size={30} className="animate-spin text-blue-500" />
+      <main className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-slate-50 dark:bg-theme-subtle">
+        <div className="flex flex-col items-center gap-3 text-gray-400 dark:text-theme-muted">
+          <Loader2 size={30} className="animate-spin text-blue-500 dark:text-theme-link" />
 
           <p className="text-sm">동아리 정보를 불러오는 중입니다.</p>
         </div>
@@ -165,11 +165,11 @@ export default function ClubDetailPage() {
 
   if (isError || !club) {
     return (
-      <main className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-slate-50 px-5">
-        <div className="flex w-full max-w-lg flex-col items-center gap-3 rounded-2xl border border-red-100 bg-white p-10 text-center shadow-sm">
-          <AlertCircle size={32} className="text-red-400" />
+      <main className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-slate-50 dark:bg-theme-subtle px-5">
+        <div className="flex w-full max-w-lg flex-col items-center gap-3 rounded-2xl border border-red-100 dark:border-theme-danger-border bg-white dark:bg-theme-surface p-10 text-center shadow-sm dark:shadow-theme-shadow">
+          <AlertCircle size={32} className="text-red-400 dark:text-theme-danger" />
 
-          <p className="font-medium text-gray-700">
+          <p className="font-medium text-gray-700 dark:text-theme-secondary">
             동아리 정보를 불러오지 못했습니다.
           </p>
 
@@ -177,7 +177,7 @@ export default function ClubDetailPage() {
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="cursor-pointer rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+              className="cursor-pointer rounded-lg border border-gray-200 dark:border-theme-border px-4 py-2 text-sm text-gray-600 dark:text-theme-secondary hover:bg-gray-50 dark:hover:bg-theme-hover"
             >
               돌아가기
             </button>
@@ -185,7 +185,7 @@ export default function ClubDetailPage() {
             <button
               type="button"
               onClick={() => refetch()}
-              className="cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+              className="cursor-pointer rounded-lg bg-blue-600 dark:bg-theme-primary px-4 py-2 text-sm text-white hover:bg-blue-700 dark:hover:bg-theme-primary-hover"
             >
               다시 시도
             </button>
@@ -196,19 +196,19 @@ export default function ClubDetailPage() {
   }
 
   return (
-    <main className="min-h-[calc(100vh-64px)] bg-slate-50 px-5 py-8 sm:px-8 sm:py-12">
+    <main className="min-h-[calc(100vh-64px)] bg-slate-50 dark:bg-theme-subtle px-5 py-8 sm:px-8 sm:py-12">
       <div className="mx-auto max-w-5xl">
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="mb-5 flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-gray-500 transition-colors hover:bg-white hover:text-gray-800"
+          className="mb-5 flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-gray-500 dark:text-theme-muted transition-colors hover:bg-white dark:hover:bg-theme-hover hover:text-gray-800 dark:hover:text-theme-text"
         >
           <ArrowLeft size={17} />
           동아리 목록으로
         </button>
 
-        <article className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
-          <div className="relative aspect-[21/8] min-h-56 overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100">
+        <article className="overflow-hidden rounded-3xl border border-gray-100 dark:border-theme-border bg-white dark:bg-theme-surface shadow-sm dark:shadow-theme-shadow">
+          <div className="relative aspect-[21/8] min-h-56 overflow-hidden bg-gradient-to-br from-blue-50 dark:from-theme-page to-indigo-100 dark:to-theme-accent">
             {club.imageUrl && !hasImageError ? (
               <img
                 src={club.imageUrl}
@@ -225,31 +225,31 @@ export default function ClubDetailPage() {
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 {club.category && (
-                  <span className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                  <span className="inline-flex rounded-full bg-blue-50 dark:bg-theme-accent px-3 py-1 text-xs font-semibold text-blue-700 dark:text-theme-link">
                     {club.category}
                   </span>
                 )}
 
-                <h1 className="mt-3 text-2xl font-bold text-gray-900 sm:text-3xl">
+                <h1 className="mt-3 text-2xl font-bold text-gray-900 dark:text-theme-text sm:text-3xl">
                   {club.clubName}
                 </h1>
 
-                <p className="mt-3 text-base leading-7 text-gray-500">
+                <p className="mt-3 text-base leading-7 text-gray-500 dark:text-theme-muted">
                   {club.shortDescription ||
                     "동아리 소개가 아직 등록되지 않았습니다."}
                 </p>
               </div>
 
-              <div className="flex items-center gap-2 rounded-xl bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700">
+              <div className="flex items-center gap-2 rounded-xl bg-blue-50 dark:bg-theme-accent px-4 py-2 text-sm font-medium text-blue-700 dark:text-theme-link">
                 <Users size={17} />
                 <span>{club.memberCount ?? 0}명</span>
               </div>
             </div>
 
             <section className="mt-8">
-              <h2 className="text-base font-bold text-gray-900">동아리 소개</h2>
+              <h2 className="text-base font-bold text-gray-900 dark:text-theme-text">동아리 소개</h2>
 
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-gray-600">
+              <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-gray-600 dark:text-theme-secondary">
                 {club.detailDescription ||
                   "상세 소개가 아직 등록되지 않았습니다."}
               </p>
@@ -271,12 +271,12 @@ export default function ClubDetailPage() {
               <InfoItem icon={Mail} label="연락처" value={club.contact} />
             </section>
 
-            <section className="mt-10 border-t border-gray-100 pt-8">
-              <h2 className="text-lg font-bold text-gray-900">
+            <section className="mt-10 border-t border-gray-100 dark:border-theme-border pt-8">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-theme-text">
                 동아리 가입 신청
               </h2>
 
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="mt-2 text-sm text-gray-500 dark:text-theme-muted">
                 가입하고 싶은 이유나 간단한 자기소개를 작성해주세요.
               </p>
 
@@ -286,11 +286,11 @@ export default function ClubDetailPage() {
                 placeholder="예) 웹 개발에 관심이 많고 동아리 프로젝트에 적극적으로 참여하고 싶습니다."
                 rows={5}
                 disabled={cannotJoin || joinMutation.isPending}
-                className="mt-5 w-full resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm leading-6 outline-none transition-colors focus:border-blue-400 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
+                className="mt-5 w-full resize-none rounded-xl border border-gray-200 dark:border-theme-border px-4 py-3 text-sm leading-6 outline-none transition-colors focus:border-blue-400 dark:focus:border-theme-focus disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-theme-subtle disabled:text-gray-400 dark:disabled:text-theme-disabled"
               />
 
               {hasError && (
-                <p role="alert" className="mt-2 text-sm text-red-500">
+                <p role="alert" className="mt-2 text-sm text-red-500 dark:text-theme-danger">
                   소속 또는 가입 신청 상태를 확인하지 못했습니다.
                   <button
                     type="button"
@@ -325,7 +325,7 @@ export default function ClubDetailPage() {
                       )
                         cancelMutation.mutate();
                     }}
-                    className="rounded-lg border border-red-200 px-5 py-3 text-sm text-red-600 disabled:opacity-50 cursor-pointer"
+                    className="rounded-lg border border-red-200 dark:border-theme-danger-border px-5 py-3 text-sm text-red-600 dark:text-theme-danger disabled:opacity-50 cursor-pointer"
                   >
                     {cancelMutation.isPending ? "취소 중..." : "가입 신청 취소"}
                   </button>
@@ -339,7 +339,7 @@ export default function ClubDetailPage() {
                     joinMutation.isPending ||
                     cancelMutation.isPending
                   }
-                  className="flex min-w-36 cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+                  className="flex min-w-36 cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 dark:bg-theme-primary px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 dark:hover:bg-theme-primary-hover disabled:cursor-not-allowed disabled:bg-gray-400 dark:disabled:bg-theme-disabled-bg"
                 >
                   {joinMutation.isPending && (
                     <Loader2 size={16} className="animate-spin" />

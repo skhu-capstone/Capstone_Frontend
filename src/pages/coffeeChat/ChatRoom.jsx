@@ -35,12 +35,12 @@ function isSameDay(a, b) {
 }
 
 const AVATAR_COLORS = [
-  ["#e0f2fe", "#0369a1"],
-  ["#fce7f3", "#be185d"],
-  ["#dcfce7", "#15803d"],
-  ["#fef3c7", "#b45309"],
-  ["#ede9fe", "#6d28d9"],
-  ["#fee2e2", "#b91c1c"],
+  ["var(--avatar-sky-bg)", "var(--avatar-sky-text)"],
+  ["var(--avatar-pink-bg)", "var(--avatar-pink-text)"],
+  ["var(--avatar-green-bg)", "var(--avatar-green-text)"],
+  ["var(--avatar-amber-bg)", "var(--avatar-amber-text)"],
+  ["var(--avatar-violet-bg)", "var(--avatar-violet-text)"],
+  ["var(--avatar-red-bg)", "var(--avatar-red-text)"],
 ];
 function avatarColor(name) {
   const idx = (name?.charCodeAt(0) ?? 0) % AVATAR_COLORS.length;
@@ -51,11 +51,11 @@ function avatarColor(name) {
 function DateDivider({ iso }) {
   return (
     <div className="flex items-center gap-3 my-4 px-4">
-      <div className="flex-1 h-px bg-gray-100" />
-      <span className="text-xs text-gray-400 shrink-0">
+      <div className="flex-1 h-px bg-gray-100 dark:bg-theme-subtle" />
+      <span className="text-xs text-gray-400 dark:text-theme-muted shrink-0">
         {formatDateDivider(iso)}
       </span>
-      <div className="flex-1 h-px bg-gray-100" />
+      <div className="flex-1 h-px bg-gray-100 dark:bg-theme-subtle" />
     </div>
   );
 }
@@ -67,12 +67,12 @@ function MessageBubble({ msg, isMine, showAvatar, senderName }) {
   if (isMine) {
     return (
       <div className="flex justify-end items-end gap-1.5 mb-1 px-4">
-        <span className="text-xs text-gray-300 self-end mb-0.5">
+        <span className="text-xs text-gray-300 dark:text-theme-muted self-end mb-0.5">
           {formatMessageTime(msg.createdAt)}
         </span>
         <div
           className="max-w-[60%] px-3.5 py-2.5 rounded-2xl rounded-br-sm text-sm text-white leading-relaxed"
-          style={{ background: "#4F7BF7" }}
+          style={{ background: "var(--theme-chat-bubble)" }}
         >
           {msg.content}
         </div>
@@ -95,13 +95,13 @@ function MessageBubble({ msg, isMine, showAvatar, senderName }) {
       </div>
       <div className="max-w-[60%]">
         {showAvatar && (
-          <p className="text-xs text-gray-400 mb-1 ml-0.5">{senderName}</p>
+          <p className="text-xs text-gray-400 dark:text-theme-muted mb-1 ml-0.5">{senderName}</p>
         )}
-        <div className="bg-gray-100 px-3.5 py-2.5 rounded-2xl rounded-bl-sm text-sm text-gray-800 leading-relaxed">
+        <div className="bg-gray-100 dark:bg-theme-subtle px-3.5 py-2.5 rounded-2xl rounded-bl-sm text-sm text-gray-800 dark:text-theme-text leading-relaxed">
           {msg.content}
         </div>
       </div>
-      <span className="text-xs text-gray-300 self-end mb-0.5">
+      <span className="text-xs text-gray-300 dark:text-theme-muted self-end mb-0.5">
         {formatMessageTime(msg.createdAt)}
       </span>
     </div>
@@ -112,14 +112,14 @@ function MessageBubble({ msg, isMine, showAvatar, senderName }) {
 function EmptyState() {
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center px-8">
-      <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center">
-        <Coffee size={28} strokeWidth={1.5} className="text-amber-400" />
+      <div className="w-16 h-16 rounded-full bg-amber-50 dark:bg-theme-warning-bg flex items-center justify-center">
+        <Coffee size={28} strokeWidth={1.5} className="text-amber-400 dark:text-theme-warning" />
       </div>
       <div>
-        <p className="text-sm font-medium text-gray-600 mb-1">
+        <p className="text-sm font-medium text-gray-600 dark:text-theme-secondary mb-1">
           대화를 선택해보세요
         </p>
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-gray-400 dark:text-theme-muted">
           왼쪽 목록에서 대화를 클릭하면 <br />
           채팅창이 열립니다
         </p>
@@ -333,20 +333,20 @@ export default function ChatRoom({ room, onMessage }) {
   // ── 렌더 ────────────────────────────────────────────────────────────────
   if (!room) {
     return (
-      <div className="flex-1 flex flex-col bg-gray-50">
+      <div className="flex-1 flex flex-col bg-gray-50 dark:bg-theme-subtle">
         <EmptyState />
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white min-h-0">
+    <div className="flex-1 flex flex-col bg-white dark:bg-theme-surface min-h-0">
       {/* 채팅방 헤더 */}
-      <div className="px-5 py-4 border-b border-gray-100 shrink-0 bg-white">
+      <div className="px-5 py-4 border-b border-gray-100 dark:border-theme-border shrink-0 bg-white dark:bg-theme-surface">
         <button
           type="button"
           onClick={() => navigate(`/coffee-chat/profile/${room.targetUserId}`)}
-          className="flex items-center gap-3 rounded-lg text-left cursor-pointer hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
+          className="flex items-center gap-3 rounded-lg text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-theme-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 dark:focus-visible:ring-theme-focus focus-visible:ring-offset-2 dark:ring-offset-theme-surface"
           aria-label={`${room.targetUserName}님의 커피챗 프로필 보기`}
         >
           {(() => {
@@ -369,10 +369,10 @@ export default function ChatRoom({ room, onMessage }) {
             );
           })()}
           <div>
-            <p className="text-sm font-semibold text-gray-900">
+            <p className="text-sm font-semibold text-gray-900 dark:text-theme-text">
               {room.targetUserName}
             </p>
-            <p className="text-xs text-gray-400">커피챗</p>
+            <p className="text-xs text-gray-400 dark:text-theme-muted">커피챗</p>
           </div>
         </button>
       </div>
@@ -381,21 +381,21 @@ export default function ChatRoom({ room, onMessage }) {
       <div ref={scrollAreaRef} className="flex-1 overflow-y-auto py-4 min-h-0">
         {loading && (
           <div className="flex items-center justify-center py-12">
-            <Loader2 size={20} className="text-gray-300 animate-spin" />
+            <Loader2 size={20} className="text-gray-300 dark:text-theme-muted animate-spin" />
           </div>
         )}
 
         {error && !loading && (
           <div className="flex items-center justify-center gap-2 py-12">
-            <AlertCircle size={16} className="text-red-300" />
-            <p className="text-sm text-gray-400">{error}</p>
+            <AlertCircle size={16} className="text-red-300 dark:text-theme-danger" />
+            <p className="text-sm text-gray-400 dark:text-theme-muted">{error}</p>
           </div>
         )}
 
         {!loading && !error && messages.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 gap-2">
-            <p className="text-sm text-gray-400">아직 대화 내용이 없어요</p>
-            <p className="text-xs text-gray-300">먼저 인사해보세요 👋</p>
+            <p className="text-sm text-gray-400 dark:text-theme-muted">아직 대화 내용이 없어요</p>
+            <p className="text-xs text-gray-300 dark:text-theme-muted">먼저 인사해보세요 👋</p>
           </div>
         )}
 
@@ -428,8 +428,8 @@ export default function ChatRoom({ room, onMessage }) {
       </div>
 
       {/* 입력창 */}
-      <div className="px-4 py-3 border-t border-gray-100 shrink-0 bg-white">
-        <div className="flex items-end gap-2 bg-gray-50 rounded-2xl px-4 py-2.5">
+      <div className="px-4 py-3 border-t border-gray-100 dark:border-theme-border shrink-0 bg-white dark:bg-theme-surface">
+        <div className="flex items-end gap-2 bg-gray-50 dark:bg-theme-subtle rounded-2xl px-4 py-2.5">
           <textarea
             ref={inputRef}
             value={input}
@@ -445,7 +445,7 @@ export default function ChatRoom({ room, onMessage }) {
             onKeyDown={handleKeyDown}
             placeholder="메시지를 입력하세요..."
             rows={1}
-            className="flex-1 text-sm text-gray-800 placeholder-gray-400 outline-none bg-transparent resize-none leading-relaxed"
+            className="flex-1 text-sm text-gray-800 dark:text-theme-text placeholder-gray-400 dark:placeholder:text-theme-muted outline-none bg-transparent resize-none leading-relaxed"
             style={{ minHeight: "24px", maxHeight: "120px" }}
           />
           <button
@@ -453,7 +453,7 @@ export default function ChatRoom({ room, onMessage }) {
             disabled={!input.trim() || sending}
             className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-150 disabled:opacity-30"
             style={{
-              background: input.trim() && !sending ? "#4F7BF7" : "#e5e7eb",
+              background: input.trim() && !sending ? "var(--theme-chat-bubble)" : "var(--theme-chat-disabled)",
             }}
           >
             {sending ? (
@@ -462,12 +462,12 @@ export default function ChatRoom({ room, onMessage }) {
               <Send
                 size={14}
                 strokeWidth={2}
-                className={input.trim() ? "text-white" : "text-gray-400"}
+                className={input.trim() ? "text-white" : "text-gray-400 dark:text-theme-muted"}
               />
             )}
           </button>
         </div>
-        <p className="text-xs text-gray-300 mt-1.5 ml-1">
+        <p className="text-xs text-gray-300 dark:text-theme-muted mt-1.5 ml-1">
           Enter로 전송 · Shift+Enter 줄바꿈
         </p>
       </div>

@@ -16,9 +16,9 @@ function authHeader() {
 
 function getDdayClass(dday) {
   const n = parseInt((dday ?? "D-99").replace("D-", ""));
-  if (n <= 7) return "bg-green-100 text-green-700";
-  if (n <= 14) return "bg-cyan-100 text-cyan-700";
-  return "bg-blue-100 text-blue-700";
+  if (n <= 7) return "bg-green-100 dark:bg-theme-success-bg text-green-700 dark:text-theme-success";
+  if (n <= 14) return "bg-cyan-100 dark:bg-theme-accent text-cyan-700 dark:text-theme-link";
+  return "bg-blue-100 dark:bg-theme-accent text-blue-700 dark:text-theme-link";
 }
 
 // ─── 공통 상세 레이아웃 (UI 동일) ────────────────────────────────────────────
@@ -36,15 +36,15 @@ function DetailLayout({
   actions,
 }) {
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col">
-      <div className="w-full bg-slate-200 flex items-center justify-between px-4 h-12">
+    <div className="min-h-screen bg-slate-100 dark:bg-theme-page flex flex-col">
+      <div className="w-full bg-slate-200 dark:bg-theme-raised flex items-center justify-between px-4 h-12">
         <div className="flex items-center gap-2">
           <button
             onClick={onBack}
-            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-slate-300 transition-colors duration-150 cursor-pointer"
+            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-slate-300 dark:hover:bg-theme-hover transition-colors duration-150 cursor-pointer"
             aria-label="뒤로가기"
           >
-            <ArrowLeft size={18} strokeWidth={2} className="text-gray-600" />
+            <ArrowLeft size={18} strokeWidth={2} className="text-gray-600 dark:text-theme-secondary" />
           </button>
           <span
             className={`text-xs font-bold px-3 py-1 rounded-full ${getDdayClass(
@@ -54,28 +54,28 @@ function DetailLayout({
             {dday}
           </span>
         </div>
-        <span className="text-sm font-medium text-gray-600 pr-1">
+        <span className="text-sm font-medium text-gray-600 dark:text-theme-secondary pr-1">
           {clubLabel}
         </span>
       </div>
 
       <main className="flex-1 flex items-start justify-center px-4 pt-16 pb-8">
-        <div className="w-full max-w-xl bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div className="w-full max-w-xl bg-white dark:bg-theme-surface rounded-2xl shadow-sm dark:shadow-theme-shadow overflow-hidden">
           <SafeImage src={imageUrl} getSrc={getContentImageUrl}
             fallbackSrc="" alt="모집 이미지" className="w-full h-75 object-cover" />
 
           <div className="px-6 py-6 flex flex-col gap-4">
-            <h1 className="text-lg font-bold text-gray-900 leading-snug">
+            <h1 className="text-lg font-bold text-gray-900 dark:text-theme-text leading-snug">
               {title}
             </h1>
 
             <div className="flex flex-col gap-2">
               {fields.map(({ label, value }) => (
                 <div key={label} className="flex gap-4">
-                  <span className="text-sm text-gray-400 w-20 shrink-0">
+                  <span className="text-sm text-gray-400 dark:text-theme-muted w-20 shrink-0">
                     {label}
                   </span>
-                  <span className="text-sm text-gray-800 whitespace-pre-wrap break-words">{value}</span>
+                  <span className="text-sm text-gray-800 dark:text-theme-text whitespace-pre-wrap break-words">{value}</span>
                 </div>
               ))}
             </div>
@@ -88,7 +88,7 @@ function DetailLayout({
             >
               문의하기
             </button>
-            {isOwnPost && <p className="text-center text-xs text-gray-500">본인이 작성한 게시물에는 문의할 수 없습니다.</p>}
+            {isOwnPost && <p className="text-center text-xs text-gray-500 dark:text-theme-muted">본인이 작성한 게시물에는 문의할 수 없습니다.</p>}
           </div>
         </div>
       </main>
@@ -99,20 +99,20 @@ function DetailLayout({
 // ─── 로딩 / 에러 공통 ─────────────────────────────────────────────────────────
 function LoadingView() {
   return (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center">
-      <Loader2 size={24} className="text-gray-300 animate-spin" />
+    <div className="min-h-screen bg-slate-100 dark:bg-theme-page flex items-center justify-center">
+      <Loader2 size={24} className="text-gray-300 dark:text-theme-muted animate-spin" />
     </div>
   );
 }
 
 function ErrorView({ message, onBack }) {
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center gap-3">
-      <AlertCircle size={24} className="text-red-300" strokeWidth={1.5} />
-      <p className="text-sm text-gray-400">{message}</p>
+    <div className="min-h-screen bg-slate-100 dark:bg-theme-page flex flex-col items-center justify-center gap-3">
+      <AlertCircle size={24} className="text-red-300 dark:text-theme-danger" strokeWidth={1.5} />
+      <p className="text-sm text-gray-400 dark:text-theme-muted">{message}</p>
       <button
         onClick={onBack}
-        className="text-sm text-indigo-500 hover:text-indigo-700 transition-colors cursor-pointer"
+        className="text-sm text-indigo-500 dark:text-theme-link hover:text-indigo-700 dark:hover:text-theme-link transition-colors cursor-pointer"
       >
         돌아가기
       </button>
@@ -206,7 +206,7 @@ function ClubPostDetail({ id, onBack }) {
     <DetailLayout
       dday={post.ddayText ?? post.dDayText ?? "D-?"}
       clubLabel={post.clubName ?? ""}
-      buttonColor="bg-green-500 hover:bg-green-600"
+      buttonColor="bg-green-500 dark:bg-theme-success-action hover:bg-green-600 dark:hover:bg-theme-success-hover"
       fields={fields}
       title={post.title}
       imageUrl={post.imageUrl}
@@ -328,6 +328,6 @@ export default function PostDetailPage() {
     return <ProjectPostDetail key={id} id={id} onBack={handleBack} />;
 
   return (
-    <div className="p-8 text-center text-gray-400">잘못된 접근입니다.</div>
+    <div className="p-8 text-center text-gray-400 dark:text-theme-muted">잘못된 접근입니다.</div>
   );
 }

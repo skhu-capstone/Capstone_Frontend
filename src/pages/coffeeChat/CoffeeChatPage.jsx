@@ -24,12 +24,12 @@ function formatTime(iso) {
 }
 
 const AVATAR_COLORS = [
-  ["#e0f2fe", "#0369a1"],
-  ["#fce7f3", "#be185d"],
-  ["#dcfce7", "#15803d"],
-  ["#fef3c7", "#b45309"],
-  ["#ede9fe", "#6d28d9"],
-  ["#fee2e2", "#b91c1c"],
+  ["var(--avatar-sky-bg)", "var(--avatar-sky-text)"],
+  ["var(--avatar-pink-bg)", "var(--avatar-pink-text)"],
+  ["var(--avatar-green-bg)", "var(--avatar-green-text)"],
+  ["var(--avatar-amber-bg)", "var(--avatar-amber-text)"],
+  ["var(--avatar-violet-bg)", "var(--avatar-violet-text)"],
+  ["var(--avatar-red-bg)", "var(--avatar-red-text)"],
 ];
 function avatarColor(name) {
   const idx = (name?.charCodeAt(0) ?? 0) % AVATAR_COLORS.length;
@@ -46,8 +46,8 @@ function RoomItem({ room, isActive, onClick }) {
       onClick={onClick}
       className={`w-full flex items-center gap-3 px-4 py-3.5 transition-colors duration-100 cursor-pointer text-left border-l-2 ${
         isActive
-          ? "bg-blue-50 border-blue-400"
-          : "hover:bg-slate-50 border-transparent"
+          ? "bg-blue-50 dark:bg-theme-accent border-blue-400 dark:border-theme-focus"
+          : "hover:bg-slate-50 dark:hover:bg-theme-hover border-transparent"
       }`}
     >
       {/* 아바타 */}
@@ -67,7 +67,7 @@ function RoomItem({ room, isActive, onClick }) {
           )}
         </div>
         {room.unreadCount > 0 && (
-          <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-400 border-2 border-white" />
+          <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-400 border-2 border-white dark:border-theme-surface" />
         )}
       </div>
 
@@ -77,13 +77,13 @@ function RoomItem({ room, isActive, onClick }) {
           <span
             className={`text-sm truncate ${
               room.unreadCount > 0
-                ? "font-semibold text-gray-900"
-                : "font-medium text-gray-700"
+                ? "font-semibold text-gray-900 dark:text-theme-text"
+                : "font-medium text-gray-700 dark:text-theme-secondary"
             }`}
           >
             {room.targetUserName}
           </span>
-          <span className="text-xs text-gray-400 shrink-0 ml-2">
+          <span className="text-xs text-gray-400 dark:text-theme-muted shrink-0 ml-2">
             {formatTime(room.lastMessageAt)}
           </span>
         </div>
@@ -91,14 +91,14 @@ function RoomItem({ room, isActive, onClick }) {
           <p
             className={`text-xs truncate ${
               room.unreadCount > 0
-                ? "text-gray-700 font-medium"
-                : "text-gray-400"
+                ? "text-gray-700 dark:text-theme-secondary font-medium"
+                : "text-gray-400 dark:text-theme-muted"
             }`}
           >
             {room.lastMessage}
           </p>
           {room.unreadCount > 0 && (
-            <span className="shrink-0 min-w-[18px] h-[18px] rounded-full bg-blue-500 text-white text-xs font-semibold flex items-center justify-center px-1">
+            <span className="shrink-0 min-w-[18px] h-[18px] rounded-full bg-blue-500 dark:bg-theme-primary text-white text-xs font-semibold flex items-center justify-center px-1">
               {room.unreadCount > 99 ? "99+" : room.unreadCount}
             </span>
           )}
@@ -209,69 +209,69 @@ export default function CoffeeChatPage() {
     <div className="flex" style={{ height: "calc(100vh - 64px)" }}>
       {/* ── 좌측 채팅 목록 (30%) ─────────────────────────────────────────── */}
       <div
-        className="flex flex-col border-r border-gray-100 bg-white"
+        className="flex flex-col border-r border-gray-100 dark:border-theme-border bg-white dark:bg-theme-surface"
         style={{ width: "30%", minWidth: "260px" }}
       >
         {/* 헤더 */}
         <div className="px-5 pt-6 pb-3 shrink-0">
           <div className="flex items-center gap-2 mb-0.5">
-            <Coffee size={18} strokeWidth={1.8} className="text-amber-500" />
-            <h1 className="text-base font-bold text-gray-900">커피챗</h1>
+            <Coffee size={18} strokeWidth={1.8} className="text-amber-500 dark:text-theme-warning" />
+            <h1 className="text-base font-bold text-gray-900 dark:text-theme-text">커피챗</h1>
             {totalUnread > 0 && (
-              <span className="text-xs font-semibold text-white bg-blue-500 rounded-full px-1.5 py-0.5 leading-none">
+              <span className="text-xs font-semibold text-white bg-blue-500 dark:bg-theme-primary rounded-full px-1.5 py-0.5 leading-none">
                 {totalUnread}
               </span>
             )}
           </div>
-          <p className="text-xs text-gray-400">대화를 이어가 보세요</p>
+          <p className="text-xs text-gray-400 dark:text-theme-muted">대화를 이어가 보세요</p>
         </div>
 
         {/* 검색창 */}
         <div className="px-4 pb-3 shrink-0">
-          <div className="flex items-center gap-2 bg-slate-100 rounded-xl px-3 py-2">
+          <div className="flex items-center gap-2 bg-slate-100 dark:bg-theme-subtle rounded-xl px-3 py-2">
             <Search
               size={13}
               strokeWidth={2}
-              className="text-gray-400 shrink-0"
+              className="text-gray-400 dark:text-theme-muted shrink-0"
             />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="이름 또는 메시지 검색"
-              className="flex-1 text-xs text-gray-700 placeholder-gray-400 outline-none bg-transparent"
+              className="flex-1 text-xs text-gray-700 dark:text-theme-secondary placeholder-gray-400 dark:placeholder:text-theme-muted outline-none bg-transparent"
             />
           </div>
         </div>
 
-        <div className="h-px bg-gray-100 mx-4 shrink-0" />
+        <div className="h-px bg-gray-100 dark:bg-theme-subtle mx-4 shrink-0" />
 
         {/* 목록 */}
         <div className="flex-1 overflow-y-auto">
           {loading && (
             <div className="flex items-center justify-center py-12">
-              <Loader2 size={18} className="text-gray-300 animate-spin" />
+              <Loader2 size={18} className="text-gray-300 dark:text-theme-muted animate-spin" />
             </div>
           )}
 
           {error && !loading && (
             <div className="flex flex-col items-center justify-center py-12 gap-2">
-              <AlertCircle size={18} className="text-red-300" />
-              <p className="text-xs text-gray-400">{error}</p>
+              <AlertCircle size={18} className="text-red-300 dark:text-theme-danger" />
+              <p className="text-xs text-gray-400 dark:text-theme-muted">{error}</p>
             </div>
           )}
 
           {!loading && !error && filtered.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12 gap-2">
-              <Coffee size={24} strokeWidth={1.5} className="text-gray-200" />
-              <p className="text-xs text-gray-400">
+              <Coffee size={24} strokeWidth={1.5} className="text-gray-200 dark:text-theme-muted" />
+              <p className="text-xs text-gray-400 dark:text-theme-muted">
                 {search ? "검색 결과가 없어요" : "아직 대화가 없어요"}
               </p>
             </div>
           )}
 
           {!loading && !error && (
-            <div className="divide-y divide-gray-50">
+            <div className="divide-y divide-gray-50 dark:divide-theme-border">
               {filtered.map((room) => (
                 <RoomItem
                   key={room.chatRoomId}

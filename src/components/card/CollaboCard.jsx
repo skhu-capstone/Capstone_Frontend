@@ -17,31 +17,31 @@ function CollaboCard({
     <div
       // onClick이 따로 없으면 협업 타입에 맞는 상세 페이지로 이동
       onClick={onClick ?? (() => navigate(`/cooperation/${type}/${id}`))}
-      className="w-full min-h-44 p-4 bg-white rounded-xl shadow-[0px_4px_10px_0px_rgba(0,0,0,0.05)]
-      outline-1 outline-offset-1 outline-slate-100 flex flex-col gap-2.5 
+      className="w-full min-h-44 p-4 bg-white dark:bg-theme-surface rounded-xl shadow-[0px_4px_10px_0px_rgba(0,0,0,0.05)] dark:shadow-theme-shadow
+      outline-1 outline-offset-1 outline-slate-100 dark:outline-theme-border flex flex-col gap-2.5
       cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:-translate-y-4 hover:outline-[3px]
-      hover:outline-offset-[-3px] hover:outline-blue-700"
+      hover:outline-offset-[-3px] hover:outline-blue-700 dark:hover:outline-theme-focus"
     >
       {/* 제목 */}
-      <h3 className="text-xl font-semibold text-black break-words font-pretendard md:text-2xl">
+      <h3 className="text-xl font-semibold text-black dark:text-theme-text break-words font-pretendard md:text-2xl">
         {title}
       </h3>
 
       {/* 작성자, 시간 */}
       <div className="flex justify-end">
-        <span className="text-right text-sm font-normal text-black font-pretendard md:text-base">
+        <span className="text-right text-sm font-normal text-black dark:text-theme-text font-pretendard md:text-base">
           {author} · {time}
         </span>
       </div>
 
       {/* 내용 */}
-      <p className="text-sm font-normal text-black font-pretendard line-clamp-2 md:text-base">
+      <p className="text-sm font-normal text-black dark:text-theme-text font-pretendard line-clamp-2 md:text-base">
         {content}
       </p>
 
       {/* D-Day */}
-      <div className="w-16 h-7 px-1 py-2.5 bg-blue-100 rounded-full flex justify-center items-center overflow-hidden">
-        <span className="text-center text-black text-base font-normal font-pretendard">
+      <div className="w-16 h-7 px-1 py-2.5 bg-blue-100 dark:bg-theme-accent rounded-full flex justify-center items-center overflow-hidden">
+        <span className="text-center text-black dark:text-theme-text text-base font-normal font-pretendard">
           {dDay}
         </span>
       </div>

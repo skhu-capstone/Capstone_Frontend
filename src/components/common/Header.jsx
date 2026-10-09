@@ -18,6 +18,7 @@ import { useAuth } from "../../context/AuthContext";
 import { getMyPage } from "../../services/myPageService";
 import { getProfileImageUrl } from "../../utils/imageUtils";
 import logo from "../../assets/logo.png";
+import ThemeSwitcher from "./ThemeSwitcher.jsx";
 
 const NAV_ITEMS = [
   { label: "홈", icon: Home, href: "/" },
@@ -149,7 +150,7 @@ export default function Header() {
   };
 
   return (
-    <header className="w-full" style={{ backgroundColor: "#6B8DD6" }}>
+    <header className="w-full" style={{ backgroundColor: "var(--theme-header)" }}>
       <div className="mx-auto grid h-16 max-w-500 grid-cols-[auto_1fr_auto] items-center gap-4 px-4">
         <button
           type="button"
@@ -157,11 +158,11 @@ export default function Header() {
           onClick={() => navigate("/")}
           aria-label="홈으로 이동"
         >
-          <img src={logo} alt="logo" className="h-10 w-auto" />
+          <img src={logo} alt="logo" className="theme-logo h-10 w-auto" />
         </button>
 
         <div className="hidden justify-end pr-2 md:flex" ref={navMenuRef}>
-          <div className="rounded-2xl bg-white px-2 py-1.5">
+          <div className="rounded-2xl bg-white dark:bg-theme-surface px-2 py-1.5">
             <nav className="flex items-center gap-1">
               {NAV_ITEMS.map((item) => {
                 const { label, icon: Icon, href, children } = item;
@@ -179,12 +180,12 @@ export default function Header() {
                         }
                         aria-expanded={openMenuLabel === label}
                         aria-haspopup="menu"
-                        style={{ color: isActive ? "#432DD7" : "#4A5565" }}
+                        style={{ color: isActive ? "var(--theme-nav-active)" : "var(--theme-nav-text)" }}
                         className={[
                           "flex cursor-pointer items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm whitespace-nowrap transition-colors duration-150",
                           isActive
                             ? "font-medium"
-                            : "font-normal hover:bg-gray-100",
+                            : "font-normal hover:bg-gray-100 dark:hover:bg-theme-hover",
                         ].join(" ")}
                       >
                         {createElement(Icon, {
@@ -203,7 +204,7 @@ export default function Header() {
 
                       {openMenuLabel === label && (
                         <div
-                          className="absolute left-0 top-full z-50 mt-2 w-40 overflow-hidden rounded-xl border border-gray-100 bg-white py-1 shadow-lg"
+                          className="absolute left-0 top-full z-50 mt-2 w-40 overflow-hidden rounded-xl border border-gray-100 dark:border-theme-border bg-white dark:bg-theme-surface py-1 shadow-lg dark:shadow-theme-shadow"
                           role="menu"
                         >
                           {children.map(
@@ -217,7 +218,7 @@ export default function Header() {
                                 type="button"
                                 role="menuitem"
                                 onClick={() => handleNavClick(childHref)}
-                                className="flex w-full cursor-pointer items-center gap-2.5 px-3.5 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50"
+                                className="flex w-full cursor-pointer items-center gap-2.5 px-3.5 py-2.5 text-left text-sm text-gray-700 dark:text-theme-secondary hover:bg-gray-50 dark:hover:bg-theme-hover"
                               >
                                 {createElement(ChildIcon ?? Icon, {
                                   size: 16,
@@ -238,12 +239,12 @@ export default function Header() {
                     key={label}
                     type="button"
                     onClick={() => navigate(href)}
-                    style={{ color: isActive ? "#432DD7" : "#4A5565" }}
+                    style={{ color: isActive ? "var(--theme-nav-active)" : "var(--theme-nav-text)" }}
                     className={[
                       "flex cursor-pointer items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm whitespace-nowrap transition-colors duration-150",
                       isActive
                         ? "font-medium"
-                        : "font-normal hover:bg-gray-100",
+                        : "font-normal hover:bg-gray-100 dark:hover:bg-theme-hover",
                     ].join(" ")}
                   >
                     <Icon
@@ -260,6 +261,7 @@ export default function Header() {
         </div>
 
         <div className="col-start-3 flex items-center justify-self-end gap-2">
+          <ThemeSwitcher />
           <button
             type="button"
             onClick={() => setMobileMenuOpen((prev) => !prev)}
@@ -296,16 +298,16 @@ export default function Header() {
             </button>
 
             {profileOpen && (
-              <div className="absolute right-0 z-50 mt-2 w-52 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-lg">
+              <div className="absolute right-0 z-50 mt-2 w-52 overflow-hidden rounded-2xl border border-gray-100 dark:border-theme-border bg-white dark:bg-theme-surface shadow-lg dark:shadow-theme-shadow">
                 {isLoggedIn ? (
                   <>
-                    <div className="border-b border-gray-100 px-4 py-3">
+                    <div className="border-b border-gray-100 dark:border-theme-border px-4 py-3">
                       {user.name && (
-                        <p className="mb-0.5 text-xs text-gray-500">
+                        <p className="mb-0.5 text-xs text-gray-500 dark:text-theme-muted">
                           {user.name}
                         </p>
                       )}
-                      <p className="truncate text-sm font-medium text-gray-800">
+                      <p className="truncate text-sm font-medium text-gray-800 dark:text-theme-text">
                         {user.email}
                       </p>
                     </div>
@@ -313,13 +315,13 @@ export default function Header() {
                     <button
                       type="button"
                       onClick={handleAddAccount}
-                      className="flex w-full cursor-pointer items-center gap-2.5 border-b border-gray-100 px-4 py-3 text-sm text-gray-700 transition-colors duration-150 hover:bg-gray-50"
+                      className="flex w-full cursor-pointer items-center gap-2.5 border-b border-gray-100 dark:border-theme-border px-4 py-3 text-sm text-gray-700 dark:text-theme-secondary transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-theme-hover"
                     >
-                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-gray-400">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-gray-400 dark:border-theme-border-strong">
                         <Plus
                           size={12}
                           strokeWidth={2.5}
-                          className="text-gray-500"
+                          className="text-gray-500 dark:text-theme-muted"
                         />
                       </span>
                       다른 계정으로 로그인
@@ -328,8 +330,8 @@ export default function Header() {
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className="flex w-full cursor-pointer items-center gap-2.5 px-4 py-3 text-sm transition-colors duration-150 hover:bg-gray-50"
-                      style={{ color: "#432DD7" }}
+                      className="flex w-full cursor-pointer items-center gap-2.5 px-4 py-3 text-sm transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-theme-hover"
+                      style={{ color: "var(--theme-nav-active)" }}
                     >
                       <LogOut size={15} strokeWidth={2} />
                       로그아웃
@@ -339,7 +341,7 @@ export default function Header() {
                   <button
                     type="button"
                     onClick={handleAddAccount}
-                    className="flex w-full cursor-pointer items-center gap-2.5 px-4 py-3 text-sm font-medium text-gray-700 transition-colors duration-150 hover:bg-gray-50"
+                    className="flex w-full cursor-pointer items-center gap-2.5 px-4 py-3 text-sm font-medium text-gray-700 dark:text-theme-secondary transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-theme-hover"
                   >
                     <User size={15} strokeWidth={2} />
                     로그인

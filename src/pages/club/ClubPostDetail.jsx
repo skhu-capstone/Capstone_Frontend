@@ -160,34 +160,34 @@ function PostEditor({ post, postId, onClose }) {
         postType: post.postType ?? "NOTICE",
       });
     }}>
-      <h2 className="text-base font-semibold text-gray-900">게시글 수정</h2>
-      <label className="flex flex-col gap-2 text-sm font-medium text-gray-700">
+      <h2 className="text-base font-semibold text-gray-900 dark:text-theme-text">게시글 수정</h2>
+      <label className="flex flex-col gap-2 text-sm font-medium text-gray-700 dark:text-theme-secondary">
         제목
         <input autoFocus required maxLength={50} value={title}
           onChange={(event) => setTitle(event.target.value)} disabled={updateMutation.isPending}
-          className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-500" />
-        <span className="text-right text-xs text-gray-400">{title.length}/50</span>
+          className="w-full rounded-lg border border-gray-300 dark:border-theme-border-strong p-3 outline-none focus:border-blue-500 dark:focus:border-theme-focus" />
+        <span className="text-right text-xs text-gray-400 dark:text-theme-muted">{title.length}/50</span>
       </label>
-      <label className="flex flex-col gap-2 text-sm font-medium text-gray-700">
+      <label className="flex flex-col gap-2 text-sm font-medium text-gray-700 dark:text-theme-secondary">
         내용
         <textarea required maxLength={1000} rows={8} value={content}
           onChange={(event) => setContent(event.target.value)} disabled={updateMutation.isPending}
-          className="w-full resize-y rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-500" />
-        <span className="text-right text-xs text-gray-400">{content.length}/1000</span>
+          className="w-full resize-y rounded-lg border border-gray-300 dark:border-theme-border-strong p-3 outline-none focus:border-blue-500 dark:focus:border-theme-focus" />
+        <span className="text-right text-xs text-gray-400 dark:text-theme-muted">{content.length}/1000</span>
       </label>
       <fieldset
         disabled={updateMutation.isPending}
-        className="rounded-xl border border-slate-200 bg-slate-50 p-4 disabled:opacity-60"
+        className="rounded-xl border border-slate-200 dark:border-theme-border bg-slate-50 dark:bg-theme-subtle p-4 disabled:opacity-60"
       >
         <legend className="sr-only">첨부 이미지</legend>
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-sm font-semibold text-gray-800">첨부 이미지</h3>
-            <p className="mt-1 text-xs leading-5 text-gray-500">
+            <h3 className="text-sm font-semibold text-gray-800 dark:text-theme-text">첨부 이미지</h3>
+            <p className="mt-1 text-xs leading-5 text-gray-500 dark:text-theme-muted">
               PNG, JPG · 각 20MB 이하 · 최대 {MAX_POST_IMAGE_COUNT}장
             </p>
           </div>
-          <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200">
+          <span className="shrink-0 rounded-full bg-white dark:bg-theme-surface px-2.5 py-1 text-xs font-semibold text-slate-600 dark:text-theme-secondary shadow-sm dark:shadow-theme-shadow ring-1 ring-slate-200 dark:ring-theme-border">
             {selectedImageCount}/{MAX_POST_IMAGE_COUNT}장
           </span>
         </div>
@@ -196,7 +196,7 @@ function PostEditor({ post, postId, onClose }) {
           {imageUrls.map((url, index) => (
             <div
               key={`${index}-${url}`}
-              className="group relative aspect-square overflow-hidden rounded-lg bg-white ring-1 ring-slate-200"
+              className="group relative aspect-square overflow-hidden rounded-lg bg-white dark:bg-theme-surface ring-1 ring-slate-200 dark:ring-theme-border"
             >
               <img
                 src={getContentImageUrl(url)}
@@ -220,10 +220,10 @@ function PostEditor({ post, postId, onClose }) {
           {imageFiles.map((file, index) => (
             <div
               key={`${file.name}-${file.size}-${file.lastModified}`}
-              className="relative aspect-square overflow-hidden rounded-lg bg-white ring-2 ring-blue-500 ring-offset-2 ring-offset-slate-50"
+              className="relative aspect-square overflow-hidden rounded-lg bg-white dark:bg-theme-surface ring-2 ring-blue-500 dark:ring-theme-focus ring-offset-2 dark:ring-offset-theme-surface ring-offset-slate-50"
             >
               <SelectedImagePreview file={file} index={index} />
-              <span className="absolute bottom-2 left-2 max-w-[calc(100%-1rem)] truncate rounded-md bg-blue-600 px-2 py-1 text-[11px] font-medium text-white">
+              <span className="absolute bottom-2 left-2 max-w-[calc(100%-1rem)] truncate rounded-md bg-blue-600 dark:bg-theme-primary px-2 py-1 text-[11px] font-medium text-white">
                 새 이미지 {index + 1}
               </span>
               <button
@@ -238,8 +238,8 @@ function PostEditor({ post, postId, onClose }) {
             </div>
           ))}
           {canAddImage && (
-            <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-300 bg-white text-slate-500 transition-colors hover:border-blue-500 hover:bg-blue-50 hover:text-blue-600">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
+            <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-300 dark:border-theme-border-strong bg-white dark:bg-theme-surface text-slate-500 dark:text-theme-muted transition-colors hover:border-blue-500 dark:hover:border-theme-focus hover:bg-blue-50 dark:hover:bg-theme-accent-hover hover:text-blue-600 dark:hover:text-theme-link">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 dark:bg-theme-subtle">
                 <ImagePlus size={20} aria-hidden="true" />
               </span>
               <span className="text-xs font-semibold">
@@ -256,17 +256,17 @@ function PostEditor({ post, postId, onClose }) {
             </label>
           )}
         </div>
-        {imageError && <p role="alert" className="mt-3 text-sm text-red-500">{imageError}</p>}
+        {imageError && <p role="alert" className="mt-3 text-sm text-red-500 dark:text-theme-danger">{imageError}</p>}
       </fieldset>
-      {updateMutation.isError && <p role="alert" className="text-sm text-red-500">{errorMessage}</p>}
+      {updateMutation.isError && <p role="alert" className="text-sm text-red-500 dark:text-theme-danger">{errorMessage}</p>}
       {updateMutation.isError && hasUploadedImage && (
-        <p role="alert" className="text-xs text-amber-700">사진은 업로드되었지만 수정 저장에 실패했습니다. 저장을 다시 눌러 완료해주세요. 취소해도 업로드된 사진은 남아 있을 수 있습니다.</p>
+        <p role="alert" className="text-xs text-amber-700 dark:text-theme-warning">사진은 업로드되었지만 수정 저장에 실패했습니다. 저장을 다시 눌러 완료해주세요. 취소해도 업로드된 사진은 남아 있을 수 있습니다.</p>
       )}
       <div className="flex justify-end gap-2">
         <button type="button" onClick={onClose} disabled={updateMutation.isPending}
-          className="rounded-lg border border-gray-300 px-4 py-2 text-sm disabled:opacity-50">취소</button>
+          className="rounded-lg border border-gray-300 dark:border-theme-border-strong px-4 py-2 text-sm disabled:opacity-50">취소</button>
         <button type="submit" disabled={!isValid || updateMutation.isPending}
-          className="rounded-lg bg-[#0B72B9] px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:bg-gray-400">
+          className="rounded-lg bg-[#0B72B9] dark:bg-theme-primary px-4 py-2 text-sm text-white disabled:cursor-not-allowed disabled:bg-gray-400 dark:disabled:bg-theme-disabled-bg">
           {updateMutation.isPending ? "저장 중..." : "저장"}
         </button>
       </div>
@@ -292,7 +292,7 @@ function ImageCarousel({ images }) {
     : getContentImageUrl(validImages[idx], DEFAULT_FEED_IMAGE);
 
   return (
-    <div className="relative w-full rounded-2xl overflow-hidden bg-slate-200">
+    <div className="relative w-full rounded-2xl overflow-hidden bg-slate-200 dark:bg-theme-raised">
       <img
         src={imageUrl}
         alt={`이미지 ${idx + 1}`}
@@ -345,13 +345,13 @@ function Skeleton() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 flex flex-col gap-3 animate-pulse">
       <div
-        className="w-full rounded-2xl bg-slate-200"
+        className="w-full rounded-2xl bg-slate-200 dark:bg-theme-raised"
         style={{ height: 420 }}
       />
-      <div className="bg-white rounded-2xl px-6 py-5 flex flex-col gap-3">
-        <div className="h-4 w-1/3 bg-slate-200 rounded" />
-        <div className="h-3 w-full bg-slate-100 rounded" />
-        <div className="h-3 w-5/6 bg-slate-100 rounded" />
+      <div className="bg-white dark:bg-theme-surface rounded-2xl px-6 py-5 flex flex-col gap-3">
+        <div className="h-4 w-1/3 bg-slate-200 dark:bg-theme-raised rounded" />
+        <div className="h-3 w-full bg-slate-100 dark:bg-theme-subtle rounded" />
+        <div className="h-3 w-5/6 bg-slate-100 dark:bg-theme-subtle rounded" />
       </div>
     </div>
   );
@@ -366,15 +366,15 @@ function CommentItem({ comment, canDelete, onDelete, isDeleting, isDeletePending
 
   return (
     <div className="flex items-start gap-2.5">
-      <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-semibold text-indigo-600 shrink-0">
+      <div className="w-7 h-7 rounded-full bg-indigo-100 dark:bg-theme-accent flex items-center justify-center text-xs font-semibold text-indigo-600 dark:text-theme-link shrink-0">
         {comment.writerName?.[0] ?? "?"}
       </div>
       <div className="flex flex-col gap-0.5 flex-1">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-gray-700">
+          <span className="text-xs font-medium text-gray-700 dark:text-theme-secondary">
             {comment.writerName}
           </span>
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-gray-400 dark:text-theme-muted">
             {formatDate(comment.createdAt)}
           </span>
           {canDelete && (
@@ -383,16 +383,16 @@ function CommentItem({ comment, canDelete, onDelete, isDeleting, isDeletePending
               onClick={onDelete}
               disabled={isDeletePending}
               aria-label={`${comment.writerName ?? "사용자"}님의 댓글 삭제`}
-              className="ml-auto shrink-0 cursor-pointer text-xs text-red-500 hover:text-red-700 disabled:cursor-not-allowed disabled:text-gray-400"
+              className="ml-auto shrink-0 cursor-pointer text-xs text-red-500 dark:text-theme-danger hover:text-red-700 dark:hover:text-theme-danger disabled:cursor-not-allowed disabled:text-gray-400 dark:disabled:text-theme-disabled"
             >
               {isDeleting ? "삭제 중..." : "삭제"}
             </button>
           )}
         </div>
-        <p className="text-sm text-gray-700 leading-relaxed">
+        <p className="text-sm text-gray-700 dark:text-theme-secondary leading-relaxed">
           {comment.content}
         </p>
-        {deleteError && <p role="alert" className="text-xs text-red-500">{deleteError}</p>}
+        {deleteError && <p role="alert" className="text-xs text-red-500 dark:text-theme-danger">{deleteError}</p>}
       </div>
     </div>
   );
@@ -586,13 +586,13 @@ export default function ClubPostDetail() {
 
   if (isError || !post) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-3 px-4 text-center">
-        <p className="text-gray-400 text-sm">
+      <div className="min-h-screen bg-slate-50 dark:bg-theme-page flex flex-col items-center justify-center gap-3 px-4 text-center">
+        <p className="text-gray-400 dark:text-theme-muted text-sm">
           {error?.message || "게시글을 찾을 수 없어요."}
         </p>
         <button
           onClick={handleBack}
-          className="text-sm text-indigo-500 hover:text-indigo-700 transition-colors cursor-pointer"
+          className="text-sm text-indigo-500 dark:text-theme-link hover:text-indigo-700 dark:hover:text-theme-link transition-colors cursor-pointer"
         >
           돌아가기
         </button>
@@ -609,24 +609,24 @@ export default function ClubPostDetail() {
   const isEditing = canEdit && editingPostId === currentPostId;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-theme-page">
       <main className="max-w-2xl mx-auto px-4 py-8 flex flex-col gap-0">
         <ImageCarousel key={JSON.stringify(post.imageUrls)} images={post.imageUrls} />
 
-        <div className="bg-white rounded-2xl shadow-sm px-6 py-5 flex flex-col gap-4 mt-3">
+        <div className="bg-white dark:bg-theme-surface rounded-2xl shadow-sm dark:shadow-theme-shadow px-6 py-5 flex flex-col gap-4 mt-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-semibold text-indigo-600">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 dark:bg-theme-accent text-xs font-semibold text-indigo-600 dark:text-theme-link">
                 {post.writerName?.[0] ?? "?"}
               </div>
-              <span className="max-w-40 truncate text-sm font-medium text-gray-700">
+              <span className="max-w-40 truncate text-sm font-medium text-gray-700 dark:text-theme-secondary">
                 {post.writerName}
               </span>
-              <span className="shrink-0 text-xs text-gray-400">
+              <span className="shrink-0 text-xs text-gray-400 dark:text-theme-muted">
                 {formatDate(post.createdAt)}
               </span>
               {post.postType === "NOTICE" && (
-                <span className="shrink-0 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700">
+                <span className="shrink-0 rounded-full border border-amber-200 dark:border-theme-warning-border bg-amber-50 dark:bg-theme-warning-bg px-2.5 py-0.5 text-xs font-medium text-amber-700 dark:text-theme-warning">
                   공지
                 </span>
               )}
@@ -638,7 +638,7 @@ export default function ClubPostDetail() {
                   type="button"
                   onClick={() => setEditingPostId(currentPostId)}
                   disabled={deleteMutation.isPending}
-                  className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-blue-200 bg-white px-3 text-xs font-semibold text-blue-600 transition-colors hover:border-blue-300 hover:bg-blue-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
+                  className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-blue-200 dark:border-theme-border bg-white dark:bg-theme-surface px-3 text-xs font-semibold text-blue-600 dark:text-theme-link transition-colors hover:border-blue-300 dark:hover:border-theme-focus hover:bg-blue-50 dark:hover:bg-theme-accent-hover disabled:cursor-not-allowed disabled:border-gray-200 dark:disabled:border-theme-border disabled:text-gray-400 dark:disabled:text-theme-disabled"
                 >
                   <Pencil size={14} aria-hidden="true" />
                   수정
@@ -649,7 +649,7 @@ export default function ClubPostDetail() {
                   type="button"
                   onClick={handleDeletePost}
                   disabled={deleteMutation.isPending || isEditing}
-                  className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 text-xs font-semibold text-red-500 transition-colors hover:border-red-300 hover:bg-red-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
+                  className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border border-red-200 dark:border-theme-danger-border bg-white dark:bg-theme-surface px-3 text-xs font-semibold text-red-500 dark:text-theme-danger transition-colors hover:border-red-300 dark:hover:border-theme-danger-border hover:bg-red-50 dark:hover:bg-theme-danger-bg disabled:cursor-not-allowed disabled:border-gray-200 dark:disabled:border-theme-border disabled:text-gray-400 dark:disabled:text-theme-disabled"
                 >
                   <Trash2 size={14} aria-hidden="true" />
                   {deleteMutation.isPending ? "삭제 중" : "삭제"}
@@ -663,22 +663,22 @@ export default function ClubPostDetail() {
           ) : (
             <>
           {post.title && (
-            <h2 className="break-words [overflow-wrap:anywhere] text-base font-semibold text-gray-900">
+            <h2 className="break-words [overflow-wrap:anywhere] text-base font-semibold text-gray-900 dark:text-theme-text">
               {post.title}
             </h2>
           )}
 
-          <p className="max-w-full whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-sm leading-relaxed text-gray-800">
+          <p className="max-w-full whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-sm leading-relaxed text-gray-800 dark:text-theme-text">
             {post.content}
           </p>
             </>
           )}
 
-          <div className="flex items-center gap-4 pt-1 border-t border-gray-100">
+          <div className="flex items-center gap-4 pt-1 border-t border-gray-100 dark:border-theme-border">
             <button
               onClick={handleLike}
               disabled={likeMutation.isPending}
-              className={`flex items-center gap-1.5 text-sm transition-colors duration-150 cursor-pointer disabled:cursor-not-allowed ${liked ? "text-rose-500" : "text-gray-400 hover:text-rose-400"}`}
+              className={`flex items-center gap-1.5 text-sm transition-colors duration-150 cursor-pointer disabled:cursor-not-allowed ${liked ? "text-rose-500 dark:text-theme-danger" : "text-gray-400 dark:text-theme-muted hover:text-rose-400 dark:hover:text-theme-danger"}`}
             >
               <Heart
                 size={16}
@@ -688,25 +688,25 @@ export default function ClubPostDetail() {
               />
               {likeCount}
             </button>
-            <span className="flex items-center gap-1.5 text-sm text-gray-400">
+            <span className="flex items-center gap-1.5 text-sm text-gray-400 dark:text-theme-muted">
               <MessageCircle size={16} strokeWidth={1.8} />
               {comments.length}
             </span>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm px-6 py-5 mt-2 flex flex-col gap-4">
-          <p className="text-sm font-semibold text-gray-700">
+        <div className="bg-white dark:bg-theme-surface rounded-2xl shadow-sm dark:shadow-theme-shadow px-6 py-5 mt-2 flex flex-col gap-4">
+          <p className="text-sm font-semibold text-gray-700 dark:text-theme-secondary">
             댓글
             {comments.length > 0 && (
-              <span className="ml-1.5 text-xs font-normal text-gray-400">
+              <span className="ml-1.5 text-xs font-normal text-gray-400 dark:text-theme-muted">
                 {comments.length}
               </span>
             )}
           </p>
 
           {comments.length === 0 ? (
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-400 dark:text-theme-muted">
               아직 댓글이 없어요. 첫 댓글을 남겨보세요!
             </p>
           ) : (
@@ -726,11 +726,11 @@ export default function ClubPostDetail() {
           )}
 
           {commentMutation.isError && (
-            <p className="text-xs text-red-500">댓글 작성에 실패했습니다.</p>
+            <p className="text-xs text-red-500 dark:text-theme-danger">댓글 작성에 실패했습니다.</p>
           )}
 
           <div
-            className={`flex items-center gap-2 border rounded-xl px-4 py-2.5 transition-colors ${commentMutation.isPending ? "border-gray-100 bg-gray-50" : "border-gray-200 focus-within:border-indigo-300"}`}
+            className={`flex items-center gap-2 border rounded-xl px-4 py-2.5 transition-colors ${commentMutation.isPending ? "border-gray-100 dark:border-theme-border bg-gray-50 dark:bg-theme-subtle" : "border-gray-200 dark:border-theme-border focus-within:border-indigo-300 dark:focus-within:border-theme-focus"}`}
           >
             <input
               ref={commentInputRef}
@@ -740,15 +740,15 @@ export default function ClubPostDetail() {
               onKeyDown={handleKeyDown}
               placeholder="댓글을 입력하세요..."
               disabled={commentMutation.isPending}
-              className="flex-1 text-sm text-gray-700 placeholder-gray-400 outline-none bg-transparent disabled:opacity-50"
+              className="flex-1 text-sm text-gray-700 dark:text-theme-secondary placeholder-gray-400 dark:placeholder:text-theme-muted outline-none bg-transparent disabled:opacity-50"
             />
             <button
               onClick={handleCommentSubmit}
               disabled={!commentText.trim() || commentMutation.isPending}
-              className={`shrink-0 transition-colors duration-150 cursor-pointer disabled:cursor-not-allowed ${commentText.trim() && !commentMutation.isPending ? "text-indigo-600 hover:text-indigo-800" : "text-gray-300"}`}
+              className={`shrink-0 transition-colors duration-150 cursor-pointer disabled:cursor-not-allowed ${commentText.trim() && !commentMutation.isPending ? "text-indigo-600 dark:text-theme-link hover:text-indigo-800 dark:hover:text-theme-link" : "text-gray-300 dark:text-theme-muted"}`}
             >
               {commentMutation.isPending ? (
-                <span className="text-xs text-gray-400">등록 중...</span>
+                <span className="text-xs text-gray-400 dark:text-theme-muted">등록 중...</span>
               ) : (
                 <Send size={15} strokeWidth={2} />
               )}

@@ -4,6 +4,24 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // Apply before CSS and React render to avoid a flash of the wrong theme.
+      (() => {
+        let theme = "system";
+        let systemIsDark = false;
+        try {
+          const stored = localStorage.getItem("capstone-theme");
+          if (["light", "dark", "system"].includes(stored)) theme = stored;
+        } catch {}
+        try {
+          systemIsDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        } catch {}
+        const resolved = theme === "system" ? (systemIsDark ? "dark" : "light") : theme;
+        document.documentElement.classList.toggle("dark", resolved === "dark");
+        document.documentElement.dataset.theme = resolved;
+        document.documentElement.style.colorScheme = resolved;
+      })();
+    </script>
     <title>capstone</title>
   </head>
   <body>

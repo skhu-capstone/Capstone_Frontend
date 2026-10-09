@@ -74,26 +74,26 @@ export default function RecruitmentActions({ type, id, post, onUpdated }) {
   }
 
   return (
-    <section className="border-t border-gray-100 pt-4">
+    <section className="border-t border-gray-100 dark:border-theme-border pt-4">
       {editing && canUpdate ? (
         <form onSubmit={(event) => { event.preventDefault(); submit("PATCH"); }}>
           <h2 className="mb-4 text-base font-semibold">{type === "club" ? "협업 모집글 수정" : "프로젝트 팀원 모집글 수정"}</h2>
           <fieldset disabled={!!pending} className="flex flex-col gap-3">
             {fields.map(({ key, label, type: inputType, required, maxLength, multiline }) => (
-              <label key={key} className="flex flex-col gap-1.5 text-sm text-gray-700">
+              <label key={key} className="flex flex-col gap-1.5 text-sm text-gray-700 dark:text-theme-secondary">
                 {label}{required ? " *" : ""}
                 {multiline ? (
                   <textarea rows={6} required={required} value={form[key]}
                     onChange={(event) => setForm((old) => ({ ...old, [key]: event.target.value }))}
-                    className="rounded-lg border border-gray-300 p-2 outline-none focus:border-indigo-500" />
+                    className="rounded-lg border border-gray-300 dark:border-theme-border-strong p-2 outline-none focus:border-indigo-500 dark:focus:border-theme-focus" />
                 ) : (
                   <input type={inputType ?? "text"} required={required} maxLength={maxLength} value={form[key]}
                     onChange={(event) => setForm((old) => ({ ...old, [key]: event.target.value }))}
-                    className="rounded-lg border border-gray-300 p-2 outline-none focus:border-indigo-500" />
+                    className="rounded-lg border border-gray-300 dark:border-theme-border-strong p-2 outline-none focus:border-indigo-500 dark:focus:border-theme-focus" />
                 )}
               </label>
             ))}
-            <p className="text-xs text-gray-500">이미지 URL을 비우면 첨부 이미지를 삭제합니다.</p>
+            <p className="text-xs text-gray-500 dark:text-theme-muted">이미지 URL을 비우면 첨부 이미지를 삭제합니다.</p>
             <div className="flex justify-end gap-3">
               <button type="button" onClick={() => { setEditing(false); setError(""); }} className="rounded-lg border px-4 py-2 text-sm">취소</button>
               <button type="submit" className="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white disabled:opacity-50">{pending ? "저장 중..." : "저장"}</button>
@@ -102,11 +102,11 @@ export default function RecruitmentActions({ type, id, post, onUpdated }) {
         </form>
       ) : (
         <div className="flex justify-end gap-4 text-sm">
-          {canUpdate && <button type="button" disabled={!!pending} onClick={startEditing} className="text-indigo-600 disabled:opacity-50">수정</button>}
-          {canDelete && <button type="button" disabled={!!pending} onClick={() => submit("DELETE")} className="text-red-500 disabled:opacity-50">{pending ? "삭제 중..." : "삭제"}</button>}
+          {canUpdate && <button type="button" disabled={!!pending} onClick={startEditing} className="text-indigo-600 dark:text-theme-link disabled:opacity-50">수정</button>}
+          {canDelete && <button type="button" disabled={!!pending} onClick={() => submit("DELETE")} className="text-red-500 dark:text-theme-danger disabled:opacity-50">{pending ? "삭제 중..." : "삭제"}</button>}
         </div>
       )}
-      {error && <p role="alert" className="mt-3 text-sm text-red-500">{error}</p>}
+      {error && <p role="alert" className="mt-3 text-sm text-red-500 dark:text-theme-danger">{error}</p>}
     </section>
   );
 }

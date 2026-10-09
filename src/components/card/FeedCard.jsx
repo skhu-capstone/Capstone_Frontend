@@ -21,9 +21,9 @@ function FeedCard({
   return (
     <div
       onClick={() => navigate(detailPath)}
-      className="w-full min-h-100 p-5 bg-white rounded-xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.15)] xl:h-113.75 
+      className="w-full min-h-100 p-5 bg-white dark:bg-theme-surface rounded-xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.15)] dark:shadow-theme-shadow xl:h-113.75
       flex flex-col justify-start items-start gap-4 overflow-hidden transition-all duration-300
-      cursor-pointer hover:scale-[1.01] hover:-translate-y-4 hover:outline-[3px] hover:outline-offset-[-3px] hover:outline-blue-500"
+      cursor-pointer hover:scale-[1.01] hover:-translate-y-4 hover:outline-[3px] hover:outline-offset-[-3px] hover:outline-blue-500 dark:hover:outline-theme-focus"
     >
       <div className="flex justify-center items-center gap-4">
         {/* 프로필 이미지 */}
@@ -32,16 +32,16 @@ function FeedCard({
           alt={`${author} 프로필 이미지`}
           className="w-12 h-12 rounded-full object-cover"
           referrerPolicy="no-referrer"
-          fallback={<div className="w-12 h-12 bg-zinc-300 rounded-full shrink-0" />}
+          fallback={<div className="w-12 h-12 bg-zinc-300 dark:bg-theme-disabled-bg rounded-full shrink-0" />}
         />
 
         <div className="min-w-0 h-12 flex flex-col justify-start items-start">
           {/* 작성자 */}
-          <div className="max-w-full truncate text-black text-base font-normal leading-6">
+          <div className="max-w-full truncate text-black dark:text-theme-text text-base font-normal leading-6">
             {author}
           </div>
           {/* 작성한 날짜 */}
-          <div className="text-black text-base font-normal leading-6">
+          <div className="text-black dark:text-theme-text text-base font-normal leading-6">
             {date?.slice(0, 10).replace(/-/g, ".")}
           </div>
         </div>
@@ -57,7 +57,7 @@ function FeedCard({
       />
 
       {/* 내용 */}
-      <div className="self-stretch text-black text-base font-normal leading-6 line-clamp-3">
+      <div className="self-stretch text-black dark:text-theme-text text-base font-normal leading-6 line-clamp-3">
         {content}
       </div>
     </div>

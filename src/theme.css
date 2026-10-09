@@ -1,0 +1,292 @@
+/* Semantic tokens shared by Tailwind, inline styles, and FullCalendar. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --color-theme-page: var(--theme-page);
+  --color-theme-surface: var(--theme-surface);
+  --color-theme-subtle: var(--theme-subtle);
+  --color-theme-raised: var(--theme-raised);
+  --color-theme-hover: var(--theme-hover);
+  --color-theme-text: var(--theme-text);
+  --color-theme-secondary: var(--theme-secondary);
+  --color-theme-muted: var(--theme-muted);
+  --color-theme-disabled: var(--theme-disabled);
+  --color-theme-disabled-bg: var(--theme-disabled-bg);
+  --color-theme-border: var(--theme-border);
+  --color-theme-border-strong: var(--theme-border-strong);
+  --color-theme-primary: var(--theme-primary);
+  --color-theme-primary-hover: var(--theme-primary-hover);
+  --color-theme-link: var(--theme-link);
+  --color-theme-accent: var(--theme-accent);
+  --color-theme-accent-hover: var(--theme-accent-hover);
+  --color-theme-focus: var(--theme-focus);
+  --color-theme-success: var(--theme-success);
+  --color-theme-success-bg: var(--theme-success-bg);
+  --color-theme-success-action: var(--theme-success-action);
+  --color-theme-success-hover: var(--theme-success-hover);
+  --color-theme-danger: var(--theme-danger);
+  --color-theme-danger-bg: var(--theme-danger-bg);
+  --color-theme-danger-border: var(--theme-danger-border);
+  --color-theme-danger-action: var(--theme-danger-action);
+  --color-theme-danger-hover: var(--theme-danger-hover);
+  --color-theme-warning: var(--theme-warning);
+  --color-theme-warning-bg: var(--theme-warning-bg);
+  --color-theme-warning-border: var(--theme-warning-border);
+  --color-theme-shadow: var(--theme-shadow);
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --theme-page: #f8fafc;
+    --theme-surface: #ffffff;
+    --theme-subtle: #f8fafc;
+    --theme-raised: #e2e8f0;
+    --theme-hover: #f1f5f9;
+    --theme-text: #111827;
+    --theme-secondary: #334155;
+    --theme-muted: #64748b;
+    --theme-disabled: #94a3b8;
+    --theme-disabled-bg: #9ca3af;
+    --theme-border: #e2e8f0;
+    --theme-border-strong: #cbd5e1;
+    --theme-primary: #2563eb;
+    --theme-primary-hover: #1d4ed8;
+    --theme-link: #1d4ed8;
+    --theme-accent: #eff6ff;
+    --theme-accent-hover: #dbeafe;
+    --theme-focus: #60a5fa;
+    --theme-success: #15803d;
+    --theme-success-bg: #dcfce7;
+    --theme-success-action: #15803d;
+    --theme-success-hover: #166534;
+    --theme-danger: #dc2626;
+    --theme-danger-bg: #fef2f2;
+    --theme-danger-border: #fecaca;
+    --theme-danger-action: #dc2626;
+    --theme-danger-hover: #b91c1c;
+    --theme-on-action: #ffffff;
+    --theme-warning: #b45309;
+    --theme-warning-bg: #fffbeb;
+    --theme-warning-border: #fde68a;
+    --theme-shadow: #00000014;
+    --theme-header: #6b8dd6;
+    --theme-nav-text: #4a5565;
+    --theme-nav-active: #432dd7;
+    --theme-footer: #c5c4c4;
+    --theme-footer-text: #212121cc;
+    --theme-footer-hover: #212121;
+    --theme-footer-secondary: #21212199;
+    --theme-footer-muted: #21212180;
+    --theme-footer-legal: #212121aa;
+    --theme-footer-caption: #21212160;
+    --theme-footer-border: #21212130;
+    --theme-footer-divider: #21212125;
+    --theme-chat-bubble: #4f7bf7;
+    --theme-chat-disabled: #e5e7eb;
+    --avatar-sky-bg: #e0f2fe;
+    --avatar-sky-text: #0369a1;
+    --avatar-pink-bg: #fce7f3;
+    --avatar-pink-text: #be185d;
+    --avatar-green-bg: #dcfce7;
+    --avatar-green-text: #15803d;
+    --avatar-amber-bg: #fef3c7;
+    --avatar-amber-text: #b45309;
+    --avatar-violet-bg: #ede9fe;
+    --avatar-violet-text: #6d28d9;
+    --avatar-red-bg: #fee2e2;
+    --avatar-red-text: #b91c1c;
+    --calendar-hover: #f0f9ff;
+    --calendar-link: #0369a1;
+    --calendar-action: #0369a1;
+    --calendar-today: #eff6ff;
+  }
+
+  :root.dark {
+    color-scheme: dark;
+    --theme-page: #0f172a;
+    --theme-surface: #182234;
+    --theme-subtle: #1c293d;
+    --theme-raised: #334155;
+    --theme-hover: #29374d;
+    --theme-text: #f1f5f9;
+    --theme-secondary: #cbd5e1;
+    --theme-muted: #a1aec1;
+    --theme-disabled: #8391a6;
+    --theme-disabled-bg: #42516a;
+    --theme-border: #36465e;
+    --theme-border-strong: #53657f;
+    --theme-link: #93c5fd;
+    --theme-accent: #1e3150;
+    --theme-accent-hover: #294061;
+    --theme-focus: #93c5fd;
+    --theme-success: #86efac;
+    --theme-success-bg: #16352e;
+    --theme-danger: #fda4af;
+    --theme-danger-bg: #3b202c;
+    --theme-danger-border: #834051;
+    --theme-warning: #fcd34d;
+    --theme-warning-bg: #3b301f;
+    --theme-warning-border: #806437;
+    --theme-shadow: #00000066;
+    --theme-header: #263f70;
+    --theme-nav-text: var(--theme-secondary);
+    --theme-nav-active: #c4b5fd;
+    --theme-footer: #182234;
+    --theme-footer-text: var(--theme-secondary);
+    --theme-footer-hover: var(--theme-text);
+    --theme-footer-secondary: var(--theme-muted);
+    --theme-footer-muted: var(--theme-muted);
+    --theme-footer-legal: var(--theme-secondary);
+    --theme-footer-caption: var(--theme-muted);
+    --theme-footer-border: var(--theme-border);
+    --theme-footer-divider: var(--theme-border);
+    --theme-chat-bubble: var(--theme-primary);
+    --theme-chat-disabled: var(--theme-disabled-bg);
+    --avatar-sky-bg: #17364c;
+    --avatar-sky-text: #7dd3fc;
+    --avatar-pink-bg: #482338;
+    --avatar-pink-text: #f9a8d4;
+    --avatar-green-bg: var(--theme-success-bg);
+    --avatar-green-text: var(--theme-success);
+    --avatar-amber-bg: var(--theme-warning-bg);
+    --avatar-amber-text: var(--theme-warning);
+    --avatar-violet-bg: #342653;
+    --avatar-violet-text: #c4b5fd;
+    --avatar-red-bg: var(--theme-danger-bg);
+    --avatar-red-text: var(--theme-danger);
+    --calendar-hover: var(--theme-accent);
+    --calendar-link: var(--theme-link);
+    --calendar-action: var(--theme-primary);
+    --calendar-today: var(--theme-accent);
+  }
+
+  body {
+    background-color: var(--theme-surface);
+    color: var(--theme-text);
+  }
+
+  /* Only manual switches animate; the initial theme is applied before paint. */
+  .theme-transition :where(body, header, footer, main, section, article, aside, nav, div, p, h1, h2, h3, h4, label, input, textarea, select, button, a, span) {
+    transition: background-color 280ms ease, color 280ms ease,
+      border-color 280ms ease, outline-color 280ms ease, box-shadow 280ms ease;
+  }
+
+  .dark :where(*, ::before, ::after) {
+    border-color: var(--theme-border);
+  }
+
+  /* Native controls without an explicit background still follow the theme. */
+  .dark :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), textarea, select) {
+    background-color: var(--theme-surface);
+    color: var(--theme-text);
+  }
+
+  .dark :where(input, textarea)::placeholder {
+    color: var(--theme-muted);
+  }
+
+  .dark :where(input, textarea, select):disabled {
+    color: var(--theme-disabled);
+  }
+
+  .dark :where(option) {
+    background-color: var(--theme-surface);
+    color: var(--theme-text);
+  }
+
+  .dark :where(button, a, input, textarea, select, summary):focus-visible {
+    outline: 2px solid var(--theme-focus);
+    outline-offset: 2px;
+  }
+
+  .dark {
+    --tw-ring-offset-color: var(--theme-surface);
+    scrollbar-color: var(--theme-border-strong) var(--theme-page);
+  }
+
+  .dark ::selection {
+    background-color: #315584;
+    color: #ffffff;
+  }
+}
+
+@layer components {
+  .theme-toggle {
+    background-color: rgb(255 255 255 / 20%);
+    transition: background-color 280ms ease;
+  }
+
+  .theme-toggle:hover {
+    background-color: rgb(255 255 255 / 35%);
+  }
+
+  .theme-toggle-thumb {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #ffffff;
+    color: #315584;
+    box-shadow: 0 2px 6px rgb(0 0 0 / 15%);
+    transform: translateX(0);
+    transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .theme-toggle-thumb-dark {
+    transform: translateX(24px);
+  }
+
+  .theme-toggle-icon {
+    position: absolute;
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+    transition: opacity 180ms ease, transform 280ms ease;
+  }
+
+  .theme-toggle-icon-hidden {
+    opacity: 0;
+    transform: rotate(-45deg) scale(0.6);
+  }
+
+  /* A white backing preserves the original dark lettering without editing assets. */
+  .dark .theme-logo {
+    border-radius: 6px;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px #ffffff;
+  }
+
+  .dark header .theme-logo {
+    background-color: var(--theme-header);
+    box-shadow: none;
+  }
+
+  .theme-footer-link {
+    color: var(--theme-footer-text);
+  }
+
+  .theme-footer-link:hover {
+    color: var(--theme-footer-hover);
+  }
+
+  .theme-footer-legal {
+    color: var(--theme-footer-legal);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-transition :where(*) {
+    transition: none !important;
+  }
+
+  .theme-toggle,
+  .theme-toggle-thumb,
+  .theme-toggle-icon {
+    transition: none !important;
+  }
+}

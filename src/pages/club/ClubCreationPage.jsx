@@ -133,31 +133,31 @@ export default function ClubCreationPage() {
   ];
 
   return (
-    <main className="min-h-[calc(100vh-64px)] bg-slate-50 px-5 py-10 sm:px-8 sm:py-14">
+    <main className="min-h-[calc(100vh-64px)] bg-slate-50 dark:bg-theme-subtle px-5 py-10 sm:px-8 sm:py-14">
       <div className="mx-auto max-w-4xl">
         <header className="mb-8">
           <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 dark:bg-theme-accent text-blue-600 dark:text-theme-link">
               <Plus size={25} strokeWidth={2.2} />
             </div>
 
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-theme-text sm:text-3xl">
                 동아리 생성
               </h1>
 
-              <p className="mt-1.5 text-sm text-gray-500">
+              <p className="mt-1.5 text-sm text-gray-500 dark:text-theme-muted">
                 새로운 동아리를 생성하기 위한 정보를 입력해주세요.
               </p>
             </div>
           </div>
         </header>
 
-        <section className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-          <div className="border-b border-gray-100 px-6 py-5 sm:px-8">
-            <h2 className="text-lg font-bold text-gray-900">동아리 정보</h2>
+        <section className="overflow-hidden rounded-2xl border border-gray-100 dark:border-theme-border bg-white dark:bg-theme-surface shadow-sm dark:shadow-theme-shadow">
+          <div className="border-b border-gray-100 dark:border-theme-border px-6 py-5 sm:px-8">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-theme-text">동아리 정보</h2>
 
-            <p className="mt-1 text-xs text-gray-400">
+            <p className="mt-1 text-xs text-gray-400 dark:text-theme-muted">
               입력한 정보로 새로운 동아리가 즉시 생성됩니다.
             </p>
           </div>
@@ -165,7 +165,7 @@ export default function ClubCreationPage() {
           <form onSubmit={handleSubmit}>
             <div className="space-y-6 px-6 py-6 sm:px-8 sm:py-8">
               {apiError && (
-                <div className="flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+                <div className="flex items-start gap-2 rounded-xl border border-red-100 dark:border-theme-danger-border bg-red-50 dark:bg-theme-danger-bg px-4 py-3 text-sm text-red-600 dark:text-theme-danger">
                   <AlertCircle size={17} className="mt-0.5 shrink-0" />
 
                   <span>{apiError}</span>
@@ -180,11 +180,11 @@ export default function ClubCreationPage() {
                       field.key === "shortDescription" ? "sm:col-span-2" : ""
                     }
                   >
-                    <span className="mb-2 block text-sm font-medium text-gray-700">
+                    <span className="mb-2 block text-sm font-medium text-gray-700 dark:text-theme-secondary">
                       {field.label}
 
                       {field.required && (
-                        <span className="ml-1 text-red-400">*</span>
+                        <span className="ml-1 text-red-400 dark:text-theme-danger">*</span>
                       )}
                     </span>
 
@@ -197,13 +197,13 @@ export default function ClubCreationPage() {
                       placeholder={field.placeholder}
                       className={`w-full rounded-lg border px-4 py-3 text-sm outline-none transition-colors ${
                         errors[field.key]
-                          ? "border-red-300 bg-red-50"
-                          : "border-gray-200 focus:border-blue-400"
+                          ? "border-red-300 dark:border-theme-danger-border bg-red-50 dark:bg-theme-danger-bg"
+                          : "border-gray-200 dark:border-theme-border focus:border-blue-400 dark:focus:border-theme-focus"
                       }`}
                     />
 
                     {errors[field.key] && (
-                      <span className="mt-1.5 block text-xs text-red-500">
+                      <span className="mt-1.5 block text-xs text-red-500 dark:text-theme-danger">
                         {errors[field.key]}
                       </span>
                     )}
@@ -212,7 +212,7 @@ export default function ClubCreationPage() {
               </div>
 
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-700">
+                <span className="mb-2 block text-sm font-medium text-gray-700 dark:text-theme-secondary">
                   상세 소개
                 </span>
 
@@ -223,12 +223,12 @@ export default function ClubCreationPage() {
                   }
                   placeholder="주요 활동, 운영 방식, 모집 대상 등을 자세히 작성해주세요."
                   rows={6}
-                  className="w-full resize-none rounded-lg border border-gray-200 px-4 py-3 text-sm leading-6 outline-none transition-colors focus:border-blue-400"
+                  className="w-full resize-none rounded-lg border border-gray-200 dark:border-theme-border px-4 py-3 text-sm leading-6 outline-none transition-colors focus:border-blue-400 dark:focus:border-theme-focus"
                 />
               </label>
 
               <div>
-                <p className="mb-2 text-sm font-medium text-gray-700">
+                <p className="mb-2 text-sm font-medium text-gray-700 dark:text-theme-secondary">
                   대표 이미지
                 </p>
                 <ImageFilePicker
@@ -239,11 +239,11 @@ export default function ClubCreationPage() {
               </div>
             </div>
 
-            <div className="flex justify-end border-t border-gray-100 px-6 py-5 sm:px-8">
+            <div className="flex justify-end border-t border-gray-100 dark:border-theme-border px-6 py-5 sm:px-8">
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex min-w-36 cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex min-w-36 cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 dark:bg-theme-primary px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 dark:hover:bg-theme-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {submitting && <Loader2 size={16} className="animate-spin" />}
 

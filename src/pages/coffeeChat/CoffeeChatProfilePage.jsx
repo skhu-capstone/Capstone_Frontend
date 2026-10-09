@@ -121,10 +121,10 @@ export default function CoffeeChatProfilePage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 px-8 py-20">
+    <main className="min-h-screen bg-gray-50 dark:bg-theme-page px-8 py-20">
       <section className="mx-auto max-w-4xl">
         <div className="mb-12 flex items-center justify-between">
-          <h1 className="text-5xl font-bold text-gray-900">
+          <h1 className="text-5xl font-bold text-gray-900 dark:text-theme-text">
             {user.name} 님의 프로필
           </h1>
 
@@ -133,7 +133,7 @@ export default function CoffeeChatProfilePage() {
               type="button"
               onClick={handleChatClick}
               disabled={chatLoading}
-              className="rounded-xl bg-blue-600 px-6 py-3 text-xl font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-xl bg-blue-600 dark:bg-theme-primary px-6 py-3 text-xl font-semibold text-white transition-colors hover:bg-blue-700 dark:hover:bg-theme-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
             >
               {chatLoading ? "채팅방 생성 중..." : "채팅 보내기"}
             </button>
@@ -147,7 +147,7 @@ export default function CoffeeChatProfilePage() {
         />
 
         <section className="mt-10">
-          <h2 className="border-b border-gray-300 pb-2 text-3xl font-bold text-gray-900">
+          <h2 className="border-b border-gray-300 dark:border-theme-border-strong pb-2 text-3xl font-bold text-gray-900 dark:text-theme-text">
             Profile Details
           </h2>
 
