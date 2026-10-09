@@ -55,6 +55,7 @@ try {
   const pending = new Map();
   const runtimeErrors = [];
   let apiMode = "normal";
+  let avatarProfileRequests = 0;
   const send = (method, params = {}) => new Promise((resolve, reject) => {
     const id = ++nextId;
     pending.set(id, { resolve, reject });
@@ -64,6 +65,7 @@ try {
   const user = { userId: 1, name: "테마 테스트", email: "theme@example.test", isVerified: true };
   const club = { clubId: 1, clubName: "개발 동아리", category: "IT", shortDescription: "함께 프로젝트를 만드는 동아리", detailDescription: "다크모드 테스트 동아리", memberCount: 2, role: "PRESIDENT" };
   const coffeeChatProfile = { headline: "프론트엔드 개발에 관심 있어요", interestTopics: "React, UI 디자인", introduction: "함께 이야기해요", isPublic: true };
+  const avatarImage = `data:image/svg+xml;base64,${Buffer.from(readFileSync(path.join(root, "src/assets/default-profile.svg"))).toString("base64")}`;
   const post = { postId: 1, clubId: 1, clubName: club.clubName, title: "테마 테스트 게시글", content: "다크모드에서도 편하게 읽을 수 있는 내용입니다.", writerId: 1, writerName: user.name, createdAt: "2026-10-09T09:00:00", imageUrls: [], comments: [], likeCount: 2, canUpdate: true, canDelete: true };
   const paged = (content) => ({ content, totalPages: 20, totalElements: content.length, number: 0 });
   const profiles = [2, 3, 4].map((id) => ({ userId: id, coffeeChatProfileId: id, name: `학생 ${id}`, headline: coffeeChatProfile.headline, interestTopics: coffeeChatProfile.interestTopics, clubs: [club.clubName] }));
@@ -72,7 +74,13 @@ try {
     if (pathname.endsWith("/api/main")) return { recommendedCoffeeChats: profiles, clubFeeds: [post], clubCollaborations: [], projectRecruitments: [] };
     if (pathname.endsWith("/api/mypage")) return { ...user, schoolEmail: "theme@office.skhu.ac.kr", clubs: [club.clubName], coffeeChatProfile };
     if (pathname.endsWith("/api/coffeechat/profiles")) return paged(apiMode === "empty" ? [] : profiles);
-    if (/\/api\/coffeechat\/profiles\/\d+$/.test(pathname)) return { ...profiles[0], coffeeChatProfile };
+    if (/\/api\/coffeechat\/profiles\/\d+$/.test(pathname)) return {
+      ...profiles[0],
+      coffeeChatProfile: {
+        ...coffeeChatProfile,
+        profileImageUrl: apiMode === "room-photo" ? null : apiMode === "broken-photo" ? "data:image/png;base64,broken" : avatarImage,
+      },
+    };
     if (pathname.endsWith("/api/users/me/clubs")) return [club];
     if (pathname.endsWith("/api/users/me/club/join")) return [];
     if (/\/api\/clubs\/\d+\/members$/.test(pathname)) return [{ ...user, role: "PRESIDENT" }, { userId: 2, name: "학생 2", role: "MEMBER" }];
@@ -84,7 +92,7 @@ try {
     if (/\/api\/posts\/\d+$/.test(pathname)) return post;
     if (/\/api\/(project-recruitments|club-collaborations)\/\d+$/.test(pathname)) return { ...post, projectRecruitmentId: 1, collabId: 1, deadline: "2026-12-01", requiredSkills: "React", topic: "개발" };
     if (/\/api\/(project-recruitments|club-collaborations)$/.test(pathname)) return paged([]);
-    if (pathname.endsWith("/api/chat/rooms")) return [{ chatRoomId: 1, targetUserId: 2, targetUserName: "학생 2", lastMessage: "안녕하세요", unreadCount: 1 }];
+    if (pathname.endsWith("/api/chat/rooms")) return [{ chatRoomId: 1, targetUserId: 2, targetUserName: "학생 2", lastMessage: "안녕하세요", unreadCount: 1, ...(apiMode === "room-photo" ? { targetProfileImageUrl: avatarImage } : {}) }];
     if (pathname.endsWith("/messages")) return paged([
       { chatMessageId: 1, senderId: 2, senderName: "학생 2", content: "안녕하세요", createdAt: "2026-10-09T09:00:00", isRead: true },
       { chatMessageId: 2, senderId: 1, senderName: user.name, content: "반갑습니다", createdAt: "2026-10-09T09:01:00", isRead: true },
@@ -105,10 +113,12 @@ try {
       const url = new URL(request.url);
       if (url.pathname.includes("/api/")) {
         const failed = apiMode === "error" && url.pathname.endsWith("/coffeechat/profiles");
+        const profileDenied = apiMode === "private-profile" && /\/coffeechat\/profiles\/\d+$/.test(url.pathname);
+        if (request.method === "GET" && /\/coffeechat\/profiles\/2$/.test(url.pathname)) avatarProfileRequests++;
         send("Fetch.fulfillRequest", {
-          requestId, responseCode: failed ? 500 : 200,
+          requestId, responseCode: profileDenied ? 403 : failed ? 500 : 200,
           responseHeaders: [{ name: "Content-Type", value: "application/json" }, { name: "Cache-Control", value: "no-store" }, { name: "Access-Control-Allow-Origin", value: "*" }, { name: "Access-Control-Allow-Headers", value: "*" }, { name: "Access-Control-Allow-Methods", value: "GET, POST, PATCH, PUT, DELETE, OPTIONS" }],
-          body: Buffer.from(JSON.stringify({ success: !failed, data: fixture(request.url), message: failed ? "테스트 오류" : "" })).toString("base64"),
+          body: Buffer.from(JSON.stringify({ success: !failed && !profileDenied, data: fixture(request.url), message: failed || profileDenied ? "테스트 오류" : "" })).toString("base64"),
         }).catch((error) => runtimeErrors.push(error.message));
       } else if (url.origin === origin) send("Fetch.continueRequest", { requestId }).catch(() => {});
       else send("Fetch.failRequest", { requestId, errorReason: "BlockedByClient" }).catch(() => {});
@@ -239,6 +249,7 @@ try {
   await waitFor("!!document.querySelector('.fixed input')");
   assert.equal(await evaluate("getComputedStyle(document.querySelector('.fixed input')).color"), "rgb(241, 245, 249)");
   console.log("PASS: recruitment modal/input/focus and calendar/modal");
+  const previousAvatarRequests = avatarProfileRequests;
   await visit("/coffee-chat");
   await waitFor("[...document.querySelectorAll('button')].some(e => e.textContent.includes('학생 2'))");
   await evaluate("[...document.querySelectorAll('button')].find(e => e.textContent.includes('학생 2')).click()");
@@ -247,10 +258,28 @@ try {
   assert.equal(await evaluate("getComputedStyle(document.querySelector('.rounded-br-sm')).backgroundColor"), "rgb(37, 99, 235)");
   assert.equal(await evaluate("getComputedStyle(document.querySelector('textarea')).color"), "rgb(241, 245, 249)");
   console.log("PASS: incoming/outgoing chat bubbles and composer (fixture history)");
+  await waitFor("[...document.querySelectorAll('img[alt=\"학생 2 프로필 사진\"]')].filter(e => e.complete && e.naturalWidth > 0).length === 3");
+  assert.equal(avatarProfileRequests - previousAvatarRequests, 1, "List/header/messages must share one profile request");
+  for (const mode of ["room-photo", "broken-photo", "private-profile"]) {
+    apiMode = mode;
+    await visit("/coffee-chat");
+    await waitFor("[...document.querySelectorAll('button')].some(e => e.textContent.includes('학생 2'))");
+    await evaluate("[...document.querySelectorAll('button')].find(e => e.textContent.includes('학생 2')).click()");
+    await waitFor("!!document.querySelector('.rounded-bl-sm')");
+    if (mode === "room-photo") {
+      await waitFor("[...document.querySelectorAll('img[alt=\"학생 2 프로필 사진\"]')].filter(e => e.complete && e.naturalWidth > 0).length === 3");
+    } else {
+      await waitFor("document.querySelectorAll('img[alt=\"학생 2 프로필 사진\"]').length === 0");
+      assert.ok(await evaluate("[...document.querySelectorAll('button')].find(e => e.textContent.includes('학생 2')).textContent.includes('학')"));
+    }
+  }
+  apiMode = "normal";
+  console.log("PASS: coffee-chat photo in list/header/messages, shared request, room URL alias, broken/private profile fallback");
   // Forms without authentication and the email verification screen.
   await evaluate("localStorage.removeItem('user'); localStorage.removeItem('accessToken')");
   await visit("/login");
-  assert.equal(await evaluate("getComputedStyle(document.querySelector('.theme-logo')).backgroundColor"), "rgb(255, 255, 255)");
+  assert.equal(await evaluate("getComputedStyle(document.querySelector('main .theme-logo')).backgroundColor"), "rgb(255, 255, 255)");
+  assert.ok(await evaluate("getComputedStyle(document.querySelector('header .theme-logo')).backgroundColor === getComputedStyle(document.querySelector('header')).backgroundColor"));
   await evaluate(`localStorage.setItem('user', ${JSON.stringify(JSON.stringify({ ...user, isVerified: false }))}); localStorage.setItem('accessToken', 'theme-test-token');`);
   await visit("/email-verify");
   assert.equal(await evaluate("document.querySelector('input').disabled"), false);

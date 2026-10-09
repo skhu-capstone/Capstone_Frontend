@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Send, Coffee, Loader2, AlertCircle } from "lucide-react";
 import { useChatSocket } from "../../hooks/useChatSocket";
+import CoffeeChatAvatar from "../../components/common/CoffeeChatAvatar";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
@@ -34,18 +35,6 @@ function isSameDay(a, b) {
   );
 }
 
-const AVATAR_COLORS = [
-  ["var(--avatar-sky-bg)", "var(--avatar-sky-text)"],
-  ["var(--avatar-pink-bg)", "var(--avatar-pink-text)"],
-  ["var(--avatar-green-bg)", "var(--avatar-green-text)"],
-  ["var(--avatar-amber-bg)", "var(--avatar-amber-text)"],
-  ["var(--avatar-violet-bg)", "var(--avatar-violet-text)"],
-  ["var(--avatar-red-bg)", "var(--avatar-red-text)"],
-];
-function avatarColor(name) {
-  const idx = (name?.charCodeAt(0) ?? 0) % AVATAR_COLORS.length;
-  return AVATAR_COLORS[idx];
-}
 
 // ─── 날짜 구분선 ──────────────────────────────────────────────────────────────
 function DateDivider({ iso }) {
@@ -61,8 +50,7 @@ function DateDivider({ iso }) {
 }
 
 // ─── 메시지 버블 ──────────────────────────────────────────────────────────────
-function MessageBubble({ msg, isMine, showAvatar, senderName }) {
-  const [bg, text] = avatarColor(senderName);
+function MessageBubble({ msg, isMine, showAvatar, senderName, room }) {
 
   if (isMine) {
     return (
@@ -85,12 +73,12 @@ function MessageBubble({ msg, isMine, showAvatar, senderName }) {
       {/* 아바타 자리 항상 확보 */}
       <div className="w-8 h-8 shrink-0">
         {showAvatar && (
-          <div
-            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold"
-            style={{ background: bg, color: text }}
-          >
-            {senderName?.[0] ?? "?"}
-          </div>
+          <CoffeeChatAvatar
+            userId={room.targetUserId}
+            name={senderName}
+            image={room}
+            className="h-8 w-8 text-xs"
+          />
         )}
       </div>
       <div className="max-w-[60%]">
@@ -349,25 +337,12 @@ export default function ChatRoom({ room, onMessage }) {
           className="flex items-center gap-3 rounded-lg text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-theme-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 dark:focus-visible:ring-theme-focus focus-visible:ring-offset-2 dark:ring-offset-theme-surface"
           aria-label={`${room.targetUserName}님의 커피챗 프로필 보기`}
         >
-          {(() => {
-            const [bg, text] = avatarColor(room.targetUserName);
-            return (
-              <div
-                className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold shrink-0"
-                style={{ background: bg, color: text }}
-              >
-                {room.targetProfileImage ? (
-                  <img
-                    src={room.targetProfileImage}
-                    alt={room.targetUserName}
-                    className="w-full h-full rounded-full object-cover"
-                  />
-                ) : (
-                  (room.targetUserName?.[0] ?? "?")
-                )}
-              </div>
-            );
-          })()}
+          <CoffeeChatAvatar
+            userId={room.targetUserId}
+            name={room.targetUserName}
+            image={room}
+            className="h-9 w-9 text-sm"
+          />
           <div>
             <p className="text-sm font-semibold text-gray-900 dark:text-theme-text">
               {room.targetUserName}
@@ -420,6 +395,7 @@ export default function ChatRoom({ room, onMessage }) {
                   isMine={isMine}
                   showAvatar={showAvatar}
                   senderName={msg.senderName ?? room.targetUserName}
+                  room={room}
                 />
               </div>
             );

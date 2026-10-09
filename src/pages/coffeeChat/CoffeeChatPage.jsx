@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { Search, Coffee, Loader2, AlertCircle } from "lucide-react";
 import ChatRoom from "./ChatRoom";
+import CoffeeChatAvatar from "../../components/common/CoffeeChatAvatar";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
@@ -22,25 +23,8 @@ function formatTime(iso) {
   if (diffDays < 7) return `${diffDays}일 전`;
   return date.toLocaleDateString("ko-KR", { month: "long", day: "numeric" });
 }
-
-const AVATAR_COLORS = [
-  ["var(--avatar-sky-bg)", "var(--avatar-sky-text)"],
-  ["var(--avatar-pink-bg)", "var(--avatar-pink-text)"],
-  ["var(--avatar-green-bg)", "var(--avatar-green-text)"],
-  ["var(--avatar-amber-bg)", "var(--avatar-amber-text)"],
-  ["var(--avatar-violet-bg)", "var(--avatar-violet-text)"],
-  ["var(--avatar-red-bg)", "var(--avatar-red-text)"],
-];
-function avatarColor(name) {
-  const idx = (name?.charCodeAt(0) ?? 0) % AVATAR_COLORS.length;
-  return AVATAR_COLORS[idx];
-}
-
 // ─── 채팅방 아이템 ────────────────────────────────────────────────────────────
 function RoomItem({ room, isActive, onClick }) {
-  const [bg, text] = avatarColor(room.targetUserName);
-  const initial = room.targetUserName?.[0] ?? "?";
-
   return (
     <button
       onClick={onClick}
@@ -52,20 +36,12 @@ function RoomItem({ room, isActive, onClick }) {
     >
       {/* 아바타 */}
       <div className="relative shrink-0">
-        <div
-          className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-semibold"
-          style={{ background: bg, color: text }}
-        >
-          {room.targetProfileImage ? (
-            <img
-              src={room.targetProfileImage}
-              alt={room.targetUserName}
-              className="w-full h-full rounded-full object-cover"
-            />
-          ) : (
-            initial
-          )}
-        </div>
+        <CoffeeChatAvatar
+          userId={room.targetUserId}
+          name={room.targetUserName}
+          image={room}
+          className="h-11 w-11 text-sm"
+        />
         {room.unreadCount > 0 && (
           <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-green-400 border-2 border-white dark:border-theme-surface" />
         )}
