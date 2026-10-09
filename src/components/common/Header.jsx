@@ -261,7 +261,9 @@ export default function Header() {
         </div>
 
         <div className="col-start-3 flex items-center justify-self-end gap-2">
-          <ThemeSwitcher />
+          <div className="hidden md:block">
+            <ThemeSwitcher />
+          </div>
           <button
             type="button"
             onClick={() => setMobileMenuOpen((prev) => !prev)}
@@ -436,6 +438,10 @@ export default function Header() {
                 </button>
               );
             })}
+            <div className="mt-2 flex min-h-12 items-center justify-between border-t border-white/20 px-4 pt-3">
+              <span className="text-sm font-medium text-white/90">화면 테마</span>
+              <ThemeSwitcher />
+            </div>
           </nav>
         </div>
       )}

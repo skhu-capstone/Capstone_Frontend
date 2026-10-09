@@ -7,18 +7,15 @@ function InputLabel({
   const displayValue = value ?? ""; // null이나 undefined 값이 와도 안 깨지겠끔 공백으로 처리
 
   return (
-    <div className={`w-full inline-flex flex-col justify-start items-start gap-1 ${className}`}>
+    <div className={`flex w-full min-w-0 flex-col items-start justify-start gap-1 ${className}`}>
       {/* 라벨 */}
       <div className="self-stretch text-gray-900 dark:text-theme-text text-xs font-medium leading-4 line-clamp-1">
         {label}
       </div>
 
       {/* 값 영역 */}
-      <div className={`self-stretch min-h-11 px-3.5 py-2.5 bg-blue-900/10 dark:bg-theme-accent rounded-[10px]
-      outline-[1.5px] outline-offset-[-1.5px] outline-black/0 inline-flex justify-start items-start 
-      gap-2 ${multiline ? 'min-h-30' : 'items-center'}`}>
-        <div className={`flex-1 text-black dark:text-theme-text text-base font-normal leading-5
-        ${multiline ? 'whitespace-pre-wrap' : 'line-clamp-1'}`}>
+      <div className={`inline-flex min-h-11 self-stretch rounded-[10px] bg-blue-900/10 px-3.5 py-2.5 outline-[1.5px] outline-offset-[-1.5px] outline-black/0 dark:bg-theme-accent ${multiline ? "min-h-30 items-start" : "items-center"}`}>
+        <div className={`min-w-0 flex-1 break-words text-sm font-normal leading-5 text-black [overflow-wrap:anywhere] dark:text-theme-text sm:text-base ${multiline ? "whitespace-pre-wrap" : ""}`}>
           {displayValue}
         </div>
       </div>

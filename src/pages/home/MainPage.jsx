@@ -127,14 +127,14 @@ export default function MainPage() {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-slate-50 dark:bg-theme-page px-5 py-8 md:px-8 lg:px-14 lg:pt-14 lg:pb-7">
-        <div className="mx-auto flex w-full max-w-332 flex-col gap-12">
-          <div className="h-9 w-48 animate-pulse rounded-lg bg-slate-200 dark:bg-theme-raised md:h-10 md:w-56" />
-          <div className="flex gap-5 overflow-x-auto pb-2 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:pb-0 lg:grid-cols-3 lg:gap-12">
+      <main className="min-h-screen bg-slate-50 px-4 py-6 dark:bg-theme-page md:px-8 md:py-8 lg:px-14 lg:pb-7 lg:pt-14">
+        <div className="mx-auto flex w-full max-w-332 flex-col gap-8 md:gap-12">
+          <div className="h-8 w-40 animate-pulse rounded-lg bg-slate-200 dark:bg-theme-raised md:h-10 md:w-56" />
+          <div className="mobile-card-scroller -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain px-4 pb-2 md:mx-0 md:grid md:snap-none md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-3 lg:gap-12">
             {Array.from({ length: 3 }).map((_, index) => (
               <div
                 key={index}
-                className="h-96 min-w-72 flex-1 animate-pulse rounded-2xl bg-white dark:bg-theme-surface shadow-[0px_8px_24px_rgba(0,0,0,0.08)] dark:shadow-theme-shadow md:h-125.75 md:min-w-0"
+                className="h-44 w-[82vw] min-w-72 max-w-80 shrink-0 snap-start animate-pulse rounded-xl bg-white shadow-[0px_8px_24px_rgba(0,0,0,0.08)] dark:bg-theme-surface dark:shadow-theme-shadow md:h-52 md:w-auto md:min-w-0 md:max-w-none"
               />
             ))}
           </div>
@@ -159,17 +159,17 @@ export default function MainPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 dark:bg-theme-page px-5 py-8 md:px-8 lg:px-14 lg:pt-14 lg:pb-7">
-      <div className="mx-auto flex w-full max-w-332 flex-col gap-10 lg:gap-12">
-        <section className="flex flex-col gap-5 md:gap-6">
-          <h1 className="text-3xl font-bold leading-9 text-gray-900 dark:text-theme-text md:text-4xl md:leading-10">
+    <main className="bg-slate-50 px-4 pb-5 pt-6 dark:bg-theme-page md:px-8 md:pb-7 md:pt-8 lg:px-14 lg:pb-7 lg:pt-14">
+      <div className="mx-auto flex w-full max-w-332 flex-col gap-8 md:gap-10 lg:gap-12">
+        <section className="flex flex-col gap-4 md:gap-6">
+          <h1 className="text-2xl font-bold leading-8 text-gray-900 dark:text-theme-text md:text-4xl md:leading-10">
             추천 커피챗
           </h1>
 
           {coffeeChats.length > 0 ? (
-            <div className="flex gap-5 overflow-x-auto pb-2 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:pb-0 lg:grid-cols-3 lg:gap-12">
+            <div className="mobile-card-scroller -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain px-4 pb-2 md:mx-0 md:grid md:snap-none md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-3 lg:gap-12">
               {coffeeChats.map((coffeeChat) => (
-                <div key={coffeeChat.coffeeChatProfileId} className="min-w-72 flex-1 md:min-w-0">
+                <div key={coffeeChat.coffeeChatProfileId} className="w-[82vw] min-w-72 max-w-80 shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none">
                   <CoffeeChatCard
                     id={coffeeChat.userId}
                     name={coffeeChat.name}
@@ -187,20 +187,20 @@ export default function MainPage() {
           )}
         </section>
 
-        <section className="flex flex-col gap-3.5">
+        <section className="flex flex-col gap-3.5 md:gap-4">
           <h2 className="text-xl font-bold leading-6 text-black dark:text-theme-text md:text-2xl">
             Find Collaboration
           </h2>
 
           {visibleCollaborations.length > 0 ? (
-            <div className="flex gap-4 overflow-x-auto pb-2 md:grid md:grid-cols-2 md:gap-5 md:overflow-visible md:pb-0 lg:grid-cols-3 lg:gap-x-12 lg:gap-y-6">
+            <div className="mobile-card-scroller -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain px-4 pb-2 md:mx-0 md:grid md:snap-none md:grid-cols-2 md:gap-5 md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-3 lg:gap-x-12 lg:gap-y-6">
               {visibleCollaborations.map((collabo) => {
                 // 각 카드가 /cooperation/club/:id 또는 /cooperation/project/:id로 이동하도록 타입/id를 계산
                 const type = getCollaborationType(collabo);
                 const id = getCollaborationId(collabo);
 
                 return (
-                  <div key={`${type}-${id}`} className="min-w-72 flex-1 md:min-w-0">
+                  <div key={`${type}-${id}`} className="w-[82vw] min-w-72 max-w-80 shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none">
                     <CollaboCard
                       id={id}
                       type={type}
@@ -220,15 +220,15 @@ export default function MainPage() {
           )}
         </section>
 
-        <section className="flex flex-col gap-3.5">
+        <section className="flex flex-col gap-3.5 md:gap-4">
           <h2 className="text-xl font-bold leading-6 text-black dark:text-theme-text md:text-2xl">
             Club Feeds
           </h2>
 
           {feeds.length > 0 ? (
-            <div className="flex gap-5 overflow-x-auto pb-2 xl:grid xl:grid-cols-2 xl:gap-10 xl:overflow-visible xl:pb-0">
+            <div className="mobile-card-scroller -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain px-4 pb-2 md:mx-0 md:grid md:snap-none md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 md:pb-0 lg:gap-10">
               {feeds.map((feed) => (
-                <div key={feed.postId} className="min-w-80 flex-1 xl:min-w-0">
+                <div key={feed.postId} className="w-[82vw] min-w-72 max-w-80 shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none">
                   <FeedCard
                     id={feed.postId}
                     clubId={getFeedClubId(feed)}

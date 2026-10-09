@@ -1,9 +1,18 @@
-import { useRef, useState } from "react";
-import { sendSchoolEmailCode, verifySchoolEmailCode, resendSchoolEmailCode } from "../services/authService";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  resendSchoolEmailCode,
+  sendSchoolEmailCode,
+  verifySchoolEmailCode,
+} from "../services/authService";
 import { useAuth } from "../context/AuthContext";
+
+const CODE_LENGTH = 5;
+const RESEND_COOLDOWN_SECONDS = 60;
+
+const getErrorMessage = (error, fallback) =>
+  error?.response?.data?.message || error?.message || fallback;
 
 export default function EmailVerifyPage() {
   const navigate = useNavigate();
@@ -12,14 +21,16 @@ export default function EmailVerifyPage() {
   const isAuthenticated = !!user && !!accessToken;
 
   const [schoolEmail, setSchoolEmail] = useState("");
-  const [code, setCode] = useState(["", "", "", "", ""]);
+  const [code, setCode] = useState(() => Array(CODE_LENGTH).fill(""));
   const [isCodeSent, setIsCodeSent] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+  const [notice, setNotice] = useState(null);
   const inputRefs = useRef([]);
 
   const isCodeComplete = code.every((digit) => digit !== "");
   const normalizedSchoolEmail = schoolEmail.trim().toLowerCase();
   const isValidSchoolEmail = /^[a-z0-9._%+-]+@office\.skhu\.ac\.kr$/.test(
-    normalizedSchoolEmail
+    normalizedSchoolEmail,
   );
 
   useEffect(() => {
@@ -33,25 +44,37 @@ export default function EmailVerifyPage() {
     }
   }, [authLoading, isAuthenticated, navigate, user?.isVerified]);
 
-  // 인증코드 발송
+  useEffect(() => {
+    if (cooldown <= 0) return undefined;
+
+    const timer = window.setInterval(() => {
+      setCooldown((current) => Math.max(0, current - 1));
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [cooldown]);
+
   const sendCodeMutation = useMutation({
     mutationFn: sendSchoolEmailCode,
-
+    onMutate: () => setNotice(null),
     onSuccess: () => {
       setIsCodeSent(true);
-      alert("인증번호가 발송되었습니다.");
+      setCooldown(RESEND_COOLDOWN_SECONDS);
+      setNotice({ type: "success", text: "인증번호를 전송했습니다. 이메일을 확인해주세요." });
+      window.requestAnimationFrame(() => inputRefs.current[0]?.focus());
     },
-
     onError: (error) => {
       console.error(error);
-      alert("인증번호 발송에 실패했습니다.");
-    }
-  })
+      setNotice({
+        type: "error",
+        text: getErrorMessage(error, "인증번호 발송에 실패했습니다. 잠시 후 다시 시도해주세요."),
+      });
+    },
+  });
 
-  // 인증코드 인증
   const verifyCodeMutation = useMutation({
     mutationFn: verifySchoolEmailCode,
-
+    onMutate: () => setNotice(null),
     onSuccess: () => {
       if (user) {
         setAuthenticatedUser({
@@ -61,143 +84,269 @@ export default function EmailVerifyPage() {
         });
       }
 
-      alert("학교 이메일 인증이 완료되었습니다.");
-      navigate("/");
+      navigate("/", { replace: true });
     },
     onError: (error) => {
       console.error(error);
-      alert("인증번호가 올바르지 않거나 만료되었습니다.");
-    }
-  })
+      setNotice({
+        type: "error",
+        text: getErrorMessage(error, "인증번호가 올바르지 않거나 만료되었습니다."),
+      });
+    },
+  });
 
-  // 인증코드 재발송
   const resendCodeMutation = useMutation({
     mutationFn: resendSchoolEmailCode,
-
+    onMutate: () => setNotice(null),
     onSuccess: () => {
-      alert("인증번호가 재전송되었습니다.");
+      setCode(Array(CODE_LENGTH).fill(""));
+      setCooldown(RESEND_COOLDOWN_SECONDS);
+      setNotice({ type: "success", text: "인증번호를 다시 전송했습니다." });
+      window.requestAnimationFrame(() => inputRefs.current[0]?.focus());
     },
     onError: (error) => {
       console.error(error);
-      alert("인증번호 재전송에 실패했습니다.");
-    }
-  })
+      setNotice({
+        type: "error",
+        text: getErrorMessage(error, "인증번호 재전송에 실패했습니다. 잠시 후 다시 시도해주세요."),
+      });
+    },
+  });
 
   const handleCodeChange = (index, value) => {
-    if (!isCodeSent) return;
-    if (!/^\d?$/.test(value)) return;
+    if (!isCodeSent || !/^\d?$/.test(value)) return;
 
     const nextCode = [...code];
     nextCode[index] = value;
     setCode(nextCode);
+    setNotice(null);
 
-    if (value && index < code.length - 1) {
+    if (value && index < CODE_LENGTH - 1) {
       inputRefs.current[index + 1]?.focus();
     }
   };
 
-  const handleCodeKeyDown = (index, e) => {
+  const handleCodeKeyDown = (index, event) => {
     if (!isCodeSent) return;
-    if (e.key === "Backspace" && !code[index] && index > 0) {
+
+    if (event.key === "Backspace" && !code[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
+    }
+
+    if (event.key === "ArrowLeft" && index > 0) {
+      event.preventDefault();
+      inputRefs.current[index - 1]?.focus();
+    }
+
+    if (event.key === "ArrowRight" && index < CODE_LENGTH - 1) {
+      event.preventDefault();
+      inputRefs.current[index + 1]?.focus();
     }
   };
 
-  const handleSendCode = () => {
-    if (!isAuthenticated) return;
+  const handleCodePaste = (event) => {
+    if (!isCodeSent) return;
+
+    const pastedCode = event.clipboardData
+      .getData("text")
+      .replace(/\D/g, "")
+      .slice(0, CODE_LENGTH);
+
+    if (!pastedCode) return;
+
+    event.preventDefault();
+    const nextCode = Array(CODE_LENGTH).fill("");
+    pastedCode.split("").forEach((digit, index) => {
+      nextCode[index] = digit;
+    });
+    setCode(nextCode);
+    setNotice(null);
+    inputRefs.current[Math.min(pastedCode.length, CODE_LENGTH) - 1]?.focus();
+  };
+
+  const handleSendCode = (event) => {
+    event.preventDefault();
+    if (!isAuthenticated || !isValidSchoolEmail || sendCodeMutation.isPending) return;
     sendCodeMutation.mutate(normalizedSchoolEmail);
   };
 
-  const handleSubmit = () => {
-    if (!isAuthenticated) return;
-    if (!isCodeSent) return;
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (!isAuthenticated || !isCodeSent || !isCodeComplete || verifyCodeMutation.isPending) return;
+
     verifyCodeMutation.mutate({
       schoolEmail: normalizedSchoolEmail,
       code: code.join(""),
-    })
+    });
   };
 
   const handleResendCode = () => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || cooldown > 0 || resendCodeMutation.isPending) return;
     resendCodeMutation.mutate(normalizedSchoolEmail);
   };
 
+  const handleChangeEmail = () => {
+    setIsCodeSent(false);
+    setCode(Array(CODE_LENGTH).fill(""));
+    setCooldown(0);
+    setNotice(null);
+    sendCodeMutation.reset();
+    resendCodeMutation.reset();
+    verifyCodeMutation.reset();
+  };
+
   if (authLoading) {
-    return <div className="p-10">인증 정보를 확인하는 중입니다...</div>;
+    return (
+      <main className="flex min-h-[50vh] items-center justify-center bg-slate-50 px-4 py-12 dark:bg-theme-page">
+        <div className="text-center" role="status" aria-live="polite">
+          <span className="mx-auto block h-8 w-8 animate-spin rounded-full border-3 border-blue-600/25 border-t-blue-600 dark:border-theme-primary/25 dark:border-t-theme-primary" />
+          <p className="mt-4 text-sm font-medium text-slate-600 dark:text-theme-muted">
+            인증 정보를 확인하는 중입니다...
+          </p>
+        </div>
+      </main>
+    );
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 dark:bg-theme-page px-6 py-8 flex justify-center">
-      <div className="w-full max-w-100 flex flex-col items-center">
-        <section className="w-full flex flex-col items-center gap-10">
-          <h1 className="text-center text-gray-900 dark:text-theme-text text-3xl font-bold leading-8">
-            학생 인증을 위해
-            <br />
-            학교 이메일을 작성해주세요
+    <main className="flex w-full justify-center bg-slate-50 px-4 pt-6 pb-8 dark:bg-theme-page sm:px-6 sm:pt-10 sm:pb-12">
+      <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white px-5 py-7 shadow-sm dark:border-theme-border dark:bg-theme-subtle sm:rounded-3xl sm:px-8 sm:py-10">
+        <header className="text-center">
+          <p className="text-sm font-semibold text-blue-600 dark:text-theme-link">SKHU EMAIL</p>
+          <h1 className="mt-2 break-keep text-2xl font-bold leading-8 text-gray-900 dark:text-theme-text sm:text-3xl sm:leading-10">
+            학교 이메일 인증
           </h1>
+          <p className="mx-auto mt-2 max-w-sm break-keep text-sm leading-6 text-slate-600 dark:text-theme-muted sm:text-base">
+            학생 인증을 위해 성공회대학교 이메일을 입력해주세요.
+          </p>
+        </header>
 
+        <form className="mt-8" onSubmit={handleSendCode} noValidate>
+          <label htmlFor="school-email" className="text-sm font-semibold text-gray-900 dark:text-theme-text">
+            학교 이메일
+          </label>
           <input
+            id="school-email"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
             value={schoolEmail}
-            onChange={(e) => setSchoolEmail(e.target.value)}
-            placeholder="학교 이메일 입력"
-            className="w-full h-10 px-4 bg-blue-900/10 dark:bg-theme-accent rounded-2xl outline-none text-base text-slate-900 dark:text-theme-text placeholder:text-slate-900/40 dark:placeholder:text-theme-muted"
+            onChange={(event) => {
+              setSchoolEmail(event.target.value);
+              setNotice(null);
+            }}
+            placeholder="student@office.skhu.ac.kr"
+            disabled={isCodeSent || sendCodeMutation.isPending}
+            aria-describedby="school-email-help"
+            aria-invalid={schoolEmail.length > 0 && !isValidSchoolEmail}
+            className="mt-2 h-12 w-full rounded-xl border border-slate-200 bg-blue-900/5 px-4 text-base text-slate-900 outline-none transition focus:border-blue-600 focus:ring-3 focus:ring-blue-600/15 disabled:cursor-not-allowed disabled:opacity-65 dark:border-theme-border dark:bg-theme-accent dark:text-theme-text dark:placeholder:text-theme-muted dark:focus:border-theme-focus dark:focus:ring-theme-focus/20"
           />
-
-          <button
-            onClick={handleSendCode}
-            disabled={!isValidSchoolEmail || isCodeSent}
-            className="w-full h-10 rounded-2xl bg-blue-600 dark:bg-theme-primary text-slate-50 text-base font-medium transition
-            enabled:hover:cursor-pointer disabled:opacity-50 disabled:hover:cursor-not-allowed"
-          >
-            {isCodeSent ? "인증번호 전송 완료" : "인증번호 발송"}
-          </button>
-        </section>
-
-        <section className="w-full mt-5 flex flex-col items-center">
-          <h2 className="text-center text-gray-900 dark:text-theme-text text-3xl font-bold leading-8">
-            인증코드
-          </h2>
-
-          <p className="mt-2.5 text-center text-gray-900 dark:text-theme-text text-base leading-5">
-            이메일로 전송된 코드를 아래에 작성해주세요
+          <p id="school-email-help" className="mt-2 break-keep text-xs leading-5 text-slate-500 dark:text-theme-muted">
+            `@office.skhu.ac.kr`로 끝나는 학교 이메일만 사용할 수 있습니다.
           </p>
 
-          <div className="mt-10 flex justify-center items-center gap-3.5">
-            {code.map((digit, index) => (
-              <input
-                key={index}
-                ref={(el) => (inputRefs.current[index] = el)}
-                value={digit}
-                onChange={(e) => handleCodeChange(index, e.target.value)}
-                onKeyDown={(e) => handleCodeKeyDown(index, e)}
-                maxLength={1}
-                inputMode="numeric"
-                disabled={!isCodeSent}
-                className="w-14 h-16 bg-blue-900/10 dark:bg-theme-accent rounded-2xl outline-none text-center text-slate-900 dark:text-theme-text text-xl placeholder:text-slate-900/40 dark:placeholder:text-theme-muted disabled:cursor-not-allowed disabled:opacity-50"
-                placeholder=""
-              />
-            ))}
+          <div className="mt-4 flex gap-2">
+            <button
+              type="submit"
+              disabled={!isValidSchoolEmail || isCodeSent || sendCodeMutation.isPending}
+              className="h-12 min-w-0 flex-1 touch-manipulation rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white transition-colors enabled:cursor-pointer enabled:hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-theme-primary dark:enabled:hover:bg-theme-primary-hover dark:focus-visible:outline-theme-focus sm:text-base"
+            >
+              {sendCodeMutation.isPending
+                ? "전송 중..."
+                : isCodeSent
+                  ? "전송 완료"
+                  : "인증번호 발송"}
+            </button>
+            {isCodeSent && (
+              <button
+                type="button"
+                onClick={handleChangeEmail}
+                disabled={verifyCodeMutation.isPending || resendCodeMutation.isPending}
+                className="h-12 shrink-0 touch-manipulation rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-theme-border-strong dark:text-theme-text dark:hover:bg-theme-hover dark:focus-visible:outline-theme-focus"
+              >
+                이메일 변경
+              </button>
+            )}
+          </div>
+        </form>
+
+        <div className="my-8 h-px w-full bg-slate-200 dark:bg-theme-border" />
+
+        <form onSubmit={handleSubmit}>
+          <div className="text-center">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-theme-text sm:text-2xl">인증번호</h2>
+            <p className="mt-2 break-keep text-sm leading-6 text-slate-600 dark:text-theme-muted">
+              이메일로 전송된 {CODE_LENGTH}자리 숫자를 입력해주세요.
+            </p>
           </div>
 
-            <button
-              onClick={handleSubmit}
-              disabled={!isCodeSent || !isCodeComplete}
-            className="w-full h-10 mt-10 rounded-2xl bg-blue-600 dark:bg-theme-primary text-slate-50 text-base font-medium transition
-            enabled:hover:cursor-pointer disabled:opacity-50 disabled:hover:cursor-not-allowed"
-          >
-            Submit
-          </button>
+          <fieldset className="mt-6" disabled={!isCodeSent || verifyCodeMutation.isPending}>
+            <legend className="sr-only">{CODE_LENGTH}자리 인증번호</legend>
+            <div
+              className="mx-auto grid w-full max-w-sm grid-cols-5 gap-2 sm:gap-3"
+              onPaste={handleCodePaste}
+            >
+              {code.map((digit, index) => (
+                <input
+                  key={index}
+                  ref={(element) => {
+                    inputRefs.current[index] = element;
+                  }}
+                  value={digit}
+                  onChange={(event) => handleCodeChange(index, event.target.value)}
+                  onKeyDown={(event) => handleCodeKeyDown(index, event)}
+                  maxLength={1}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  autoComplete={index === 0 ? "one-time-code" : "off"}
+                  aria-label={`인증번호 ${index + 1}번째 숫자`}
+                  className="aspect-[4/5] min-w-0 w-full rounded-xl border border-transparent bg-blue-900/10 text-center text-xl font-semibold text-slate-900 outline-none transition focus:border-blue-600 focus:ring-3 focus:ring-blue-600/15 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-theme-accent dark:text-theme-text dark:focus:border-theme-focus dark:focus:ring-theme-focus/20 sm:text-2xl"
+                />
+              ))}
+            </div>
+          </fieldset>
 
-          {isCodeSent && (
+          <div className="min-h-14 pt-4" aria-live="polite">
+            {notice && (
+              <p
+                role={notice.type === "error" ? "alert" : "status"}
+                className={`rounded-xl px-4 py-3 text-sm leading-5 ${
+                  notice.type === "error"
+                    ? "bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-theme-danger"
+                    : "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300"
+                }`}
+              >
+                {notice.text}
+              </p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={!isCodeSent || !isCodeComplete || verifyCodeMutation.isPending}
+            className="mt-2 h-12 w-full touch-manipulation rounded-xl bg-blue-600 px-4 text-base font-semibold text-white transition-colors enabled:cursor-pointer enabled:hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-theme-primary dark:enabled:hover:bg-theme-primary-hover dark:focus-visible:outline-theme-focus"
+          >
+            {verifyCodeMutation.isPending ? "인증 중..." : "인증 완료"}
+          </button>
+        </form>
+
+        {isCodeSent && (
+          <div className="mt-6 text-center">
+            <p className="text-sm text-slate-600 dark:text-theme-muted">메일을 받지 못하셨나요?</p>
             <button
               type="button"
               onClick={handleResendCode}
-              className="mt-10 text-blue-600 dark:text-theme-link text-base hover:cursor-pointer"
+              disabled={cooldown > 0 || resendCodeMutation.isPending || verifyCodeMutation.isPending}
+              className="mt-1 min-h-11 touch-manipulation px-2 text-sm font-semibold text-blue-600 underline-offset-4 enabled:cursor-pointer enabled:hover:underline focus-visible:rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:text-slate-400 dark:text-theme-link dark:focus-visible:outline-theme-focus dark:disabled:text-theme-muted"
             >
-              메일을 받지 못하셨나요? 인증번호 재전송
+              {resendCodeMutation.isPending
+                ? "재전송 중..."
+                : cooldown > 0
+                  ? `인증번호 재전송 (${cooldown}초)`
+                  : "인증번호 재전송"}
             </button>
-          )}
-        </section>
+          </div>
+        )}
       </div>
     </main>
   );

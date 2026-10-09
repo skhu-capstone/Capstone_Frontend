@@ -1,13 +1,31 @@
+import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft, ExternalLink, LoaderCircle, MessageCircle, RefreshCw } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import MyPageCard from "../../components/card/MyPageCard";
 import InputLabel from "../../components/card/InputLabel";
-import { useQuery } from "@tanstack/react-query";
 import { getCoffeeChatProfile } from "../../services/coffeeChatProfileService";
-import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { getProfileImageUrl } from "../../utils/imageUtils";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
+
+const MEETING_TYPE_LABELS = {
+  ONLINE: "온라인",
+  OFFLINE: "오프라인",
+  BOTH: "온라인·오프라인",
+};
+
+const getHttpUrl = (value) => {
+  if (!value) return null;
+
+  try {
+    const url = new URL(value);
+    return ["http:", "https:"].includes(url.protocol) ? url.href : null;
+  } catch {
+    return null;
+  }
+};
 
 export default function CoffeeChatProfilePage() {
   const navigate = useNavigate();
@@ -20,12 +38,13 @@ export default function CoffeeChatProfilePage() {
   const currentUserId = Number(authUser?.userId ?? authUser?.id);
   const isMyProfile = isValidUserId && currentUserId === targetUserId;
   const [chatLoading, setChatLoading] = useState(false);
+  const [chatError, setChatError] = useState("");
 
-  const { data, isLoading, isError, error } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["coffeeChatProfile", targetUserId],
     queryFn: () => getCoffeeChatProfile(targetUserId),
-    enabled: isAuthenticated && isValidUserId, // userId가 있을 때만 호출하기 (이상한 값 방지)
-  })
+    enabled: isAuthenticated && isValidUserId,
+  });
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -42,6 +61,7 @@ export default function CoffeeChatProfilePage() {
     }
 
     setChatLoading(true);
+    setChatError("");
 
     try {
       const token = localStorage.getItem("accessToken");
@@ -53,32 +73,44 @@ export default function CoffeeChatProfilePage() {
         },
         body: JSON.stringify({ targetUserId }),
       });
-      const result = await response.json();
+      const result = await response.json().catch(() => null);
 
-      if (response.ok && result.success && result.data?.chatRoomId) {
-        navigate("/coffee-chat", {
-          state: {
-            roomId: result.data.chatRoomId,
-          },
-        });
+      if (response.ok && result?.success && result.data?.chatRoomId) {
+        navigate("/coffee-chat", { state: { roomId: result.data.chatRoomId } });
         return;
       }
 
-      navigate("/coffee-chat");
-    } catch (error) {
-      console.error("[CoffeeChatProfilePage] 채팅방 생성 실패", error);
-      navigate("/coffee-chat");
+      setChatError(result?.message || "채팅방을 만들지 못했습니다. 잠시 후 다시 시도해주세요.");
+    } catch (requestError) {
+      console.error("[CoffeeChatProfilePage] 채팅방 생성 실패", requestError);
+      setChatError("네트워크 오류로 채팅방을 만들지 못했습니다.");
     } finally {
       setChatLoading(false);
     }
   };
 
-  if (authLoading || isLoading) {
-    return <div className="p-10">프로필을 불러오는 중입니다...</div>;
+  if (authLoading || (isAuthenticated && isValidUserId && isLoading)) {
+    return (
+      <StatusView
+        icon={<LoaderCircle aria-hidden="true" className="h-8 w-8 animate-spin text-blue-600 dark:text-theme-link" />}
+        message="프로필을 불러오는 중입니다..."
+      />
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <StatusView message="로그인 페이지로 이동하는 중입니다..." />;
   }
 
   if (!isValidUserId) {
-    return <div className="p-10">잘못된 커피챗 프로필 주소입니다.</div>;
+    return (
+      <StatusView
+        title="잘못된 프로필 주소입니다."
+        message="커피챗 사용자 목록에서 프로필을 다시 선택해주세요."
+        actionLabel="목록으로 돌아가기"
+        onAction={() => navigate("/coffee-chat/user-list")}
+      />
+    );
   }
 
   if (isError) {
@@ -92,17 +124,20 @@ export default function CoffeeChatProfilePage() {
             ? "존재하지 않는 커피챗 프로필입니다."
             : "프로필을 불러오지 못했습니다.";
 
-    return <div className="p-10">{message}</div>;
+    return (
+      <StatusView
+        title={message}
+        message={status === 403 || status === 404 ? "다른 사용자의 프로필을 확인해보세요." : "잠시 후 다시 시도해주세요."}
+        actionLabel={status === 403 || status === 404 ? "목록으로 돌아가기" : "다시 시도"}
+        onAction={status === 403 || status === 404 ? () => navigate("/coffee-chat/user-list") : () => refetch()}
+      />
+    );
   }
 
   const coffeeChatProfile = data?.coffeeChatProfile;
-
-  // user와 profile 부분은 AI 사용
   const user = {
-    name: data?.name ?? "",
-    clubName: Array.isArray(data?.clubs)
-      ? data.clubs[0] ?? ""
-      : data?.clubs ?? "",
+    name: data?.name ?? "이름 미설정",
+    clubs: data?.clubs ?? [],
     image: getProfileImageUrl({
       coffeeChatProfileImageUrl: coffeeChatProfile?.profileImageUrl,
       coffeeChatProfileImage: coffeeChatProfile?.profileImage,
@@ -114,17 +149,27 @@ export default function CoffeeChatProfilePage() {
   const profile = {
     studentId: coffeeChatProfile?.studentId ?? "",
     interest: coffeeChatProfile?.interestTopics ?? "",
-    preferredMethod: coffeeChatProfile?.meetingType ?? "",
+    preferredMethod: MEETING_TYPE_LABELS[coffeeChatProfile?.meetingType] ?? coffeeChatProfile?.meetingType ?? "",
     link: coffeeChatProfile?.contactLink ?? "",
     shortIntro: coffeeChatProfile?.headline ?? "",
     intro: coffeeChatProfile?.introduction ?? "",
   };
+  const contactUrl = getHttpUrl(profile.link);
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-theme-page px-8 py-20">
+    <main className="bg-gray-50 px-4 pt-5 pb-8 dark:bg-theme-page sm:px-6 sm:pt-10 sm:pb-12 lg:pt-14">
       <section className="mx-auto max-w-4xl">
-        <div className="mb-12 flex items-center justify-between">
-          <h1 className="text-5xl font-bold text-gray-900 dark:text-theme-text">
+        <button
+          type="button"
+          onClick={() => navigate("/coffee-chat/user-list")}
+          className="mb-5 inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-blue-600 dark:text-theme-secondary dark:hover:bg-theme-hover dark:focus-visible:outline-theme-focus sm:mb-7"
+        >
+          <ArrowLeft aria-hidden="true" className="h-4 w-4" />
+          사용자 목록
+        </button>
+
+        <div className="mb-6 flex items-start justify-between gap-3 sm:mb-8 sm:items-center sm:gap-5">
+          <h1 className="min-w-0 break-keep text-2xl font-bold leading-9 text-gray-900 [overflow-wrap:anywhere] dark:text-theme-text sm:text-3xl lg:text-4xl">
             {user.name} 님의 프로필
           </h1>
 
@@ -133,42 +178,88 @@ export default function CoffeeChatProfilePage() {
               type="button"
               onClick={handleChatClick}
               disabled={chatLoading}
-              className="rounded-xl bg-blue-600 dark:bg-theme-primary px-6 py-3 text-xl font-semibold text-white transition-colors hover:bg-blue-700 dark:hover:bg-theme-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex min-h-11 w-auto shrink-0 touch-manipulation items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-theme-primary dark:hover:bg-theme-primary-hover dark:focus-visible:outline-theme-focus sm:min-h-12 sm:gap-2 sm:px-5 sm:text-base"
             >
+              {chatLoading ? (
+                <LoaderCircle aria-hidden="true" className="h-5 w-5 animate-spin" />
+              ) : (
+                <MessageCircle aria-hidden="true" className="h-5 w-5" />
+              )}
               {chatLoading ? "채팅방 생성 중..." : "채팅 보내기"}
             </button>
           )}
         </div>
 
-        <MyPageCard
-          name={user.name}
-          clubName={user.clubName}
-          image={user.image}
-        />
+        {chatError && (
+          <p role="alert" className="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm leading-5 text-red-700 dark:bg-red-950/30 dark:text-theme-danger">
+            {chatError}
+          </p>
+        )}
 
-        <section className="mt-10">
-          <h2 className="border-b border-gray-300 dark:border-theme-border-strong pb-2 text-3xl font-bold text-gray-900 dark:text-theme-text">
+        <MyPageCard compact name={user.name} clubName={user.clubs} image={user.image} />
+
+        <section className="mt-8 sm:mt-10">
+          <h2 className="border-b border-gray-300 pb-3 text-2xl font-bold text-gray-900 dark:border-theme-border-strong dark:text-theme-text sm:text-3xl">
             Profile Details
           </h2>
 
-          <div className="mt-8">
-            <div className="grid grid-cols-2 gap-x-4 gap-y-5">
-              <InputLabel label="학번" value={profile.studentId} />
-              <InputLabel label="관심분야" value={profile.interest} />
-              <InputLabel label="선호 진행방식" value={profile.preferredMethod} />
-              <InputLabel label="연락링크" value={profile.link} />
+          <div className="mt-6 sm:mt-8">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-x-4">
+              <InputLabel label="학번" value={profile.studentId || "미설정"} />
+              <InputLabel label="관심분야" value={profile.interest || "미설정"} />
+              <InputLabel label="선호 진행방식" value={profile.preferredMethod || "미설정"} />
+              {contactUrl ? (
+                <div className="flex w-full min-w-0 flex-col gap-1">
+                  <span className="text-xs font-medium leading-4 text-gray-900 dark:text-theme-text">연락링크</span>
+                  <a
+                    href={contactUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex min-h-11 min-w-0 items-center gap-2 rounded-[10px] bg-blue-900/10 px-3.5 py-2.5 text-sm text-blue-700 hover:underline focus-visible:outline-2 focus-visible:outline-blue-600 dark:bg-theme-accent dark:text-theme-link dark:focus-visible:outline-theme-focus sm:text-base"
+                  >
+                    <span className="min-w-0 flex-1 break-all">{profile.link}</span>
+                    <ExternalLink aria-hidden="true" className="h-4 w-4 shrink-0" />
+                  </a>
+                </div>
+              ) : (
+                <InputLabel label="연락링크" value={profile.link || "미설정"} />
+              )}
             </div>
 
             <div className="mt-5">
-              <InputLabel label="한 줄 자기소개" value={profile.shortIntro} />
+              <InputLabel label="한 줄 자기소개" value={profile.shortIntro || "미설정"} />
             </div>
 
             <div className="mt-5">
-              <InputLabel label="자기소개" value={profile.intro} multiline />
+              <InputLabel label="자기소개" value={profile.intro || "미설정"} multiline />
             </div>
           </div>
         </section>
       </section>
+    </main>
+  );
+}
+
+function StatusView({ icon, title, message, actionLabel, onAction }) {
+  return (
+    <main className="flex min-h-[50vh] items-center justify-center bg-gray-50 px-4 py-12 dark:bg-theme-page">
+      <div className="max-w-sm text-center" role={title ? "alert" : "status"} aria-live="polite">
+        {icon && <div className="flex justify-center">{icon}</div>}
+        {title && <h1 className="text-lg font-bold text-gray-900 dark:text-theme-text">{title}</h1>}
+        <p className={`${title || icon ? "mt-3" : ""} break-keep text-sm leading-6 text-gray-600 dark:text-theme-muted`}>
+          {message}
+        </p>
+        {actionLabel && onAction && (
+          <button
+            type="button"
+            onClick={onAction}
+            className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:bg-theme-primary dark:hover:bg-theme-primary-hover dark:focus-visible:outline-theme-focus"
+          >
+            {actionLabel === "다시 시도" && <RefreshCw aria-hidden="true" className="h-4 w-4" />}
+            {actionLabel}
+          </button>
+        )}
+      </div>
     </main>
   );
 }
