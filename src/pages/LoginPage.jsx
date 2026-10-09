@@ -52,56 +52,68 @@ export default function LoginPage() {
   });
 
   return (
-    <main className="min-h-screen bg-linear-to-br from-slate-50 dark:from-theme-page via-slate-50 dark:via-theme-page to-slate-300 dark:to-theme-accent px-6 py-12 flex flex-col items-center overflow-hidden">
-      <section className="text-center mb-10">
-        <h1 className="text-neutral-800 dark:text-theme-text text-6xl md:text-8xl font-bold leading-tight">
+    <main className="flex w-full flex-col items-center overflow-x-clip bg-linear-to-br from-slate-50 via-slate-50 to-slate-300 px-4 pt-6 pb-8 dark:from-theme-page dark:via-theme-page dark:to-theme-accent md:px-6 md:pt-12 md:pb-14">
+      <section className="mb-8 w-full max-w-7xl text-center md:mb-10">
+        <h1 className="mx-auto max-w-4xl text-balance text-3xl font-bold leading-10 text-neutral-800 dark:text-theme-text md:text-5xl md:leading-tight lg:text-7xl">
           같은 학교, 더 가까운 연결
         </h1>
-        <p className="mt-6 text-zinc-500 dark:text-theme-muted text-2xl md:text-4xl font-semibold">
+        <p className="mx-auto mt-3 max-w-2xl text-balance text-base font-medium leading-7 text-zinc-500 dark:text-theme-muted md:mt-5 md:text-2xl md:font-semibold md:leading-9 lg:text-3xl">
           동아리 관리와 커피챗을 통한 협업 제안을 더 쉽게 해보세요
         </p>
       </section>
 
-      <section className="w-full max-w-127.5 min-h-180 bg-slate-50 dark:bg-theme-subtle rounded-[44px] border border-slate-600/20 dark:border-theme-border-strong flex flex-col items-center px-10 py-14">
-        <img
-          src={logo}
-          alt="LOGO"
-          className="theme-logo h-40 w-auto mb-10 cursor-pointer"
+      <section className="flex w-full max-w-md min-w-0 flex-col items-center rounded-2xl border border-slate-600/20 bg-slate-50 px-5 py-7 dark:border-theme-border-strong dark:bg-theme-subtle md:max-w-127.5 md:rounded-[44px] md:px-10 md:py-14">
+        <button
+          type="button"
           onClick={() => navigate("/")}
-        />
+          className="mb-6 cursor-pointer rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-600 dark:focus-visible:outline-theme-focus md:mb-9"
+          aria-label="홈으로 이동"
+        >
+          <img
+            src={logo}
+            alt="클럽허브"
+            className="theme-logo h-20 w-auto sm:h-24 md:h-32"
+          />
+        </button>
 
-        <div className="w-full text-center mb-10">
-          <h3 className="text-neutral-800 dark:text-theme-text text-3xl font-bold mb-3">로그인</h3>
-          <p className="text-neutral-800 dark:text-theme-text text-sm">
+        <div className="mb-7 w-full text-center md:mb-10">
+          <h2 className="mb-2 text-2xl font-bold text-neutral-800 dark:text-theme-text md:mb-3 md:text-3xl">
+            로그인
+          </h2>
+          <p className="mx-auto max-w-sm break-keep text-xs leading-5 text-neutral-600 dark:text-theme-muted md:text-sm md:leading-6">
             로그인 시 서비스 이용약관 및 개인정보처리방침에 동의하게 됩니다
           </p>
         </div>
 
-        {/* 구글 로그인 버튼 - 여기는 살짝 달라질 수도 있음 */}
         <button
-          className="w-full h-12 rounded-full border border-zinc-900 dark:border-theme-border-strong flex items-center justify-center
-          relative hover:bg-slate-100 dark:hover:bg-theme-hover transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+          type="button"
+          className="grid min-h-12 w-full touch-manipulation cursor-pointer grid-cols-[1.5rem_minmax(0,1fr)_1.5rem] items-center gap-2 rounded-xl border border-zinc-900 px-4 py-2.5 transition-colors hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-60 dark:border-theme-border-strong dark:hover:bg-theme-hover dark:focus-visible:outline-theme-focus sm:grid-cols-[1.75rem_minmax(0,1fr)_1.75rem] sm:rounded-full"
           disabled={loginMutation.isPending}
           onClick={() => startGoogleLogin()}
+          aria-busy={loginMutation.isPending}
         >
           <img
-            className="w-7 h-7 absolute left-3"
+            className="h-6 w-6 shrink-0 sm:h-7 sm:w-7"
             src="https://www.svgrepo.com/show/475656/google-color.svg"
-            alt="Google"
+            alt=""
+            aria-hidden="true"
           />
-          <span className="text-black dark:text-theme-text text-base font-medium">
+          <span className="min-w-0 truncate text-center text-sm font-semibold text-black dark:text-theme-text md:text-base">
             {loginMutation.isPending ? "로그인 중..." : "Google로 로그인"}
           </span>
+          <span aria-hidden="true" />
         </button>
 
-        <div className="mt-16 text-center">
-          <h3 className="text-sky-950 dark:text-theme-link text-5xl font-extrabold">CoffeeChat</h3>
-          <p className="mt-4 text-neutral-800/80 dark:text-theme-text text-base">
+        <div className="mt-10 text-center md:mt-14">
+          <h2 className="text-3xl font-extrabold text-sky-950 dark:text-theme-link md:text-5xl">
+            CoffeeChat
+          </h2>
+          <p className="mx-auto mt-2 max-w-sm break-keep text-sm leading-6 text-neutral-800/80 dark:text-theme-text md:mt-4 md:text-base">
             쉽게 접근할 수 있는 커피챗을 활용해보세요!
           </p>
         </div>
 
-        <div className="w-full mt-6 bg-slate-50 dark:bg-theme-subtle rounded-[20px] shadow-[0px_4px_12px_rgba(0,0,0,0.15)] dark:shadow-theme-shadow p-5 flex flex-col gap-4">
+        <div className="mt-4 flex w-full flex-col gap-3 rounded-2xl bg-slate-50 p-4 shadow-[0px_4px_12px_rgba(0,0,0,0.15)] dark:bg-theme-subtle dark:shadow-theme-shadow md:mt-6 md:gap-4 md:rounded-[20px] md:p-5">
           <ChatBubble align="left">
             안녕하세요~ 프로필 보고 연락드렸습니다~
           </ChatBubble>
@@ -124,7 +136,7 @@ function ChatBubble({ children, align = "left" }) {
 
   return (
     <div className={`flex ${isRight ? "justify-end" : "justify-start"}`}>
-      <div className="max-w-[85%] rounded-2xl bg-neutral-800/20 dark:bg-theme-disabled-bg px-4 py-3 text-black dark:text-theme-text text-sm md:text-base">
+      <div className="max-w-[90%] break-keep rounded-2xl bg-neutral-800/20 px-3 py-2.5 text-sm leading-5 text-black dark:bg-theme-disabled-bg dark:text-theme-text md:max-w-[85%] md:px-4 md:py-3 md:text-base md:leading-6">
         {children}
       </div>
     </div>
