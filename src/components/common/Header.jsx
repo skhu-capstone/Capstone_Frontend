@@ -64,6 +64,7 @@ export default function Header() {
   const [failedProfileImageUrl, setFailedProfileImageUrl] = useState("");
   const profileRef = useRef(null);
   const navMenuRef = useRef(null);
+  const mobileNavMenuRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
@@ -96,7 +97,10 @@ export default function Header() {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setProfileOpen(false);
       }
-      if (navMenuRef.current && !navMenuRef.current.contains(event.target)) {
+      if (
+        !navMenuRef.current?.contains(event.target) &&
+        !mobileNavMenuRef.current?.contains(event.target)
+      ) {
         setOpenMenuLabel(null);
       }
     };
@@ -255,7 +259,7 @@ export default function Header() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="col-start-3 flex items-center justify-self-end gap-2">
           <button
             type="button"
             onClick={() => setMobileMenuOpen((prev) => !prev)}
@@ -348,7 +352,10 @@ export default function Header() {
       </div>
 
       {mobileMenuOpen && (
-        <div className="border-t border-white/20 bg-white/10 backdrop-blur-sm md:hidden">
+        <div
+          ref={mobileNavMenuRef}
+          className="border-t border-white/20 bg-white/10 backdrop-blur-sm md:hidden"
+        >
           <nav className="flex flex-col px-4 py-2">
             {NAV_ITEMS.map((item) => {
               const { label, icon: Icon, href, children } = item;
@@ -364,6 +371,7 @@ export default function Header() {
                           openLabel === label ? null : label
                         )
                       }
+                      aria-expanded={openMenuLabel === label}
                       className={[
                         "flex w-full cursor-pointer items-center gap-3 rounded-xl px-4 py-3 text-left text-sm",
                         isActive

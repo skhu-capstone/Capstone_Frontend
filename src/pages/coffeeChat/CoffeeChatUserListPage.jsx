@@ -59,34 +59,36 @@ export default function CoffeeChatUserListPage() {
     );
 
   return (
-    <main className="min-h-screen bg-[#F8FAFC] px-12 py-14">
+    <main className="min-h-screen bg-[#F8FAFC] px-4 py-8 sm:px-6 sm:py-10 lg:px-12 lg:py-14">
       <section className="mx-auto max-w-360">
-        <div className="mb-10 flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">
+        <div className="mb-6 flex flex-col gap-4 sm:mb-10 lg:flex-row lg:items-center lg:justify-between">
+          <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
             Coffee Chat User List
           </h1>
 
-          <div className="flex gap-2">
+          <form
+            className="flex w-full min-w-0 gap-2 lg:w-auto"
+            onSubmit={(event) => {
+              event.preventDefault();
+              handleSearch();
+            }}
+          >
             <input
               type="text"
               value={inputKeyword}
               onChange={(e) => setInputKeyword(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleSearch();
-                }
-              }}
+              aria-label="이름, 관심 분야 검색"
               placeholder="이름, 관심 분야 검색"
-              className="h-12 w-80 rounded-lg border border-blue-400 bg-white px-4 outline-none"
+              className="h-12 min-w-0 flex-1 rounded-lg border border-blue-400 bg-white px-3 outline-none focus:ring-2 focus:ring-blue-400 sm:px-4 lg:w-80"
             />
 
             <button
-              onClick={handleSearch}
-              className="h-12 rounded-lg bg-blue-600 px-4 text-white hover:cursor-pointer"
+              type="submit"
+              className="h-12 shrink-0 rounded-lg bg-blue-600 px-4 text-white hover:cursor-pointer"
             >
               검색
             </button>
-          </div>
+          </form>
         </div>
 
         {(authLoading || isLoading) && <p className="text-gray-500">로딩중...</p>}
@@ -96,7 +98,7 @@ export default function CoffeeChatUserListPage() {
         {!isLoading && !isError && users.length === 0 && (<p className="text-gray-500">검색 결과가 없습니다.</p>)}
 
         {!isLoading && !isError && users.length > 0 && (
-          <div className="grid grid-cols-2 gap-x-10 gap-y-10">
+          <div className="grid grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-2 xl:gap-10">
             {users.map((user) => (
               <CoffeeChatListCard
                 key={user.coffeeChatProfileId}
@@ -118,10 +120,15 @@ export default function CoffeeChatUserListPage() {
             <button
               onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
               disabled={page === 1}
-              className="mr-2 text-2xl text-gray-600 disabled:text-gray-300"
+              aria-label="이전 페이지"
+              className="flex h-11 w-11 shrink-0 items-center justify-center text-2xl text-gray-600 disabled:text-gray-300"
             >
               ‹
             </button>
+            <span className="text-sm text-gray-600 sm:hidden" aria-live="polite">
+              {page} / {totalPage}
+            </span>
+            <div className="hidden items-center gap-2 sm:flex">
             {pageNumbers.map((pageNumber, index) => (
               <div key={pageNumber} className="flex items-center gap-2">
                 {index > 0 && pageNumber - pageNumbers[index - 1] > 1 && (
@@ -129,6 +136,8 @@ export default function CoffeeChatUserListPage() {
                 )}
                 <button
                   onClick={() => setPage(pageNumber)}
+                  aria-label={`${pageNumber}페이지`}
+                  aria-current={page === pageNumber ? "page" : undefined}
                   className={`h-9 w-9 rounded-full text-sm ${
                     page === pageNumber
                       ? "bg-blue-600 text-white"
@@ -139,11 +148,13 @@ export default function CoffeeChatUserListPage() {
                 </button>
               </div>
             ))}
+            </div>
 
             <button
               onClick={() => setPage((prev) => Math.min(prev + 1, totalPage))}
               disabled={page === totalPage}
-              className="ml-2 text-2xl text-gray-600 disabled:text-gray-300"
+              aria-label="다음 페이지"
+              className="flex h-11 w-11 shrink-0 items-center justify-center text-2xl text-gray-600 disabled:text-gray-300"
             >
               ›
             </button>
