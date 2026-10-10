@@ -42,6 +42,7 @@ export default function ClubCalendar({ clubId, canManage = false }) {
   const [form, setForm] = useState(emptyForm);
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedDate, setSelectedDate] = useState("");
 
   const isModalOpen = modalMode === "create" || modalMode === "edit";
 
@@ -109,6 +110,30 @@ export default function ClubCalendar({ clubId, canManage = false }) {
         : nextVisibleMonth
     );
   };
+
+  const handleDateClick = (info) => {
+    setSelectedDate(info.dateStr);
+
+    if (window.matchMedia("(min-width: 768px)").matches && canManageCalendar) {
+      openCreateModal(info.dateStr);
+    }
+  };
+
+  const handleEventClick = (info) => {
+    if (window.matchMedia("(max-width: 767px)").matches) {
+      const clickedDate = info.jsEvent.target
+        .closest("[data-date]")
+        ?.getAttribute("data-date");
+      setSelectedDate(clickedDate || String(info.event.startStr).slice(0, 10));
+      return;
+    }
+
+    openEditModal(info.event);
+  };
+
+  const selectedDateEvents = selectedDate
+    ? events.filter((event) => isDateWithinEvent(selectedDate, event))
+    : [];
 
   const openCreateModal = (selectedDate = "") => {
     if (!isAuthenticated || !isValidClubId || !canManageCalendar) return;
@@ -306,11 +331,11 @@ export default function ClubCalendar({ clubId, canManage = false }) {
   };
 
   return (
-    <section className="club-calendar-wrap py-7">
-      <div className="rounded-xl bg-white dark:bg-theme-surface p-6 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] dark:shadow-theme-shadow">
-        <div className="mb-5 flex items-center justify-between">
+    <section className="club-calendar-wrap py-5 sm:py-7">
+      <div className="rounded-xl bg-white p-3 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] dark:bg-theme-surface dark:shadow-theme-shadow sm:p-6">
+        <div className="mb-4 flex items-center justify-between gap-3 sm:mb-5">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-theme-text">Calendar</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-theme-text sm:text-2xl">캘린더</h2>
             <p className="mt-1 text-sm text-slate-900/60 dark:text-theme-muted">
               동아리 일정을 확인하세요
             </p>
@@ -320,7 +345,7 @@ export default function ClubCalendar({ clubId, canManage = false }) {
             <button
               type="button"
               onClick={() => openCreateModal()}
-              className="rounded-xl bg-sky-700 dark:bg-theme-primary px-5 py-3 text-sm font-semibold text-white hover:bg-sky-800 dark:hover:bg-theme-primary-hover"
+              className="shrink-0 rounded-xl bg-sky-700 px-3.5 py-2.5 text-sm font-semibold text-white hover:bg-sky-800 dark:bg-theme-primary dark:hover:bg-theme-primary-hover sm:px-5 sm:py-3"
             >
               일정 추가
             </button>
@@ -360,9 +385,9 @@ export default function ClubCalendar({ clubId, canManage = false }) {
           displayEventTime={false}
           fixedWeekCount={false}
           selectable={canManageCalendar}
-          dateClick={(info) => openCreateModal(info.dateStr)}
+          dateClick={handleDateClick}
           datesSet={handleDatesSet}
-          eventClick={(info) => openEditModal(info.event)}
+          eventClick={handleEventClick}
           headerToolbar={{
             left: "prev,next today",
             center: "title",
@@ -372,6 +397,54 @@ export default function ClubCalendar({ clubId, canManage = false }) {
             today: "Today",
           }}
         />
+
+        {selectedDate && (
+          <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-theme-border dark:bg-theme-subtle md:hidden">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-sm font-bold text-gray-900 dark:text-theme-text">
+                {selectedDate.replaceAll("-", ".")} 일정
+              </h3>
+              {canManageCalendar && (
+                <button type="button" onClick={() => openCreateModal(selectedDate)} className="text-sm font-semibold text-sky-700 dark:text-theme-link">
+                  일정 추가
+                </button>
+              )}
+            </div>
+            {selectedDateEvents.length === 0 ? (
+              <p className="mt-3 text-sm text-slate-500 dark:text-theme-muted">등록된 일정이 없습니다.</p>
+            ) : (
+              <ul className="mt-3 space-y-2">
+                {selectedDateEvents.map((event) => (
+                  <li key={event.id} className="rounded-lg bg-white p-3 dark:bg-theme-surface">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h4 className="break-words text-sm font-semibold text-gray-900 dark:text-theme-text">{event.title}</h4>
+                        <p className="mt-1 text-xs text-slate-500 dark:text-theme-muted">
+                          {formatEventPeriod(event.start, event.end)}
+                        </p>
+                      </div>
+                      {canManageCalendar && (
+                        <button type="button" onClick={() => openEditModal(event)} className="shrink-0 text-xs font-semibold text-sky-700 dark:text-theme-link">
+                          수정
+                        </button>
+                      )}
+                    </div>
+                    {event.location && (
+                      <p className="mt-2 break-words text-xs text-slate-600 dark:text-theme-secondary">
+                        장소: {event.location}
+                      </p>
+                    )}
+                    {event.description && (
+                      <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-5 text-slate-700 dark:text-theme-secondary">
+                        {event.description}
+                      </p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </div>
 
       {isModalOpen && (
@@ -418,6 +491,20 @@ const toDateInputValue = (dateTime) => {
   return String(dateTime).slice(0, 10);
 };
 
+const formatEventPeriod = (start, end) => {
+  const startDate = toDateInputValue(start).replaceAll("-", ".");
+  const endDate = toDateInputValue(end).replaceAll("-", ".");
+
+  if (!endDate || startDate === endDate) return startDate;
+  return `${startDate} - ${endDate}`;
+};
+
+const isDateWithinEvent = (date, event) => {
+  const startDate = toDateInputValue(event.start);
+  const endDate = toDateInputValue(event.end || event.start);
+  return date >= startDate && date <= endDate;
+};
+
 function EventModal({
   mode,
   form,
@@ -432,14 +519,14 @@ function EventModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 px-0 sm:items-center sm:px-4"
 	      onClick={(event) => {
 	        if (event.target === event.currentTarget && !isSubmitting) onClose();
 	      }}
     >
       <form
         onSubmit={onSubmit}
-        className="flex w-full max-w-lg flex-col gap-5 rounded-2xl bg-white dark:bg-theme-surface p-6 shadow-xl dark:shadow-theme-shadow"
+        className="flex max-h-[calc(100dvh-1rem)] w-full max-w-lg flex-col gap-4 overflow-y-auto rounded-t-2xl bg-white p-4 shadow-xl dark:bg-theme-surface dark:shadow-theme-shadow sm:max-h-[calc(100dvh-2rem)] sm:gap-5 sm:rounded-2xl sm:p-6"
       >
         <div className="flex items-start justify-between">
           <div>
@@ -478,7 +565,7 @@ function EventModal({
           </span>
         </label>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label className="flex flex-col gap-2">
             <span className="text-sm font-semibold text-slate-700 dark:text-theme-secondary">시작일</span>
             <input
@@ -537,7 +624,7 @@ function EventModal({
 	          </p>
 	        )}
 
-	        <div className="flex items-center justify-between pt-2">
+	        <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:items-center sm:justify-between">
 	          {isEditMode ? (
 	            <button
 	              type="button"
@@ -551,7 +638,7 @@ function EventModal({
             <span />
           )}
 
-          <div className="flex items-center gap-2">
+	          <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
 	            <button
 	              type="button"
 	              onClick={onClose}

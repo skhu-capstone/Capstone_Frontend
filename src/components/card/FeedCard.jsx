@@ -23,7 +23,7 @@ function FeedCard({
       type="button"
       onClick={() => navigate(detailPath)}
       aria-label={`${author || "동아리"} 게시글 상세 보기`}
-      className="grid h-full min-h-36 w-full min-w-0 touch-manipulation cursor-pointer grid-cols-[7rem_minmax(0,1fr)] grid-rows-[auto_1fr] gap-x-3 gap-y-2 overflow-hidden rounded-xl border border-slate-200 bg-white p-3 text-left shadow-[0px_4px_12px_rgba(0,0,0,0.08)] transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-theme-border dark:bg-theme-surface dark:shadow-theme-shadow dark:focus-visible:outline-theme-focus md:flex md:min-h-100 md:flex-col md:items-start md:justify-start md:gap-4 md:border-0 md:p-5 md:shadow-[0px_4px_12px_rgba(0,0,0,0.15)] md:hover:-translate-y-3 md:hover:scale-[1.01] md:hover:outline-[3px] md:hover:outline-offset-[-3px] md:hover:outline-blue-500 md:dark:hover:outline-theme-focus xl:h-113.75 xl:min-h-0"
+      className="grid h-full min-h-36 w-full min-w-0 touch-manipulation cursor-pointer grid-cols-[6.5rem_minmax(0,1fr)] grid-rows-[auto_1fr] gap-x-3 gap-y-2 overflow-hidden rounded-xl border border-slate-200 bg-white p-3 text-left shadow-[0px_4px_12px_rgba(0,0,0,0.08)] transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-theme-border dark:bg-theme-surface dark:shadow-theme-shadow dark:focus-visible:outline-theme-focus sm:grid-cols-[8rem_minmax(0,1fr)] md:flex md:min-h-100 md:flex-col md:items-start md:justify-start md:gap-4 md:border-0 md:p-5 md:shadow-[0px_4px_12px_rgba(0,0,0,0.15)] md:hover:-translate-y-2 md:hover:outline-[3px] md:hover:outline-offset-[-3px] md:hover:outline-blue-500 md:dark:hover:outline-theme-focus xl:h-113.75 xl:min-h-0"
     >
       <div className="col-start-2 row-start-1 flex min-w-0 items-center gap-2 md:order-1 md:col-auto md:row-auto md:gap-4">
         {/* 프로필 이미지 */}
@@ -49,7 +49,7 @@ function FeedCard({
 
       {/* 피드 이미지 -> 여기서 이미지 없으면 어떻게 할지 생각해야 할듯. 필수요소 설정? */}
       <SafeImage
-        className="col-start-1 row-span-2 row-start-1 h-full min-h-30 w-28 self-stretch rounded-lg object-cover md:order-2 md:h-64 md:min-h-0 md:w-full md:rounded-xl"
+        className="col-start-1 row-span-2 row-start-1 h-full min-h-28 w-full self-stretch rounded-lg object-cover md:order-2 md:h-64 md:min-h-0 md:w-full md:rounded-xl"
         src={image}
         fallbackSrc={DEFAULT_FEED_IMAGE}
         getSrc={getContentImageUrl}
@@ -57,7 +57,14 @@ function FeedCard({
       />
 
       {/* 내용 */}
-      <div className="col-start-2 row-start-2 line-clamp-4 min-w-0 self-stretch break-words text-sm font-normal leading-5 text-slate-700 dark:text-theme-secondary md:order-3 md:col-auto md:row-auto md:line-clamp-3 md:text-base md:leading-6 md:text-black md:dark:text-theme-text">
+      <div
+        className="col-start-2 row-start-2 min-w-0 self-start overflow-hidden break-words text-sm font-normal leading-5 text-slate-700 dark:text-theme-secondary md:order-3 md:col-auto md:row-auto md:text-base md:leading-6 md:text-black md:dark:text-theme-text"
+        style={{
+          display: "-webkit-box",
+          WebkitBoxOrient: "vertical",
+          WebkitLineClamp: 4,
+        }}
+      >
         {content}
       </div>
     </button>
