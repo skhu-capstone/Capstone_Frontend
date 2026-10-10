@@ -14,7 +14,7 @@ function InputLabel({
       </div>
 
       {/* 값 영역 */}
-      <div className={`inline-flex min-h-11 self-stretch rounded-[10px] bg-blue-900/10 px-3.5 py-2.5 outline-[1.5px] outline-offset-[-1.5px] outline-black/0 dark:bg-theme-accent ${multiline ? "min-h-30 items-start" : "items-center"}`}>
+      <div className={`inline-flex min-h-11 self-stretch rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 dark:border-theme-border dark:bg-theme-subtle ${multiline ? "min-h-30 items-start" : "items-center"}`}>
         <div className={`min-w-0 flex-1 break-words text-sm font-normal leading-5 text-black [overflow-wrap:anywhere] dark:text-theme-text sm:text-base ${multiline ? "whitespace-pre-wrap" : ""}`}>
           {displayValue}
         </div>
