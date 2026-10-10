@@ -140,6 +140,10 @@ function ClubPostDetail({ id, onBack }) {
             headers: { ...authHeader() },
           }
         );
+        if (res.status === 404) {
+          setError("삭제된 게시글입니다.");
+          return;
+        }
         const data = await res.json();
         if (data.success) {
           setPost(data.data);
@@ -239,6 +243,10 @@ function ProjectPostDetail({ id, onBack }) {
             headers: { ...authHeader() },
           }
         );
+        if (res.status === 404) {
+          setError("삭제된 게시글입니다.");
+          return;
+        }
         const data = await res.json();
         if (data.success) {
           setPost(data.data);
@@ -277,7 +285,7 @@ function ProjectPostDetail({ id, onBack }) {
       const res = await fetch(`${API_BASE_URL}/api/chat/rooms`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...authHeader() },
-        body: JSON.stringify({ targetUserId: post.writerId }),
+        body: JSON.stringify({ targetUserId: post.writerId, source: "PROJECT_RECRUITMENT", sourceId: Number(id) }),
       });
       const data = await res.json();
       if (data.success) {

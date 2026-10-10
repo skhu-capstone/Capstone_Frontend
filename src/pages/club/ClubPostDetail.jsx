@@ -588,7 +588,7 @@ export default function ClubPostDetail() {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-theme-page flex flex-col items-center justify-center gap-3 px-4 text-center">
         <p className="text-gray-400 dark:text-theme-muted text-sm">
-          {error?.message || "게시글을 찾을 수 없어요."}
+          {error?.response?.status === 404 ? "삭제된 게시글입니다." : error?.message || "게시글을 찾을 수 없어요."}
         </p>
         <button
           onClick={handleBack}

@@ -199,6 +199,9 @@ export default function CoffeeChatPage() {
             )}
           </div>
           <p className="text-xs text-gray-400 dark:text-theme-muted">대화를 이어가 보세요</p>
+          {location.state?.fromNotification && targetRoomId && !loading && !error && !rooms.some((room) => Number(room.chatRoomId) === Number(targetRoomId)) && (
+            <p role="alert" className="mt-3 text-sm text-red-500 dark:text-theme-danger">삭제되었거나 접근할 수 없는 채팅방입니다.</p>
+          )}
         </div>
 
         {/* 검색창 */}
