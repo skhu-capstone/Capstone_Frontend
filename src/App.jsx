@@ -18,43 +18,35 @@ import PresidentPage from "./pages/club/PresidentPage";
 import ClubApplicationPage from "./pages/club/ClubApplicationPage";
 import ClubCreationPage from "./pages/club/ClubCreationPage";
 import ClubDetailPage from "./pages/club/ClubDetailPage";
+import VerifiedRoute from "./components/common/VerifiedRoute";
 export default function App() {
   return (
     <>
       <Header />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/" element={<MainPage />} />
-        <Route path="/cooperation" element={<CooperationPage />} />
-        <Route path="/coffee-chat" element={<CoffeeChatPage />} />
-        <Route path="/club/main" element={<ClubMainPage />} />
-        <Route path="/club/main/:clubId" element={<ClubMainPage />} />
-        <Route path="/club/apply" element={<ClubApplicationPage />} />
-        <Route path="/club/apply/:clubId" element={<ClubDetailPage />} />
-        <Route path="/club/create" element={<ClubCreationPage />} />
-        <Route path="/my-page" element={<MyPage />} />
         <Route path="/email-verify" element={<EmailVerifyPage />} />
-        <Route
-          path="/coffee-chat/profile/:userId"
-          element={<CoffeeChatProfilePage />}
-        />
-        <Route
-          path="/coffee-chat/user-list"
-          element={<CoffeeChatUserListPage />}
-        />
-        <Route path="/club/post" element={<ClubPostPage />} />
-        <Route path="/club/president/:clubId" element={<PresidentPage />} />
-        <Route
-          path="/clubs/:clubId/posts/create"
-          element={<ClubPostCreatePage />}
-        />
-        <Route
-          path="/clubs/:clubId/posts/:postId"
-          element={<ClubPostDetail />}
-        />
-        {/* 추가 라우트는 여기에 */}
-        <Route path="/cooperation/:type/:id" element={<PostDetailPage />} />
-        <Route path="/club/posts/:id" element={<ClubPostDetail />} />
+        <Route element={<VerifiedRoute allowGuest />}>
+          <Route path="/" element={<MainPage />} />
+          <Route path="/cooperation" element={<CooperationPage />} />
+        </Route>
+        <Route element={<VerifiedRoute />}>
+          <Route path="/coffee-chat" element={<CoffeeChatPage />} />
+          <Route path="/club/main" element={<ClubMainPage />} />
+          <Route path="/club/main/:clubId" element={<ClubMainPage />} />
+          <Route path="/club/apply" element={<ClubApplicationPage />} />
+          <Route path="/club/apply/:clubId" element={<ClubDetailPage />} />
+          <Route path="/club/create" element={<ClubCreationPage />} />
+          <Route path="/my-page" element={<MyPage />} />
+          <Route path="/coffee-chat/profile/:userId" element={<CoffeeChatProfilePage />} />
+          <Route path="/coffee-chat/user-list" element={<CoffeeChatUserListPage />} />
+          <Route path="/club/post" element={<ClubPostPage />} />
+          <Route path="/club/president/:clubId" element={<PresidentPage />} />
+          <Route path="/clubs/:clubId/posts/create" element={<ClubPostCreatePage />} />
+          <Route path="/clubs/:clubId/posts/:postId" element={<ClubPostDetail />} />
+          <Route path="/cooperation/:type/:id" element={<PostDetailPage />} />
+          <Route path="/club/posts/:id" element={<ClubPostDetail />} />
+        </Route>
       </Routes>
       <Footer />
     </>
