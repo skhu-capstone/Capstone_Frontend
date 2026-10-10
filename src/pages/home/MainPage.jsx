@@ -80,6 +80,11 @@ export default function MainPage() {
     () =>
       (data?.recommendedCoffeeChats ?? [])
         .filter((coffeeChat) => String(coffeeChat.userId) !== String(currentUserId))
+        .map((coffeeChat) => ({
+          ...coffeeChat,
+          sortValue: getRandomSortValue(),
+        }))
+        .sort((a, b) => a.sortValue.localeCompare(b.sortValue))
         .slice(0, 3),
     [data?.recommendedCoffeeChats, currentUserId]
   );
