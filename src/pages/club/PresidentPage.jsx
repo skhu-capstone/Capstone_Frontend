@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, ChevronDown, ImagePlus } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getClubDetail,
@@ -46,6 +47,7 @@ const parseStoredUser = () => {
 };
 
 export default function PresidentPage() {
+  const navigate = useNavigate();
   const { clubId } = useParams();
   const targetClubId = Number(clubId);
   const isValidClubId = Number.isInteger(targetClubId) && targetClubId > 0;
@@ -70,6 +72,8 @@ export default function PresidentPage() {
     contact: "",
   });
   const [confirmAction, setConfirmAction] = useState(null);
+  const [expandedApplicantIds, setExpandedApplicantIds] = useState([]);
+  const [actionMessage, setActionMessage] = useState(null);
   const loginUser = authUser ?? parseStoredUser();
   const loginUserId = Number(loginUser?.userId ?? loginUser?.id);
 
@@ -168,11 +172,11 @@ export default function PresidentPage() {
         })
       );
       setConfirmAction(null);
-      alert("대표 권한이 이전되었습니다.");
+      setActionMessage({ type: "success", text: "대표 권한이 이전되었습니다." });
     },
     onError: (error) => {
       console.error(error);
-      alert("대표 권한 이전에 실패했습니다.");
+      setActionMessage({ type: "error", text: error.response?.data?.message || "대표 권한 이전에 실패했습니다." });
     },
   });
 
@@ -186,11 +190,11 @@ export default function PresidentPage() {
             : member
         )
       );
-      alert("멤버 역할이 변경되었습니다.");
+      setActionMessage({ type: "success", text: "멤버 역할이 변경되었습니다." });
     },
     onError: (error) => {
       console.error(error);
-      alert("멤버 역할 변경에 실패했습니다.");
+      setActionMessage({ type: "error", text: error.response?.data?.message || "멤버 역할 변경에 실패했습니다." });
     },
   });
 
@@ -248,15 +252,16 @@ export default function PresidentPage() {
           queryKey: ["myClubs"],
         }),
       ]);
-      alert(
-        result.imageUploadFailed
+      setActionMessage({
+        type: result.imageUploadFailed ? "error" : "success",
+        text: result.imageUploadFailed
           ? "동아리 정보는 수정되었지만 이미지 업로드에 실패했습니다."
-          : "동아리 정보가 수정되었습니다."
-      );
+          : "동아리 정보가 수정되었습니다.",
+      });
     },
     onError: (error) => {
       console.error(error);
-      alert("동아리 정보 수정에 실패했습니다.");
+      setActionMessage({ type: "error", text: error.response?.data?.message || "동아리 정보 수정에 실패했습니다." });
     },
   });
 
@@ -272,11 +277,11 @@ export default function PresidentPage() {
           queryKey: ["clubMembers", variables.clubId],
         }),
       ]);
-      alert("가입 신청을 승인했습니다.");
+      setActionMessage({ type: "success", text: "가입 신청을 승인했습니다." });
     },
     onError: (error) => {
       console.error(error);
-      alert("가입 신청 승인에 실패했습니다.");
+      setActionMessage({ type: "error", text: error.response?.data?.message || "가입 신청 승인에 실패했습니다." });
     },
   });
 
@@ -287,11 +292,11 @@ export default function PresidentPage() {
       await queryClient.invalidateQueries({
         queryKey: ["clubJoinRequests", variables.clubId],
       });
-      alert("가입 신청을 거절했습니다.");
+      setActionMessage({ type: "success", text: "가입 신청을 거절했습니다." });
     },
     onError: (error) => {
       console.error(error);
-      alert("가입 신청 거절에 실패했습니다.");
+      setActionMessage({ type: "error", text: error.response?.data?.message || "가입 신청 거절에 실패했습니다." });
     },
   });
 
@@ -305,27 +310,35 @@ export default function PresidentPage() {
         )
       );
       setConfirmAction(null);
-      alert("멤버를 내보냈습니다.");
+      setActionMessage({ type: "success", text: "멤버를 내보냈습니다." });
     },
     onError: (error) => {
       console.error(error);
-      alert("멤버 내보내기에 실패했습니다.");
+      setActionMessage({ type: "error", text: error.response?.data?.message || "멤버 내보내기에 실패했습니다." });
     },
   });
 
+  const isAnyMutationPending =
+    transferPresidentMutation.isPending ||
+    updateMemberRoleMutation.isPending ||
+    updateClubInfoMutation.isPending ||
+    approveJoinRequestMutation.isPending ||
+    rejectJoinRequestMutation.isPending ||
+    removeMemberMutation.isPending;
+
 	  const handleApprove = (applicant) => {
     if (!isAuthenticated) {
-      alert("로그인이 필요합니다.");
+      setActionMessage({ type: "error", text: "로그인이 필요합니다." });
       return;
     }
 
     if (!isCurrentUserPresident) {
-      alert("대표만 가입 신청을 승인할 수 있습니다.");
+      setActionMessage({ type: "error", text: "대표만 가입 신청을 승인할 수 있습니다." });
       return;
     }
 
     if (!isValidClubId) {
-      alert("동아리 정보를 찾을 수 없습니다.");
+      setActionMessage({ type: "error", text: "동아리 정보를 찾을 수 없습니다." });
       return;
     }
 
@@ -337,17 +350,17 @@ export default function PresidentPage() {
 
 	  const handleReject = (applicantId) => {
     if (!isAuthenticated) {
-      alert("로그인이 필요합니다.");
+      setActionMessage({ type: "error", text: "로그인이 필요합니다." });
       return;
     }
 
     if (!isCurrentUserPresident) {
-      alert("대표만 가입 신청을 거절할 수 있습니다.");
+      setActionMessage({ type: "error", text: "대표만 가입 신청을 거절할 수 있습니다." });
       return;
     }
 
     if (!isValidClubId) {
-      alert("동아리 정보를 찾을 수 없습니다.");
+      setActionMessage({ type: "error", text: "동아리 정보를 찾을 수 없습니다." });
       return;
     }
 
@@ -359,12 +372,12 @@ export default function PresidentPage() {
 
 	  const handleRoleChange = (targetUserId, nextRole) => {
     if (!isAuthenticated) {
-      alert("로그인이 필요합니다.");
+      setActionMessage({ type: "error", text: "로그인이 필요합니다." });
       return;
     }
 
     if (!isCurrentUserPresident) {
-      alert("대표만 멤버 역할을 변경할 수 있습니다.");
+      setActionMessage({ type: "error", text: "대표만 멤버 역할을 변경할 수 있습니다." });
       return;
     }
 
@@ -375,7 +388,7 @@ export default function PresidentPage() {
 
     if (nextRole === "PRESIDENT") {
       if (!isCurrentUserPresident) {
-        alert("대표만 대표 권한을 이전할 수 있습니다.");
+        setActionMessage({ type: "error", text: "대표만 대표 권한을 이전할 수 있습니다." });
         return;
       }
 
@@ -390,7 +403,7 @@ export default function PresidentPage() {
     }
 
     if (!isValidClubId) {
-      alert("동아리 정보를 찾을 수 없습니다.");
+      setActionMessage({ type: "error", text: "동아리 정보를 찾을 수 없습니다." });
       return;
     }
 
@@ -403,19 +416,19 @@ export default function PresidentPage() {
 
 	  const transferPresident = (targetUserId) => {
     if (!isAuthenticated) {
-      alert("로그인이 필요합니다.");
+      setActionMessage({ type: "error", text: "로그인이 필요합니다." });
       setConfirmAction(null);
       return;
     }
 
     if (!isCurrentUserPresident) {
-      alert("대표만 대표 권한을 이전할 수 있습니다.");
+      setActionMessage({ type: "error", text: "대표만 대표 권한을 이전할 수 있습니다." });
       setConfirmAction(null);
       return;
     }
 
     if (!isValidClubId) {
-      alert("동아리 정보를 찾을 수 없습니다.");
+      setActionMessage({ type: "error", text: "동아리 정보를 찾을 수 없습니다." });
       return;
     }
 
@@ -428,7 +441,7 @@ export default function PresidentPage() {
 	  const requestRemoveMember = (member) => {
     if (!isAuthenticated) return;
     if (!isCurrentUserPresident) {
-      alert("대표만 멤버를 내보낼 수 있습니다.");
+      setActionMessage({ type: "error", text: "대표만 멤버를 내보낼 수 있습니다." });
       return;
     }
     if (Number(member.userId ?? member.id) === loginUserId) return;
@@ -445,13 +458,13 @@ export default function PresidentPage() {
 
 	  const removeMember = (targetUserId) => {
     if (!isAuthenticated) {
-      alert("로그인이 필요합니다.");
+      setActionMessage({ type: "error", text: "로그인이 필요합니다." });
       setConfirmAction(null);
       return;
     }
 
     if (!isCurrentUserPresident) {
-      alert("대표만 멤버를 내보낼 수 있습니다.");
+      setActionMessage({ type: "error", text: "대표만 멤버를 내보낼 수 있습니다." });
       setConfirmAction(null);
       return;
     }
@@ -463,7 +476,7 @@ export default function PresidentPage() {
     if (Number(targetUserId) === loginUserId) return;
 
     if (!isValidClubId) {
-      alert("동아리 정보를 찾을 수 없습니다.");
+      setActionMessage({ type: "error", text: "동아리 정보를 찾을 수 없습니다." });
       return;
     }
 
@@ -491,7 +504,7 @@ export default function PresidentPage() {
     }
 
     if (!ALLOWED_CLUB_IMAGE_TYPES.includes(file.type)) {
-      alert("PNG 또는 JPG 이미지만 업로드할 수 있습니다.");
+      setActionMessage({ type: "error", text: "PNG 또는 JPG 이미지만 업로드할 수 있습니다." });
       event.target.value = "";
       setClubImageFile(null);
       setClubImagePreview("");
@@ -500,7 +513,7 @@ export default function PresidentPage() {
     }
 
     if (file.size > MAX_CLUB_IMAGE_SIZE) {
-      alert("이미지는 20MB 이하만 업로드할 수 있습니다.");
+      setActionMessage({ type: "error", text: "이미지는 20MB 이하만 업로드할 수 있습니다." });
       event.target.value = "";
       setClubImageFile(null);
       setClubImagePreview("");
@@ -509,6 +522,7 @@ export default function PresidentPage() {
     }
 
     setClubImageFile(file);
+    setActionMessage(null);
     setHasClubImageError(false);
 
     const reader = new FileReader();
@@ -518,12 +532,12 @@ export default function PresidentPage() {
 
 	  const handleClubInfoSubmit = () => {
     if (!isAuthenticated) {
-      alert("로그인이 필요합니다.");
+      setActionMessage({ type: "error", text: "로그인이 필요합니다." });
       return;
     }
 
     if (!isValidClubId) {
-      alert("동아리 정보를 찾을 수 없습니다.");
+      setActionMessage({ type: "error", text: "동아리 정보를 찾을 수 없습니다." });
       return;
     }
 
@@ -535,7 +549,7 @@ export default function PresidentPage() {
     );
 
     if (!trimmedClubInfo.clubName) {
-      alert("동아리명을 입력해주세요.");
+      setActionMessage({ type: "error", text: "동아리명을 입력해주세요." });
       return;
     }
 
@@ -555,7 +569,7 @@ export default function PresidentPage() {
         contact: "연락처",
       };
 
-      alert(`${labelMap[field]}은 ${limit}자 이하로 입력해주세요.`);
+      setActionMessage({ type: "error", text: `${labelMap[field]}은 ${limit}자 이하로 입력해주세요.` });
       return;
     }
 
@@ -573,7 +587,7 @@ export default function PresidentPage() {
       ) : isClubDetailLoading ? (
         <EmptyText>동아리 정보를 불러오는 중입니다.</EmptyText>
       ) : isClubDetailError ? (
-        <EmptyText>동아리 정보를 불러오지 못했습니다.</EmptyText>
+        <RetryState onRetry={() => queryClient.invalidateQueries({ queryKey: ["clubDetail", targetClubId] })}>동아리 정보를 불러오지 못했습니다.</RetryState>
       ) : (
         <div className="flex flex-col gap-5">
           <label className="flex flex-col gap-2">
@@ -586,11 +600,13 @@ export default function PresidentPage() {
                 handleClubInfoChange("clubName", event.target.value)
               }
               maxLength={CLUB_INFO_LIMITS.clubName}
+              disabled={updateClubInfoMutation.isPending}
               className="rounded-xl border border-slate-200 dark:border-theme-border px-4 py-3 text-sm outline-none focus:border-sky-700 dark:focus:border-theme-focus"
             />
+            <FieldCounter value={clubInfo.clubName} limit={CLUB_INFO_LIMITS.clubName} />
           </label>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-4">
             <label className="flex flex-col gap-2">
               <span className="text-sm font-semibold text-slate-700 dark:text-theme-secondary">카테고리</span>
               <input
@@ -599,38 +615,41 @@ export default function PresidentPage() {
                   handleClubInfoChange("category", event.target.value)
                 }
                 maxLength={CLUB_INFO_LIMITS.category}
+                disabled={updateClubInfoMutation.isPending}
                 className="rounded-xl border border-slate-200 dark:border-theme-border px-4 py-3 text-sm outline-none focus:border-sky-700 dark:focus:border-theme-focus"
               />
+              <FieldCounter value={clubInfo.category} limit={CLUB_INFO_LIMITS.category} />
             </label>
 
             <div className="flex flex-col gap-2">
               <span className="text-sm font-semibold text-slate-700 dark:text-theme-secondary">
                 대표 이미지
               </span>
-              <label className="flex cursor-pointer items-center gap-4 rounded-xl border border-dashed border-slate-300 dark:border-theme-border-strong bg-slate-50 dark:bg-theme-subtle p-3 hover:border-sky-400 dark:hover:border-theme-focus hover:bg-sky-50/50 dark:hover:bg-theme-accent-hover">
+              <label className={`flex min-w-0 flex-col items-center gap-3 rounded-xl border border-dashed p-3 text-center sm:flex-row sm:text-left ${updateClubInfoMutation.isPending ? "cursor-not-allowed border-slate-200 bg-slate-50 opacity-60 dark:border-theme-border dark:bg-theme-subtle" : "cursor-pointer border-slate-300 bg-slate-50 hover:border-sky-400 hover:bg-sky-50/50 dark:border-theme-border-strong dark:bg-theme-subtle dark:hover:border-theme-focus dark:hover:bg-theme-accent-hover"}`}>
                 {(clubImagePreview || clubInfo.imageUrl) && !hasClubImageError ? (
                   <img
                     src={clubImagePreview || clubInfo.imageUrl}
                     alt="동아리 대표 이미지 미리보기"
-                    className="h-20 w-28 shrink-0 rounded-lg object-cover"
+                    className="aspect-square h-24 w-24 shrink-0 rounded-lg object-cover sm:h-20 sm:w-28 sm:aspect-auto"
                     onError={() => setHasClubImageError(true)}
                   />
                 ) : (
-                  <div className="flex h-20 w-28 shrink-0 items-center justify-center rounded-lg bg-white dark:bg-theme-surface text-sm font-semibold text-slate-400 dark:text-theme-muted">
-                    이미지 없음
+                  <div className="flex aspect-square h-24 w-24 shrink-0 items-center justify-center rounded-lg bg-white text-sky-600 dark:bg-theme-surface dark:text-theme-link sm:h-20 sm:w-28 sm:aspect-auto">
+                    <ImagePlus className="h-6 w-6" aria-hidden="true" />
                   </div>
                 )}
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-slate-700 dark:text-theme-secondary">
+                  <p className="max-w-full truncate text-sm font-semibold text-slate-700 dark:text-theme-secondary">
                     {clubImageFile?.name || "이미지 파일 선택"}
                   </p>
                   <p className="mt-1 text-xs text-slate-900/50 dark:text-theme-muted">
-                    저장 시 선택한 이미지가 업로드됩니다.
+                    PNG, JPG · 최대 20MB
                   </p>
                 </div>
                 <input
                   type="file"
                   accept="image/png, image/jpeg"
+                  disabled={updateClubInfoMutation.isPending}
                   onChange={handleClubImageChange}
                   className="hidden"
                 />
@@ -645,9 +664,11 @@ export default function PresidentPage() {
               onChange={(event) =>
                 handleClubInfoChange("shortDescription", event.target.value)
               }
-              maxLength={CLUB_INFO_LIMITS.shortDescription}
+            maxLength={CLUB_INFO_LIMITS.shortDescription}
+            disabled={updateClubInfoMutation.isPending}
               className="rounded-xl border border-slate-200 dark:border-theme-border px-4 py-3 text-sm outline-none focus:border-sky-700 dark:focus:border-theme-focus"
             />
+            <FieldCounter value={clubInfo.shortDescription} limit={CLUB_INFO_LIMITS.shortDescription} />
           </label>
 
           <label className="flex flex-col gap-2">
@@ -658,11 +679,13 @@ export default function PresidentPage() {
                 handleClubInfoChange("detailDescription", event.target.value)
               }
               maxLength={CLUB_INFO_LIMITS.detailDescription}
-              className="min-h-44 resize-none rounded-xl border border-slate-200 dark:border-theme-border px-4 py-3 text-sm leading-6 outline-none focus:border-sky-700 dark:focus:border-theme-focus"
+              disabled={updateClubInfoMutation.isPending}
+              className="min-h-36 resize-y rounded-xl border border-slate-200 px-4 py-3 text-sm leading-6 outline-none focus:border-sky-700 dark:border-theme-border dark:focus:border-theme-focus sm:min-h-44"
             />
+            <FieldCounter value={clubInfo.detailDescription} limit={CLUB_INFO_LIMITS.detailDescription} />
           </label>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-3 md:gap-4">
             <label className="flex flex-col gap-2">
               <span className="text-sm font-semibold text-slate-700 dark:text-theme-secondary">
                 정기 모임
@@ -673,8 +696,10 @@ export default function PresidentPage() {
                   handleClubInfoChange("regularMeetingTime", event.target.value)
                 }
                 maxLength={CLUB_INFO_LIMITS.regularMeetingTime}
+                disabled={updateClubInfoMutation.isPending}
                 className="rounded-xl border border-slate-200 dark:border-theme-border px-4 py-3 text-sm outline-none focus:border-sky-700 dark:focus:border-theme-focus"
               />
+              <FieldCounter value={clubInfo.regularMeetingTime} limit={CLUB_INFO_LIMITS.regularMeetingTime} />
             </label>
 
             <label className="flex flex-col gap-2">
@@ -687,8 +712,10 @@ export default function PresidentPage() {
                   handleClubInfoChange("activityLocation", event.target.value)
                 }
                 maxLength={CLUB_INFO_LIMITS.activityLocation}
+                disabled={updateClubInfoMutation.isPending}
                 className="rounded-xl border border-slate-200 dark:border-theme-border px-4 py-3 text-sm outline-none focus:border-sky-700 dark:focus:border-theme-focus"
               />
+              <FieldCounter value={clubInfo.activityLocation} limit={CLUB_INFO_LIMITS.activityLocation} />
             </label>
 
             <label className="flex flex-col gap-2">
@@ -699,15 +726,18 @@ export default function PresidentPage() {
                   handleClubInfoChange("contact", event.target.value)
                 }
                 maxLength={CLUB_INFO_LIMITS.contact}
+                disabled={updateClubInfoMutation.isPending}
                 className="rounded-xl border border-slate-200 dark:border-theme-border px-4 py-3 text-sm outline-none focus:border-sky-700 dark:focus:border-theme-focus"
               />
+              <FieldCounter value={clubInfo.contact} limit={CLUB_INFO_LIMITS.contact} />
             </label>
           </div>
 
           <button
+            type="button"
             onClick={handleClubInfoSubmit}
             disabled={updateClubInfoMutation.isPending}
-            className="self-end rounded-xl bg-sky-700 dark:bg-theme-primary px-5 py-3 text-sm font-semibold text-white hover:bg-sky-800 dark:hover:bg-theme-primary-hover disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-theme-disabled-bg"
+            className="w-full rounded-xl bg-sky-700 px-5 py-3 text-sm font-semibold text-white hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-slate-300 dark:bg-theme-primary dark:hover:bg-theme-primary-hover dark:disabled:bg-theme-disabled-bg sm:w-auto sm:self-end"
           >
             {updateClubInfoMutation.isPending ? "저장 중..." : "저장"}
           </button>
@@ -723,16 +753,22 @@ export default function PresidentPage() {
       ) : isJoinRequestsLoading ? (
         <EmptyText>가입 신청자를 불러오는 중입니다.</EmptyText>
       ) : isJoinRequestsError ? (
-        <EmptyText>가입 신청자 목록을 불러오지 못했습니다.</EmptyText>
+        <RetryState onRetry={() => queryClient.invalidateQueries({ queryKey: ["clubJoinRequests", targetClubId] })}>가입 신청자 목록을 불러오지 못했습니다.</RetryState>
       ) : applicants.length === 0 ? (
         <EmptyText>대기 중인 가입 신청이 없습니다.</EmptyText>
       ) : (
-        <div className="max-h-112 overflow-y-auto pr-2">
+        <div className="sm:max-h-112 sm:overflow-y-auto sm:pr-2">
           <div className="flex flex-col gap-2.5">
-            {applicants.map((applicant) => (
+            {applicants.map((applicant) => {
+              const isExpanded = expandedApplicantIds.includes(applicant.id);
+              const isApplicantPending =
+                (approveJoinRequestMutation.variables?.applicantUserId === applicant.id && approveJoinRequestMutation.isPending) ||
+                (rejectJoinRequestMutation.variables?.applicantUserId === applicant.id && rejectJoinRequestMutation.isPending);
+
+              return (
               <div
                 key={applicant.id}
-                className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 rounded-xl border border-slate-200 dark:border-theme-border px-4 py-3"
+                className="flex flex-col gap-3 rounded-xl border border-slate-200 px-4 py-3 dark:border-theme-border"
               >
                 <div className="min-w-0">
                   <p className="truncate text-base font-bold text-gray-900 dark:text-theme-text">
@@ -745,34 +781,40 @@ export default function PresidentPage() {
                   </p>
                 </div>
 
-                <div className="row-span-2 flex items-center gap-2">
+                <div>
+                  <p className={`${isExpanded ? "" : "line-clamp-2"} whitespace-pre-wrap break-words text-sm leading-6 text-slate-700 dark:text-theme-secondary`}>
+                    {applicant.message || "작성된 신청 메시지가 없습니다."}
+                  </p>
+                  {applicant.message?.length > 80 && (
+                    <button type="button" onClick={() => setExpandedApplicantIds((current) => current.includes(applicant.id) ? current.filter((id) => id !== applicant.id) : [...current, applicant.id])} className="mt-1 flex min-h-9 items-center gap-1 text-xs font-semibold text-sky-700 dark:text-theme-link">
+                      {isExpanded ? "접기" : "전체 보기"}
+                      <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isExpanded ? "rotate-180" : ""}`} aria-hidden="true" />
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
                   <button
+                    type="button"
                     onClick={() => handleApprove(applicant)}
-                    disabled={
-                      approveJoinRequestMutation.isPending ||
-                      rejectJoinRequestMutation.isPending
-                    }
-                    className="rounded-xl bg-sky-700 dark:bg-theme-primary px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800 dark:hover:bg-theme-primary-hover disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-theme-disabled-bg"
+                    disabled={isApplicantPending}
+                    className="min-h-11 rounded-xl bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-slate-300 dark:bg-theme-primary dark:hover:bg-theme-primary-hover dark:disabled:bg-theme-disabled-bg"
                   >
-                    승인
+                    {isApplicantPending ? "처리 중" : "승인"}
                   </button>
                   <button
+                    type="button"
                     onClick={() => handleReject(applicant.id)}
-                    disabled={
-                      approveJoinRequestMutation.isPending ||
-                      rejectJoinRequestMutation.isPending
-                    }
-                    className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-500 dark:text-theme-muted hover:bg-slate-100 dark:hover:bg-theme-hover disabled:cursor-not-allowed disabled:text-slate-300 dark:disabled:text-theme-disabled disabled:hover:bg-transparent"
+                    disabled={isApplicantPending}
+                    className="min-h-11 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent dark:border-theme-border dark:text-theme-muted dark:hover:bg-theme-hover dark:disabled:text-theme-disabled"
                   >
                     거절
                   </button>
                 </div>
 
-                <p className="line-clamp-2 text-sm leading-6 text-slate-700 dark:text-theme-secondary">
-                  {applicant.message}
-                </p>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -780,18 +822,18 @@ export default function PresidentPage() {
   );
 
   const renderMembersPanel = () => (
-    <Panel title="멤버 관리" hideTitle className="flex min-h-130 flex-col">
+    <Panel title="멤버 관리" hideTitle className="flex flex-col sm:min-h-130">
       {!isValidClubId ? (
         <EmptyText>동아리 정보를 찾을 수 없습니다.</EmptyText>
       ) : isMembersLoading ? (
         <EmptyText>멤버 정보를 불러오는 중입니다.</EmptyText>
       ) : isMembersError ? (
-        <EmptyText>멤버 정보를 불러오지 못했습니다.</EmptyText>
+        <RetryState onRetry={() => queryClient.invalidateQueries({ queryKey: ["clubMembers", targetClubId] })}>멤버 정보를 불러오지 못했습니다.</RetryState>
       ) : members.length === 0 ? (
         <EmptyText>등록된 멤버가 없습니다.</EmptyText>
       ) : (
-        <div className="min-h-0 flex-1 overflow-y-auto pr-2">
-          <div className="flex flex-col divide-y divide-slate-200 dark:divide-theme-border">
+        <div className="min-h-0 flex-1 sm:max-h-130 sm:overflow-y-auto sm:pr-2">
+          <div className="flex flex-col gap-2 sm:divide-y sm:divide-slate-200 sm:gap-0 sm:dark:divide-theme-border">
             {members.map((member) => {
               const memberId = member.userId ?? member.id;
               const isSelf = Number(memberId) === loginUserId;
@@ -800,9 +842,9 @@ export default function PresidentPage() {
               return (
                 <div
                   key={memberId}
-                  className="flex items-center justify-between gap-4 py-4"
+                  className="flex flex-col gap-3 rounded-xl border border-slate-200 p-3 dark:border-theme-border sm:flex-row sm:items-center sm:justify-between sm:rounded-none sm:border-x-0 sm:border-t-0 sm:px-0 sm:py-4"
                 >
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-base font-bold text-gray-900 dark:text-theme-text">
                       {member.name}
                       {isSelf && (
@@ -812,13 +854,13 @@ export default function PresidentPage() {
                       )}
                     </p>
                     {member.email && (
-                      <p className="mt-1 text-sm text-slate-900/50 dark:text-theme-muted">
+                      <p className="mt-1 break-all text-sm text-slate-900/50 dark:text-theme-muted">
                         {member.email}
                       </p>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:w-auto sm:gap-3">
                     <select
                       value={member.role}
 	                      disabled={
@@ -830,7 +872,8 @@ export default function PresidentPage() {
                       onChange={(event) =>
                         handleRoleChange(memberId, event.target.value)
                       }
-                      className="rounded-xl border border-slate-200 dark:border-theme-border bg-white dark:bg-theme-surface px-3 py-2 text-sm font-semibold text-slate-700 dark:text-theme-secondary outline-none disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-theme-subtle disabled:text-slate-400 dark:disabled:text-theme-disabled"
+                      title={isSelf ? "본인의 역할은 직접 변경할 수 없습니다." : undefined}
+                      className="min-h-11 min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 outline-none disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 dark:border-theme-border dark:bg-theme-surface dark:text-theme-secondary dark:disabled:bg-theme-subtle dark:disabled:text-theme-disabled"
                     >
                       <option value="PRESIDENT" disabled={!isCurrentUserPresident}>
                         대표
@@ -840,6 +883,7 @@ export default function PresidentPage() {
                     </select>
 
                     <button
+                      type="button"
                       onClick={() => requestRemoveMember(member)}
 	                      disabled={
 	                        !isCurrentUserPresident ||
@@ -847,7 +891,8 @@ export default function PresidentPage() {
 	                        isPresident ||
 	                        removeMemberMutation.isPending
 	                      }
-                      className="rounded-xl px-4 py-2 text-sm font-semibold text-red-500 dark:text-theme-danger hover:bg-red-50 dark:hover:bg-theme-danger-bg disabled:cursor-not-allowed disabled:text-slate-300 dark:disabled:text-theme-disabled disabled:hover:bg-transparent"
+                      title={isSelf ? "본인은 내보낼 수 없습니다." : isPresident ? "대표는 내보낼 수 없습니다." : undefined}
+                      className="min-h-11 rounded-xl px-3 py-2 text-sm font-semibold text-red-500 hover:bg-red-50 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent dark:text-theme-danger dark:hover:bg-theme-danger-bg dark:disabled:text-theme-disabled"
                     >
                       내보내기
                     </button>
@@ -913,12 +958,16 @@ export default function PresidentPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 dark:bg-theme-page px-12 py-12">
-      <section className="mx-auto flex w-full max-w-330 flex-col gap-8">
-        <header className="flex flex-col gap-6 border-b border-slate-300 dark:border-theme-border-strong pb-4">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-4xl font-bold leading-10 text-gray-900 dark:text-theme-text">
+    <main className="min-h-screen bg-slate-50 px-4 py-6 dark:bg-theme-page sm:px-6 sm:py-8 lg:px-12 lg:py-12">
+      <section className="mx-auto flex w-full max-w-330 flex-col gap-5 sm:gap-8">
+        <header className="flex flex-col gap-5 border-b border-slate-300 pb-0 dark:border-theme-border-strong sm:gap-6">
+          <button type="button" onClick={() => navigate(`/club/main/${targetClubId}`)} className="flex min-h-11 w-fit items-center gap-2 rounded-lg pr-3 text-sm font-semibold text-slate-600 hover:text-sky-700 dark:text-theme-muted dark:hover:text-theme-link">
+            <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+            동아리로 돌아가기
+          </button>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <h1 className="text-2xl font-bold leading-8 text-gray-900 dark:text-theme-text sm:text-3xl sm:leading-9 lg:text-4xl lg:leading-10">
                 대표 관리
               </h1>
               <p className="mt-3 text-base text-slate-900/60 dark:text-theme-muted">
@@ -926,23 +975,27 @@ export default function PresidentPage() {
               </p>
             </div>
 
-            <div className="rounded-xl bg-white dark:bg-theme-surface px-5 py-4 text-right shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] dark:shadow-theme-shadow">
-              <p className="text-sm text-slate-900/60 dark:text-theme-muted">현재 대표</p>
-              <p className="mt-1 text-lg font-bold text-gray-900 dark:text-theme-text">
+            <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-theme-border dark:bg-theme-surface dark:shadow-theme-shadow sm:block sm:min-w-40 sm:px-5 sm:py-4 sm:text-right">
+              <p className="text-xs text-slate-900/60 dark:text-theme-muted sm:text-sm">현재 대표</p>
+              <p className="min-w-0 truncate text-base font-bold text-gray-900 dark:text-theme-text sm:mt-1 sm:text-lg">
                 {president?.name ?? "대표 없음"}
               </p>
             </div>
           </div>
 
-          <nav className="flex">
+          <nav className="grid grid-cols-3" aria-label="대표 관리 메뉴">
             {managementTabs.map((tab) => (
               <button
                 key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`px-7 py-3 text-base font-medium ${
+                type="button"
+                onClick={() => { setActiveTab(tab.key); setActionMessage(null); }}
+                disabled={isAnyMutationPending}
+                className={`min-h-12 px-1 py-3 text-sm font-semibold sm:px-7 sm:text-base ${
                   activeTab === tab.key
                     ? "border-b-2 border-blue-600 dark:border-theme-focus text-blue-600 dark:text-theme-link"
                     : "text-slate-900/60 dark:text-theme-muted"
+                } disabled:cursor-not-allowed disabled:opacity-50 ${
+                  isAnyMutationPending ? "" : "hover:bg-slate-100 dark:hover:bg-theme-hover"
                 }`}
               >
                 {tab.label}
@@ -950,6 +1003,12 @@ export default function PresidentPage() {
             ))}
           </nav>
         </header>
+
+        {actionMessage && (
+          <div role={actionMessage.type === "error" ? "alert" : "status"} className={`rounded-xl px-4 py-3 text-sm font-semibold ${actionMessage.type === "error" ? "bg-red-50 text-red-600 dark:bg-theme-danger-bg dark:text-theme-danger" : "bg-emerald-50 text-emerald-700 dark:bg-theme-accent dark:text-theme-link"}`}>
+            {actionMessage.text}
+          </div>
+        )}
 
         <section>{renderActivePanel()}</section>
       </section>
@@ -969,8 +1028,8 @@ export default function PresidentPage() {
 
 function AccessMessage({ title, description }) {
   return (
-    <main className="min-h-screen bg-slate-50 dark:bg-theme-page px-12 py-12">
-      <section className="mx-auto flex min-h-100 max-w-3xl items-center justify-center rounded-xl bg-white dark:bg-theme-surface p-8 text-center shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] dark:shadow-theme-shadow">
+    <main className="min-h-[70vh] bg-slate-50 px-4 py-6 dark:bg-theme-page sm:px-6 sm:py-8 lg:px-12 lg:py-12">
+      <section className="mx-auto flex min-h-64 max-w-3xl items-center justify-center rounded-xl bg-white p-5 text-center shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] dark:bg-theme-surface dark:shadow-theme-shadow sm:min-h-100 sm:p-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-theme-text">{title}</h1>
           <p className="mt-3 text-sm text-slate-900/60 dark:text-theme-muted">{description}</p>
@@ -983,7 +1042,7 @@ function AccessMessage({ title, description }) {
 function Panel({ title, children, className = "", hideTitle = false }) {
   return (
     <section
-      className={`rounded-xl bg-white dark:bg-theme-surface p-6 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] dark:shadow-theme-shadow ${className}`}
+      className={`rounded-xl bg-white p-4 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] dark:bg-theme-surface dark:shadow-theme-shadow sm:p-6 ${className}`}
     >
       {!hideTitle && (
         <h2 className="mb-5 text-xl font-bold text-gray-900 dark:text-theme-text">{title}</h2>
@@ -997,6 +1056,25 @@ function EmptyText({ children }) {
   return <p className="py-8 text-center text-sm text-slate-900/50 dark:text-theme-muted">{children}</p>;
 }
 
+function FieldCounter({ value = "", limit }) {
+  return (
+    <span className="text-right text-xs text-slate-400 dark:text-theme-muted">
+      {value.length}/{limit}
+    </span>
+  );
+}
+
+function RetryState({ children, onRetry }) {
+  return (
+    <div className="flex flex-col items-center gap-3 py-8 text-center">
+      <p className="text-sm text-slate-900/50 dark:text-theme-muted">{children}</p>
+      <button type="button" onClick={onRetry} className="min-h-11 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-sky-700 hover:bg-sky-50 dark:border-theme-border dark:text-theme-link dark:hover:bg-theme-hover">
+        다시 시도
+      </button>
+    </div>
+  );
+}
+
 function ConfirmModal({
   title,
   description,
@@ -1008,29 +1086,31 @@ function ConfirmModal({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center sm:px-4"
       onClick={(event) => {
         if (event.target === event.currentTarget && !isPending) onClose();
       }}
     >
-      <div className="w-full max-w-md rounded-2xl bg-white dark:bg-theme-surface p-6 shadow-xl dark:shadow-theme-shadow">
+      <div className="max-h-[calc(100dvh-1rem)] w-full max-w-md overflow-y-auto rounded-t-2xl bg-white p-4 shadow-xl dark:bg-theme-surface dark:shadow-theme-shadow sm:max-h-[calc(100dvh-2rem)] sm:rounded-2xl sm:p-6">
         <h3 className="text-xl font-bold text-gray-900 dark:text-theme-text">{title}</h3>
         <p className="mt-3 text-sm leading-6 text-slate-900/60 dark:text-theme-muted">
           {description}
         </p>
 
-        <div className="mt-6 flex justify-end gap-2">
+        <div className="mt-6 grid grid-cols-2 gap-2 sm:flex sm:justify-end">
           <button
+            type="button"
             onClick={onClose}
             disabled={isPending}
-            className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-500 dark:text-theme-muted hover:bg-slate-100 dark:hover:bg-theme-hover"
+            className="min-h-11 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-100 dark:text-theme-muted dark:hover:bg-theme-hover"
           >
             취소
           </button>
           <button
+            type="button"
             onClick={onConfirm}
             disabled={isPending}
-            className={`rounded-xl px-5 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 ${
+            className={`min-h-11 rounded-xl px-5 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 ${
               danger ? "bg-red-500 dark:bg-theme-danger-action hover:bg-red-600 dark:hover:bg-theme-danger-hover" : "bg-sky-700 dark:bg-theme-primary hover:bg-sky-800 dark:hover:bg-theme-primary-hover"
             }`}
           >
