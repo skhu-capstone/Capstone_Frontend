@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import PostNoticeCheckbox from "../../components/common/PostNoticeCheckbox";
 import {
   Heart,
   MessageCircle,
@@ -45,6 +46,7 @@ function PostEditor({ post, postId, onClose }) {
   const { user } = useAuth();
   const [title, setTitle] = useState(post.title ?? "");
   const [content, setContent] = useState(post.content ?? "");
+  const [isNotice, setIsNotice] = useState(post.postType === "NOTICE");
   const [imageUrls, setImageUrls] = useState(() => [...(post.imageUrls ?? [])]);
   const [imageFiles, setImageFiles] = useState([]);
   const [imageError, setImageError] = useState("");
@@ -78,11 +80,9 @@ function PostEditor({ post, postId, onClose }) {
       queryClient.invalidateQueries({ queryKey: ["clubPostDetail", postId] });
       queryClient.invalidateQueries({ queryKey: ["clubPosts"] });
     },
-    onSuccess: async (updatedPost) => {
+    onSuccess: async (updatedPost, values) => {
       await queryClient.cancelQueries({ queryKey: ["clubPostDetail", postId] });
-      if (updatedPost) {
-        queryClient.setQueryData(["clubPostDetail", postId], (old) => ({ ...old, ...updatedPost }));
-      }
+      queryClient.setQueryData(["clubPostDetail", postId], (old) => ({ ...old, ...updatedPost, postType: values.postType }));
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["clubPostDetail", postId] }),
         queryClient.invalidateQueries({ queryKey: ["clubPosts"] }),
@@ -157,10 +157,11 @@ function PostEditor({ post, postId, onClose }) {
         content: content.trim(),
         imageUrls,
         imageFiles,
-        postType: post.postType ?? "NOTICE",
+        postType: isNotice ? "NOTICE" : "GENERAL",
       });
     }}>
       <h2 className="text-base font-semibold text-gray-900 dark:text-theme-text">게시글 수정</h2>
+      <PostNoticeCheckbox checked={isNotice} onChange={setIsNotice} disabled={updateMutation.isPending} />
       <label className="flex flex-col gap-2 text-sm font-medium text-gray-700 dark:text-theme-secondary">
         제목
         <input autoFocus required maxLength={50} value={title}

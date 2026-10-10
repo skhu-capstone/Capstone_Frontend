@@ -172,6 +172,7 @@ export const createClubPost = async ({
   title,
   content,
   imageUrls = [],
+  postType = "GENERAL",
 }) => {
   const response = await axios.post(
     `${BASE_URL}/api/clubs/${clubId}/posts`,
@@ -179,7 +180,7 @@ export const createClubPost = async ({
       title,
       content,
       imageUrls,
-      postType: "NOTICE",
+      postType,
     },
     {
       headers: getAuthHeaders(),

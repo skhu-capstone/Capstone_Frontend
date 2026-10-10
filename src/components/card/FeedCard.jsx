@@ -11,6 +11,7 @@ function FeedCard({
   image = DEFAULT_FEED_IMAGE,// imageUrl 받아옴
   content = "", // content 받아옴
   profileImage, // writer.profileImage 받아옴
+  postType = "GENERAL",
 }) {
   const navigate = useNavigate();
   const hasClubId =
@@ -46,6 +47,7 @@ function FeedCard({
             {date?.slice(0, 10).replace(/-/g, ".")}
           </div>
         </div>
+        {postType === "NOTICE" && <span className="shrink-0 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:border-theme-warning-border dark:bg-theme-warning-bg dark:text-theme-warning">공지</span>}
         <ArrowUpRight className="hidden h-4 w-4 shrink-0 text-slate-300 transition-colors group-hover:text-indigo-600 dark:text-theme-muted dark:group-hover:text-theme-link md:block" aria-hidden="true" />
       </div>
 

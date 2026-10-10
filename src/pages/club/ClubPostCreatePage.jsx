@@ -9,6 +9,7 @@ import {
   uploadPostImage,
 } from "../../services/clubService";
 import { useAuth } from "../../context/AuthContext";
+import PostNoticeCheckbox from "../../components/common/PostNoticeCheckbox";
 
 const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg"];
 const MAX_IMAGE_SIZE = 20 * 1024 * 1024;
@@ -62,6 +63,7 @@ export default function ClubPostCreatePage() {
   const currentUserId = Number(authUser?.userId ?? authUser?.id);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [isNotice, setIsNotice] = useState(false);
   const [imageFiles, setImageFiles] = useState([]);
   const [formError, setFormError] = useState("");
   const [uploadProgress, setUploadProgress] = useState(null);
@@ -164,6 +166,7 @@ export default function ClubPostCreatePage() {
       title: title.trim(),
       content: content.trim(),
       imageUrls: [],
+      postType: isNotice ? "NOTICE" : "GENERAL",
     });
   };
 
@@ -283,6 +286,10 @@ export default function ClubPostCreatePage() {
 
         <form onSubmit={handleCreatePost} className="rounded-xl bg-white p-4 shadow-[0px_4px_12px_rgba(0,0,0,0.08)] dark:bg-theme-surface dark:shadow-theme-shadow sm:p-6 lg:p-8">
           <h2 className="mb-6 text-xl font-bold text-gray-900 dark:text-theme-text sm:mb-8 sm:text-2xl">게시물 작성</h2>
+
+          <div className="mb-6 sm:mb-7">
+            <PostNoticeCheckbox checked={isNotice} onChange={setIsNotice} disabled={isSubmitting} />
+          </div>
 
           <div className="mb-6 sm:mb-7">
             <label htmlFor="club-post-title" className="mb-2 block text-sm font-semibold sm:mb-3">

@@ -609,6 +609,7 @@ export default function ClubMainPage() {
                     }
                     image={getImageUrl(feed.imageUrls?.[0])}
                     content={feed.content}
+                    postType={feed.postType}
                   />
                 );
               })

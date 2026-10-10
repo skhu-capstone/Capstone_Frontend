@@ -1,5 +1,6 @@
 import { createElement, useEffect, useRef, useState } from "react";
 import {
+  ArrowLeft,
   ChevronDown,
   ClipboardCheck,
   Coffee,
@@ -12,7 +13,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { matchPath, useLocation, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../../context/AuthContext";
 import { getMyPage } from "../../services/myPageService";
@@ -55,6 +56,9 @@ export default function Header() {
   const mobileNavMenuRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const clubPostMatch = matchPath("/clubs/:clubId/posts/:postId", location.pathname)
+    ?? matchPath("/club/posts/:id", location.pathname);
+  const isClubPostDetail = !!clubPostMatch && /^\d+$/.test(clubPostMatch.params.postId ?? clubPostMatch.params.id ?? "");
   const queryClient = useQueryClient();
 
   const { user, loading: authLoading, logout } = useAuth();
@@ -137,6 +141,17 @@ export default function Header() {
     navigate(href);
   };
 
+  const handlePostBack = () => {
+    setMobileMenuOpen(false);
+    setOpenMenuLabel(null);
+    setProfileOpen(false);
+    if (window.history.state?.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate(clubPostMatch?.params.clubId ? `/club/main/${clubPostMatch.params.clubId}` : "/club/post");
+    }
+  };
+
   const isNavItemActive = ({ href, children }) => {
     if (children) {
       return children.some(
@@ -152,6 +167,16 @@ export default function Header() {
   return (
     <header className="w-full" style={{ backgroundColor: "var(--theme-header)" }}>
       <div className="mx-auto grid h-16 max-w-500 grid-cols-[auto_1fr_auto] items-center gap-4 px-4">
+        {isClubPostDetail ? (
+          <button
+            type="button"
+            onClick={handlePostBack}
+            aria-label="뒤로가기"
+            className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full text-white transition-colors hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          >
+            <ArrowLeft size={24} aria-hidden="true" />
+          </button>
+        ) : (
         <button
           type="button"
           className="flex cursor-pointer items-center"
@@ -160,6 +185,7 @@ export default function Header() {
         >
           <img src={logo} alt="logo" className="theme-logo h-10 w-auto" />
         </button>
+        )}
 
         <div className="hidden justify-end pr-2 lg:flex" ref={navMenuRef}>
           <div className="rounded-2xl bg-white dark:bg-theme-surface px-2 py-1.5">
