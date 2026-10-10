@@ -42,38 +42,39 @@ function MyPageCard({
     .filter(Boolean);
 
   return (
-    <div className={`flex items-center justify-start overflow-hidden rounded-2xl bg-slate-50 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.15)] dark:bg-theme-subtle dark:shadow-theme-shadow ${compact ? "w-full gap-4 px-4 py-5 sm:gap-6 sm:px-6 sm:py-7 md:gap-8 md:px-10 md:py-9" : "w-full max-w-225 gap-6 px-6 py-8 md:gap-10 md:px-12 md:py-10"}`}>
+    <div className={`relative flex items-center justify-start overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0px_4px_14px_rgba(15,23,42,0.07)] dark:border-theme-border dark:bg-theme-surface dark:shadow-theme-shadow ${compact ? "w-full gap-4 px-4 py-5 sm:gap-6 sm:px-6 sm:py-7 md:gap-8 md:px-9 md:py-8" : "w-full max-w-225 gap-6 px-6 py-8 md:gap-10 md:px-12 md:py-10"}`}>
+      <span className="absolute inset-y-0 left-0 w-1.5 bg-sky-600 dark:bg-theme-primary" aria-hidden="true" />
       
       {/* 프로필 이미지 */}
       <SafeImage
-        className={`shrink-0 rounded-full border-[1.5px] border-black/0 object-cover ${compact ? "h-20 w-20 sm:h-28 sm:w-28 md:h-40 md:w-40" : "h-28 w-28 md:h-52 md:w-52"}`}
+        className={`shrink-0 rounded-full border-4 border-sky-50 object-cover shadow-sm dark:border-theme-border ${compact ? "h-20 w-20 sm:h-28 sm:w-28 md:h-36 md:w-36" : "h-28 w-28 md:h-52 md:w-52"}`}
         src={image}
         fallbackSrc={DEFAULT_PROFILE_IMAGE}
         getSrc={getProfileImageUrl}
         alt={`${name} 프로필 이미지`}
         referrerPolicy="no-referrer"
         fallback={
-          <div className={`shrink-0 rounded-full bg-zinc-300 dark:bg-theme-disabled-bg ${compact ? "h-20 w-20 sm:h-28 sm:w-28 md:h-40 md:w-40" : "h-28 w-28 md:h-52 md:w-52"}`} />
+          <div className={`shrink-0 rounded-full bg-zinc-300 dark:bg-theme-disabled-bg ${compact ? "h-20 w-20 sm:h-28 sm:w-28 md:h-36 md:w-36" : "h-28 w-28 md:h-52 md:w-52"}`} />
         }
       />
 
       <div className={`flex min-w-0 flex-1 flex-col items-start justify-center ${compact ? "gap-1.5 text-sm leading-5 sm:gap-2 sm:text-base md:gap-3 md:text-lg md:leading-7" : "gap-3 text-base leading-6 md:gap-5 md:text-2xl md:leading-8"}`}>
 
         {/* 이름 */}
-        <div className="max-w-full break-words font-semibold text-black dark:text-theme-text">
+        <div className="max-w-full break-words text-lg font-bold text-gray-900 dark:text-theme-text sm:text-xl">
           {name}
         </div>
 
         {/* 이메일 */}
         {email && ( // 이메일 무조건 받을 거라 이 조건이 필요한지 고민해야 함
-          <div className="max-w-full break-all font-normal text-black dark:text-theme-text">
+          <div className="max-w-full break-all text-sm font-normal text-slate-600 dark:text-theme-secondary sm:text-base">
             {email}
           </div>
         )}
 
         {/* 학교 이메일 */}
         {schoolEmail && ( // 학교 이메일도 무조건 받을 거라 이 조건이 필요한지 고민해야 함 (인증에 필요)
-          <div className="max-w-full break-all font-normal text-black dark:text-theme-text">
+          <div className="max-w-full break-all text-sm font-normal text-slate-600 dark:text-theme-secondary sm:text-base">
             {schoolEmail}
           </div>
         )}

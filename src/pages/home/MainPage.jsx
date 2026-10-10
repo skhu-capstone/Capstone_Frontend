@@ -4,8 +4,9 @@ import FeedCard from "../../components/card/FeedCard";
 import { useQuery } from "@tanstack/react-query";
 import { getMain } from "../../services/mainService";
 import { useAuth } from "../../context/AuthContext";
-import { useMemo } from "react";
+import { createElement, useMemo } from "react";
 import { getProfileImageUrl } from "../../utils/imageUtils";
+import { Coffee, Handshake, Newspaper } from "lucide-react";
 
 const getRandomSortValue = () => {
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
@@ -80,6 +81,11 @@ export default function MainPage() {
     () =>
       (data?.recommendedCoffeeChats ?? [])
         .filter((coffeeChat) => String(coffeeChat.userId) !== String(currentUserId))
+        .map((coffeeChat) => ({
+          ...coffeeChat,
+          sortValue: getRandomSortValue(),
+        }))
+        .sort((a, b) => a.sortValue.localeCompare(b.sortValue))
         .slice(0, 3),
     [data?.recommendedCoffeeChats, currentUserId]
   );
@@ -159,17 +165,15 @@ export default function MainPage() {
   }
 
   return (
-    <main className="bg-slate-50 px-4 pb-5 pt-6 dark:bg-theme-page md:px-8 md:pb-7 md:pt-8 lg:px-14 lg:pb-7 lg:pt-14">
-      <div className="mx-auto flex w-full max-w-332 flex-col gap-8 md:gap-10 lg:gap-12">
+    <main className="bg-slate-50 px-4 pb-6 pt-6 dark:bg-theme-page md:px-8 md:pb-10 md:pt-10 lg:px-14 lg:pt-14">
+      <div className="mx-auto flex w-full max-w-332 flex-col gap-10 md:gap-12 lg:gap-14">
         <section className="flex flex-col gap-4 md:gap-6">
-          <h1 className="text-2xl font-bold leading-8 text-gray-900 dark:text-theme-text md:text-4xl md:leading-10">
-            추천 커피챗
-          </h1>
+          <SectionHeading icon={Coffee} tone="sky" title="추천 커피챗" description="새로운 관심사를 나눌 멤버를 만나보세요." />
 
           {coffeeChats.length > 0 ? (
             <div className="mobile-card-scroller -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain px-4 pb-2 md:mx-0 md:grid md:snap-none md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-3 lg:gap-12">
               {coffeeChats.map((coffeeChat) => (
-                <div key={coffeeChat.coffeeChatProfileId} className="w-[82vw] min-w-72 max-w-80 shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none">
+                <div key={coffeeChat.coffeeChatProfileId} className="w-[84vw] min-w-72 max-w-88 shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none">
                   <CoffeeChatCard
                     id={coffeeChat.userId}
                     name={coffeeChat.name}
@@ -187,10 +191,8 @@ export default function MainPage() {
           )}
         </section>
 
-        <section className="flex flex-col gap-3.5 md:gap-4">
-          <h2 className="text-xl font-bold leading-6 text-black dark:text-theme-text md:text-2xl">
-            Find Collaboration
-          </h2>
+        <section className="flex flex-col gap-4 border-t border-slate-200 pt-8 dark:border-theme-border md:gap-5 md:pt-10">
+          <SectionHeading icon={Handshake} tone="emerald" title="협업 및 모집" description="진행 중인 프로젝트와 동아리 협업을 찾아보세요." />
 
           {visibleCollaborations.length > 0 ? (
             <div className="mobile-card-scroller -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain px-4 pb-2 md:mx-0 md:grid md:snap-none md:grid-cols-2 md:gap-5 md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-3 lg:gap-x-12 lg:gap-y-6">
@@ -200,7 +202,7 @@ export default function MainPage() {
                 const id = getCollaborationId(collabo);
 
                 return (
-                  <div key={`${type}-${id}`} className="w-[82vw] min-w-72 max-w-80 shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none">
+                  <div key={`${type}-${id}`} className="w-[84vw] min-w-72 max-w-88 shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none">
                     <CollaboCard
                       id={id}
                       type={type}
@@ -220,15 +222,13 @@ export default function MainPage() {
           )}
         </section>
 
-        <section className="flex flex-col gap-3.5 md:gap-4">
-          <h2 className="text-xl font-bold leading-6 text-black dark:text-theme-text md:text-2xl">
-            Club Feeds
-          </h2>
+        <section className="flex flex-col gap-4 border-t border-slate-200 pt-8 dark:border-theme-border md:gap-5 md:pt-10">
+          <SectionHeading icon={Newspaper} tone="indigo" title="동아리 피드" description="동아리에서 전하는 새로운 활동 소식을 확인하세요." />
 
           {feeds.length > 0 ? (
             <div className="mobile-card-scroller -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain px-4 pb-2 md:mx-0 md:grid md:snap-none md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 md:pb-0 lg:gap-10">
               {feeds.map((feed) => (
-                <div key={feed.postId} className="w-[82vw] min-w-72 max-w-80 shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none">
+                <div key={feed.postId} className="w-[84vw] min-w-72 max-w-88 shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none">
                   <FeedCard
                     id={feed.postId}
                     clubId={getFeedClubId(feed)}
@@ -249,5 +249,25 @@ export default function MainPage() {
         </section>
       </div>
     </main>
+  );
+}
+
+const SECTION_TONES = {
+  sky: "bg-sky-50 text-sky-700 dark:bg-theme-accent dark:text-theme-link",
+  emerald: "bg-emerald-50 text-emerald-700 dark:bg-theme-accent dark:text-theme-link",
+  indigo: "bg-indigo-50 text-indigo-700 dark:bg-theme-accent dark:text-theme-link",
+};
+
+function SectionHeading({ icon, tone, title, description }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg md:h-11 md:w-11 ${SECTION_TONES[tone]}`}>
+        {createElement(icon, { className: "h-5 w-5", "aria-hidden": true })}
+      </span>
+      <div className="min-w-0">
+        <h2 className="text-xl font-bold leading-7 text-gray-900 dark:text-theme-text md:text-2xl md:leading-8">{title}</h2>
+        <p className="mt-0.5 text-xs leading-5 text-slate-500 dark:text-theme-muted md:text-sm">{description}</p>
+      </div>
+    </div>
   );
 }

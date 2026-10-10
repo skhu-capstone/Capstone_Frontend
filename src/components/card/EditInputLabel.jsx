@@ -23,8 +23,8 @@ function EditInputLabel({
           placeholder={placeholder}
           onChange={onChange}
           disabled={disabled}
-          className="w-full min-h-30 px-3.5 py-2.5 bg-blue-900/10 dark:bg-theme-accent rounded-[10px]
-          outline-none border-none text-black dark:text-theme-text text-base leading-5 resize-none
+          className="min-h-30 w-full resize-y rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5
+          text-base leading-5 text-black outline-none dark:border-theme-border dark:bg-theme-subtle dark:text-theme-text
           focus:ring-2 focus:ring-blue-500 dark:focus:ring-theme-focus disabled:cursor-not-allowed disabled:opacity-60"
         />
       ) : ( 
@@ -34,7 +34,7 @@ function EditInputLabel({
           placeholder={placeholder}
           onChange={onChange}
           disabled={disabled}
-          className="min-h-11 w-full px-3.5 py-2.5 bg-blue-900/10 dark:bg-theme-accent rounded-[10px] outline-none border-none
+          className="min-h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 outline-none dark:border-theme-border dark:bg-theme-subtle
           text-black dark:text-theme-text text-base leading-5 focus:ring-2 focus:ring-blue-500 dark:focus:ring-theme-focus disabled:cursor-not-allowed disabled:opacity-60"
         />
       )}

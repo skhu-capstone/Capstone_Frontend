@@ -119,3 +119,72 @@
   font-weight: 700;
   text-decoration: none;
 }
+
+@media (max-width: 767px) {
+  .club-calendar-wrap .fc .fc-toolbar {
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .club-calendar-wrap .fc .fc-toolbar-chunk:first-child {
+    display: flex;
+  }
+
+  .club-calendar-wrap .fc .fc-toolbar-title {
+    font-size: 18px;
+    white-space: nowrap;
+  }
+
+  .club-calendar-wrap .fc .fc-button {
+    min-height: 36px;
+    padding: 6px 9px;
+  }
+
+  .club-calendar-wrap .fc .fc-daygrid-day-frame {
+    min-height: 62px;
+    padding: 2px;
+  }
+
+  .club-calendar-wrap .fc .fc-col-header-cell {
+    padding: 7px 0;
+  }
+
+  .club-calendar-wrap .fc .fc-col-header-cell-cushion {
+    font-size: 11px;
+  }
+
+  .club-calendar-wrap .fc .fc-daygrid-day-number {
+    font-size: 12px;
+    line-height: 24px;
+    min-width: 24px;
+  }
+
+  .club-calendar-wrap .fc .fc-event {
+    border-radius: 999px;
+    height: 9px;
+    margin: 2px auto;
+    min-height: 9px;
+    padding: 0;
+    width: 9px;
+  }
+
+  .club-calendar-wrap .fc .fc-event-main,
+  .club-calendar-wrap .fc .fc-event-main-frame,
+  .club-calendar-wrap .fc .fc-event-title-container,
+  .club-calendar-wrap .fc .fc-event-title {
+    display: none;
+  }
+
+  .club-calendar-wrap .fc .fc-daygrid-event-harness {
+    display: flex;
+    justify-content: center;
+  }
+
+  .club-calendar-wrap .fc .fc-daygrid-more-link {
+    display: block;
+    font-size: 10px;
+    line-height: 12px;
+    text-align: center;
+  }
+}

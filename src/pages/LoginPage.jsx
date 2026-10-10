@@ -1,5 +1,5 @@
 import { useGoogleLogin } from "@react-oauth/google";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
 import { useEffect } from "react";
@@ -7,15 +7,27 @@ import logo from "../assets/logo.png";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, loading: authLoading, googleLogin } = useAuth();
   const accessToken = localStorage.getItem("accessToken");
   const isAuthenticated = !!user && !!accessToken;
+  const requestedPath = location.state?.from;
+  const returnPath =
+    typeof requestedPath === "string" &&
+    requestedPath.startsWith("/") &&
+    !requestedPath.startsWith("//") &&
+    !["/login", "/email-verify"].includes(requestedPath.split(/[?#]/)[0])
+      ? requestedPath
+      : "/";
 
   useEffect(() => {
     if (authLoading || !isAuthenticated) return;
 
-    navigate(user.isVerified ? "/" : "/email-verify", { replace: true });
-  }, [authLoading, isAuthenticated, navigate, user?.isVerified]);
+    navigate(user.isVerified ? returnPath : "/email-verify", {
+      replace: true,
+      state: user.isVerified ? undefined : { from: returnPath },
+    });
+  }, [authLoading, isAuthenticated, navigate, returnPath, user?.isVerified]);
 
   const loginMutation = useMutation({
     mutationFn: async (googleAccessToken) => {
@@ -29,9 +41,9 @@ export default function LoginPage() {
 
     onSuccess: (userData) => {
       if (userData.isVerified) {
-        navigate("/");
+        navigate(returnPath, { replace: true });
       } else {
-        navigate("/email-verify");
+        navigate("/email-verify", { replace: true, state: { from: returnPath } });
       }
     },
 

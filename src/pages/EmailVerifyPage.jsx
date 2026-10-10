@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   resendSchoolEmailCode,
   sendSchoolEmailCode,
@@ -16,9 +16,18 @@ const getErrorMessage = (error, fallback) =>
 
 export default function EmailVerifyPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, loading: authLoading, setAuthenticatedUser } = useAuth();
   const accessToken = localStorage.getItem("accessToken");
   const isAuthenticated = !!user && !!accessToken;
+  const requestedPath = location.state?.from;
+  const returnPath =
+    typeof requestedPath === "string" &&
+    requestedPath.startsWith("/") &&
+    !requestedPath.startsWith("//") &&
+    !["/login", "/email-verify"].includes(requestedPath.split(/[?#]/)[0])
+      ? requestedPath
+      : "/";
 
   const [schoolEmail, setSchoolEmail] = useState("");
   const [code, setCode] = useState(() => Array(CODE_LENGTH).fill(""));
@@ -35,14 +44,14 @@ export default function EmailVerifyPage() {
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      navigate("/login", { replace: true });
+      navigate("/login", { replace: true, state: { from: returnPath } });
       return;
     }
 
     if (!authLoading && user?.isVerified) {
-      navigate("/", { replace: true });
+      navigate(returnPath, { replace: true });
     }
-  }, [authLoading, isAuthenticated, navigate, user?.isVerified]);
+  }, [authLoading, isAuthenticated, navigate, returnPath, user?.isVerified]);
 
   useEffect(() => {
     if (cooldown <= 0) return undefined;
@@ -84,7 +93,7 @@ export default function EmailVerifyPage() {
         });
       }
 
-      navigate("/", { replace: true });
+      navigate(returnPath, { replace: true });
     },
     onError: (error) => {
       console.error(error);

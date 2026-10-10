@@ -7,6 +7,7 @@ import EditInputLabel from "../../components/card/EditInputLabel";
 import { getMyPage, updateNickname, updateCoffeeChatProfile, updateCoffeeChatVisibility, uploadProfileImage } from "../../services/myPageService";
 import { useAuth } from "../../context/AuthContext";
 import { getProfileImageUrl } from "../../utils/imageUtils";
+import { Camera, Coffee, Eye, Pencil, UserRound } from "lucide-react";
 
 const MAX_PROFILE_IMAGE_SIZE = 20 * 1024 * 1024;
 const ALLOWED_PROFILE_IMAGE_TYPES = ["image/png", "image/jpeg"];
@@ -308,9 +309,13 @@ export default function MyPage() {
   }
 
   return (
-    <main className="bg-gray-50 px-4 pt-6 pb-8 dark:bg-theme-page sm:px-6 sm:pt-10 sm:pb-12 lg:pt-14">
-      <section className="mx-auto max-w-4xl">
-        <h1 className="mb-6 text-3xl font-bold text-gray-900 dark:text-theme-text sm:mb-8 sm:text-4xl lg:text-5xl">My Page</h1>
+    <main className="min-h-screen bg-slate-50 px-4 py-6 dark:bg-theme-page sm:px-6 sm:py-10 lg:py-14">
+      <section className="mx-auto max-w-6xl">
+        <div className="mb-6 sm:mb-8">
+          <p className="text-sm font-semibold text-sky-700 dark:text-theme-link">ACCOUNT</p>
+          <h1 className="mt-1 text-3xl font-bold text-gray-900 dark:text-theme-text sm:text-4xl">마이페이지</h1>
+          <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-theme-muted sm:text-base">계정 정보와 커피챗 프로필을 한곳에서 관리하세요.</p>
+        </div>
 
         <MyPageCard
           compact
@@ -327,23 +332,27 @@ export default function MyPage() {
           </p>
         )}
 
-        <section className="mt-8 sm:mt-10">
-          <h2 className="border-b border-gray-300 pb-3 text-2xl font-bold text-gray-900 dark:border-theme-border-strong dark:text-theme-text sm:text-3xl">
-            Profile Settings
-          </h2>
+        <section className="mt-6 grid grid-cols-1 gap-5 lg:mt-8 lg:grid-cols-[minmax(17rem,0.75fr)_minmax(0,1.75fr)] lg:items-start lg:gap-6">
+          <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-theme-border dark:bg-theme-surface sm:p-6 lg:sticky lg:top-6">
+            <div className="mb-5 flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-50 text-sky-700 dark:bg-theme-accent dark:text-theme-link"><UserRound className="h-5 w-5" aria-hidden="true" /></span>
+              <div>
+                <h2 className="font-bold text-gray-900 dark:text-theme-text">계정 설정</h2>
+                <p className="mt-0.5 text-xs text-slate-500 dark:text-theme-muted">프로필 이미지와 기본 정보</p>
+              </div>
+            </div>
 
-          <div className="border-b border-gray-300 py-6 dark:border-theme-border-strong sm:py-8">
-            <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
-              <div className="flex shrink-0 flex-col items-center gap-3">
+            <div className="flex flex-col gap-5">
+              <div className="flex flex-col items-center gap-3 border-b border-slate-200 pb-5 dark:border-theme-border">
                 <img
                   src={previewImage || profile.image}
                   alt="커피챗 프로필"
-                  className="h-24 w-24 rounded-full object-cover sm:h-28 sm:w-28"
+                  className="h-28 w-28 rounded-full border-4 border-white object-cover shadow-md dark:border-theme-border sm:h-32 sm:w-32"
                   referrerPolicy="no-referrer"
                 />
 
-                <label className="flex min-h-11 cursor-pointer items-center rounded-xl border border-blue-600 px-4 py-2 text-center text-sm font-semibold text-blue-600 hover:bg-blue-50 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-blue-600 dark:border-theme-focus dark:text-theme-link dark:hover:bg-theme-accent-hover dark:focus-within:outline-theme-focus">
-                  커피챗 이미지 변경
+                <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-sky-200 px-4 py-2 text-center text-sm font-semibold text-sky-700 hover:bg-sky-50 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-sky-600 dark:border-theme-focus dark:text-theme-link dark:hover:bg-theme-accent-hover dark:focus-within:outline-theme-focus">
+                  <Camera className="h-4 w-4" aria-hidden="true" /> 이미지 변경
                   <input
                     type="file"
                     accept="image/png, image/jpeg"
@@ -406,9 +415,9 @@ export default function MyPage() {
                             setNicknameError("");
                             setIsEditingNickname(true);
                           }}
-                          className="min-h-11 rounded-xl border border-blue-600 px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50 dark:border-theme-focus dark:text-theme-link dark:hover:bg-theme-accent-hover"
+                          className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-sky-200 px-4 py-2 text-sm font-semibold text-sky-700 hover:bg-sky-50 dark:border-theme-focus dark:text-theme-link dark:hover:bg-theme-accent-hover"
                         >
-                          닉네임 수정
+                          <Pencil className="h-4 w-4" aria-hidden="true" /> 닉네임 수정
                         </button>
                       </>
                     )}
@@ -417,8 +426,8 @@ export default function MyPage() {
                     <p id="nickname-error" role="alert" className="text-sm text-red-600 dark:text-theme-danger">{nicknameError}</p>
                   )}
                 </form>
-                <InputLabel label="Email" value={user.email} />
-                <InputLabel label="University Email" value={user.schoolEmail} />
+                <InputLabel label="이메일" value={user.email} />
+                <InputLabel label="학교 이메일" value={user.schoolEmail} />
 
                 {selectedImageFile && (
                   <div className="flex flex-col gap-3 rounded-xl bg-blue-50 px-4 py-3 dark:bg-theme-accent sm:flex-row sm:items-center sm:justify-between">
@@ -449,21 +458,21 @@ export default function MyPage() {
                 {imageError && <p role="alert" className="text-sm text-red-600 dark:text-theme-danger">{imageError}</p>}
               </div>
             </div>
-          </div>
+          </section>
 
-          <div className="flex flex-col gap-5 border-b border-gray-300 py-6 dark:border-theme-border-strong sm:flex-row sm:items-center sm:justify-between sm:py-8">
-            <div className="min-w-0">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-theme-text">Visibility</h3>
-
-              <p className="mt-2 font-semibold text-gray-900 dark:text-theme-text">
-                커피챗 프로필 공개
-              </p>
-
-              <p className="mt-1 text-sm text-gray-500 dark:text-theme-muted">
+          <div className="flex min-w-0 flex-col gap-5">
+          <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-theme-border dark:bg-theme-surface sm:p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 dark:bg-theme-accent dark:text-theme-link"><Eye className="h-5 w-5" aria-hidden="true" /></span>
+              <div className="min-w-0">
+              <h2 className="font-bold text-gray-900 dark:text-theme-text">프로필 공개 설정</h2>
+              <p className="mt-1 text-sm leading-5 text-gray-500 dark:text-theme-muted">
                 {isVisible
                   ? "다른 사용자가 내 커피챗 프로필을 볼 수 있습니다."
                   : "현재 내 커피챗 프로필이 비공개 상태입니다."}
               </p>
+              </div>
             </div>
 
             <div className="flex shrink-0 items-center justify-between gap-4 sm:justify-end">
@@ -493,12 +502,17 @@ export default function MyPage() {
                 />
               </button>
             </div>
-          </div>
+            </div>
+          </section>
 
-          <div className="mt-8">
-            <h3 className="mb-6 text-lg font-bold text-gray-900 dark:text-theme-text">
-              Edit Profile
-            </h3>
+          <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-theme-border dark:bg-theme-surface sm:p-6">
+            <div className="mb-6 flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-50 text-violet-700 dark:bg-theme-accent dark:text-theme-link"><Coffee className="h-5 w-5" aria-hidden="true" /></span>
+              <div>
+                <h2 className="font-bold text-gray-900 dark:text-theme-text">커피챗 프로필</h2>
+                <p className="mt-0.5 text-xs text-slate-500 dark:text-theme-muted">다른 사용자에게 보여줄 정보를 관리합니다.</p>
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-x-4">
               {isEditing ? (
@@ -518,7 +532,7 @@ export default function MyPage() {
                   />
 
                   <EditInputLabel
-                    label="선호 진행방식"
+                    label="선호 미팅 방식"
                     value={tempProfile.preferredMethod}
                     onChange={(e) =>
                       handleChange("preferredMethod", e.target.value)
@@ -538,7 +552,7 @@ export default function MyPage() {
                   <InputLabel label="학번" value={profile.studentId} />
                   <InputLabel label="관심분야" value={profile.interest} />
                   <InputLabel
-                    label="선호 진행방식"
+                    label="선호 미팅 방식"
                     value={profile.preferredMethod}
                   />
                   <InputLabel label="연락링크" value={profile.link} />
@@ -604,6 +618,7 @@ export default function MyPage() {
                 </button>
               )}
             </div>
+          </section>
           </div>
         </section>
       </section>

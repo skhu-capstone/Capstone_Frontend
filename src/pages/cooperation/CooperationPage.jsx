@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import useMyClubs from "../../hooks/useMyClubs";
+import { useAuth } from "../../context/AuthContext";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -689,6 +690,8 @@ export default function CooperationPage() {
   const [showClubModal, setShowClubModal] = useState(false);
   const [showProjectModal, setShowProjectModal] = useState(false);
   const navigate = useNavigate();
+  const { user: authUser } = useAuth();
+  const isAuthenticated = !!authUser && !!localStorage.getItem("accessToken");
 
   const [clubPosts, setClubPosts] = useState([]);
   const [clubLoading, setClubLoading] = useState(false);
@@ -759,6 +762,16 @@ export default function CooperationPage() {
     setTab(newTab);
     setSearchInput("");
     setSearch("");
+  }
+
+  function handleCreateClick() {
+    if (!isAuthenticated) {
+      navigate("/login", { state: { from: "/cooperation" } });
+      return;
+    }
+
+    if (isClub) setShowClubModal(true);
+    else setShowProjectModal(true);
   }
 
   return (
@@ -859,9 +872,7 @@ export default function CooperationPage() {
         {/* CTA 버튼 */}
         <div className="flex justify-center mt-2">
           <button
-            onClick={() =>
-              isClub ? setShowClubModal(true) : setShowProjectModal(true)
-            }
+            onClick={handleCreateClick}
             className={[
               "flex items-center gap-2 px-12 py-3.5 rounded-full text-white font-bold text-sm shadow-lg dark:shadow-theme-shadow hover:opacity-90 transition-opacity duration-150 cursor-pointer",
               isClub ? "bg-green-500 dark:bg-theme-success-action" : "bg-indigo-600",

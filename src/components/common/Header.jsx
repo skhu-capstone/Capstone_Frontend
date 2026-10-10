@@ -19,6 +19,7 @@ import { getMyPage } from "../../services/myPageService";
 import { getProfileImageUrl } from "../../utils/imageUtils";
 import logo from "../../assets/logo.png";
 import ThemeSwitcher from "./ThemeSwitcher.jsx";
+import { isUsableAccessToken } from "../../utils/authUtils";
 
 const NAV_ITEMS = [
   { label: "홈", icon: Home, href: "/" },
@@ -42,21 +43,6 @@ const NAV_ITEMS = [
   },
   { label: "마이페이지", icon: User, href: "/my-page" },
 ];
-
-const isUsableAccessToken = (token) => {
-  if (!token) return false;
-
-  const [, payload] = token.split(".");
-  if (!payload) return true;
-
-  try {
-    const decoded = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
-    if (!decoded.exp) return true;
-    return decoded.exp * 1000 > Date.now();
-  } catch {
-    return true;
-  }
-};
 
 export default function Header() {
   const [profileOpen, setProfileOpen] = useState(false);
@@ -134,6 +120,19 @@ export default function Header() {
   const handleNavClick = (href) => {
     setMobileMenuOpen(false);
     setOpenMenuLabel(null);
+
+    const isPublicPage = href === "/" || href === "/cooperation";
+
+    if (!isLoggedIn && !isPublicPage) {
+      navigate("/login", { state: { from: href } });
+      return;
+    }
+
+    if (isLoggedIn && user?.isVerified !== true) {
+      navigate("/email-verify", { state: { from: href } });
+      return;
+    }
+
     navigate(href);
   };
 
@@ -155,7 +154,7 @@ export default function Header() {
         <button
           type="button"
           className="flex cursor-pointer items-center"
-          onClick={() => navigate("/")}
+          onClick={() => handleNavClick("/")}
           aria-label="홈으로 이동"
         >
           <img src={logo} alt="logo" className="theme-logo h-10 w-auto" />
@@ -238,7 +237,7 @@ export default function Header() {
                   <button
                     key={label}
                     type="button"
-                    onClick={() => navigate(href)}
+                    onClick={() => handleNavClick(href)}
                     style={{ color: isActive ? "var(--theme-nav-active)" : "var(--theme-nav-text)" }}
                     className={[
                       "flex cursor-pointer items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm whitespace-nowrap transition-colors duration-150",

@@ -12,6 +12,7 @@ import {
   getProfileImageUrl,
 } from "../../utils/imageUtils";
 import { useAuth } from "../../context/AuthContext";
+import { ChevronDown, FilePenLine, Settings } from "lucide-react";
 
 const VALID_TABS = ["feeds", "members", "calendar"];
 
@@ -189,15 +190,19 @@ export default function ClubMainPage() {
     clubListErrorStatus === 401 || clubListErrorStatus === 403;
 
   if (authLoading || isLoading) {
-    return <p>동아리 정보를 불러오는 중입니다...</p>;
+    return (
+      <main className="flex min-h-[60vh] items-center justify-center bg-slate-50 px-4 dark:bg-theme-page">
+        <p className="text-sm font-medium text-slate-500 dark:text-theme-muted sm:text-base">동아리 정보를 불러오는 중입니다...</p>
+      </main>
+    );
   }
 
   if (!isAuthenticated) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-theme-page px-12">
-        <section className="flex max-w-xl flex-col items-center gap-8 rounded-2xl bg-white dark:bg-theme-surface px-12 py-14 text-center shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] dark:shadow-theme-shadow">
+      <main className="flex min-h-[70vh] items-center justify-center bg-slate-50 px-4 dark:bg-theme-page sm:px-6">
+        <section className="flex w-full max-w-xl flex-col items-center gap-6 rounded-2xl bg-white px-5 py-10 text-center shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] dark:bg-theme-surface dark:shadow-theme-shadow sm:gap-8 sm:px-12 sm:py-14">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-theme-text">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-theme-text sm:text-3xl">
               로그인이 필요합니다.
             </h1>
             <p className="mt-4 text-base leading-7 text-slate-900/60 dark:text-theme-muted">
@@ -220,10 +225,10 @@ export default function ClubMainPage() {
   if (isError) {
     if (isAuthError) {
       return (
-        <main className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-theme-page px-12">
-          <section className="flex max-w-xl flex-col items-center gap-8 rounded-2xl bg-white dark:bg-theme-surface px-12 py-14 text-center shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] dark:shadow-theme-shadow">
+        <main className="flex min-h-[70vh] items-center justify-center bg-slate-50 px-4 dark:bg-theme-page sm:px-6">
+          <section className="flex w-full max-w-xl flex-col items-center gap-6 rounded-2xl bg-white px-5 py-10 text-center shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] dark:bg-theme-surface dark:shadow-theme-shadow sm:gap-8 sm:px-12 sm:py-14">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-theme-text">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-theme-text sm:text-3xl">
                 로그인이 만료되었습니다.
               </h1>
               <p className="mt-4 text-base leading-7 text-slate-900/60 dark:text-theme-muted">
@@ -244,9 +249,9 @@ export default function ClubMainPage() {
     }
 
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-theme-page px-12">
-        <section className="flex max-w-xl flex-col items-center gap-6 rounded-2xl bg-white dark:bg-theme-surface px-12 py-14 text-center shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] dark:shadow-theme-shadow">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-theme-text">
+      <main className="flex min-h-[70vh] items-center justify-center bg-slate-50 px-4 dark:bg-theme-page sm:px-6">
+        <section className="flex w-full max-w-xl flex-col items-center gap-6 rounded-2xl bg-white px-5 py-10 text-center shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] dark:bg-theme-surface dark:shadow-theme-shadow sm:px-12 sm:py-14">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-theme-text sm:text-3xl">
             동아리 정보를 불러오지 못했습니다.
           </h1>
           <p className="text-base leading-7 text-slate-900/60 dark:text-theme-muted">
@@ -259,23 +264,23 @@ export default function ClubMainPage() {
 
   if (!hasClub) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-theme-page px-12">
-        <section className="flex flex-col items-center gap-10">
-          <h1 className="text-center text-4xl font-bold text-black dark:text-theme-text">
+      <main className="flex min-h-[70vh] items-center justify-center bg-slate-50 px-4 dark:bg-theme-page sm:px-6">
+        <section className="flex w-full max-w-2xl flex-col items-center gap-7 sm:gap-10">
+          <h1 className="text-center text-2xl font-bold leading-9 text-black dark:text-theme-text sm:text-4xl sm:leading-tight">
             소속된 동아리가 없습니다. 동아리에 참여하거나 만들어보세요!
           </h1>
-          <div className="flex items-center gap-8">
+          <div className="grid w-full grid-cols-1 gap-3 sm:flex sm:w-auto sm:items-center sm:gap-8">
             <button
               type="button"
               onClick={() => navigate("/")}
-              className="h-18 w-62.5 rounded-[20px] bg-zinc-400 dark:bg-theme-disabled-bg text-2xl font-bold text-white"
+              className="h-12 w-full rounded-xl bg-zinc-400 text-base font-bold text-white dark:bg-theme-disabled-bg sm:h-18 sm:w-62.5 sm:rounded-[20px] sm:text-2xl"
             >
               메인으로 돌아가기
             </button>
             <button
               type="button"
               onClick={() => navigate("/club/create")}
-              className="h-18 w-62.5 rounded-[20px] bg-blue-600 dark:bg-theme-primary text-2xl font-bold text-white"
+              className="h-12 w-full rounded-xl bg-blue-600 text-base font-bold text-white dark:bg-theme-primary sm:h-18 sm:w-62.5 sm:rounded-[20px] sm:text-2xl"
             >
               동아리 생성하기
             </button>
@@ -287,10 +292,10 @@ export default function ClubMainPage() {
 
   if (!selectedClub) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-theme-page px-12">
-        <section className="flex max-w-xl flex-col items-center gap-8 rounded-2xl bg-white dark:bg-theme-surface px-12 py-14 text-center shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] dark:shadow-theme-shadow">
+      <main className="flex min-h-[70vh] items-center justify-center bg-slate-50 px-4 dark:bg-theme-page sm:px-6">
+        <section className="flex w-full max-w-xl flex-col items-center gap-6 rounded-2xl bg-white px-5 py-10 text-center shadow-[0px_4px_12px_0px_rgba(0,0,0,0.08)] dark:bg-theme-surface dark:shadow-theme-shadow sm:gap-8 sm:px-12 sm:py-14">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-theme-text">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-theme-text sm:text-3xl">
               접근할 수 없는 동아리입니다.
             </h1>
             <p className="mt-4 text-base leading-7 text-slate-900/60 dark:text-theme-muted">
@@ -299,7 +304,7 @@ export default function ClubMainPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="grid w-full grid-cols-1 gap-3 sm:flex sm:w-auto sm:items-center">
             <button
               type="button"
               onClick={() => navigate(`/club/main/${clubs[0].clubId}`, { replace: true })}
@@ -350,6 +355,16 @@ export default function ClubMainPage() {
     activeTab === "feeds" ? safeCurrentFeedPage : safeCurrentMemberPage;
   const totalPages =
     activeTab === "feeds" ? safeTotalFeedPages : safeTotalMemberPages;
+  const paginationPages = Array.from(
+    { length: Math.min(totalPages, 5) },
+    (_, index) => {
+      const firstPage = Math.min(
+        Math.max(currentPage - 2, 1),
+        Math.max(totalPages - 4, 1)
+      );
+      return firstPage + index;
+    }
+  );
 
   const handlePrevPage = () => {
     if (activeTab === "feeds") {
@@ -399,31 +414,27 @@ export default function ClubMainPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 dark:bg-theme-page px-12 py-12">
+    <main className="min-h-screen bg-slate-50 px-4 py-6 dark:bg-theme-page sm:px-6 sm:py-8 lg:px-12 lg:py-12">
       <section className="mx-auto flex w-full max-w-330 flex-col">
-        <header className="flex flex-col gap-7 border-b border-slate-300 dark:border-theme-border-strong pb-4">
-          <div className="flex w-full items-center justify-between">
-            <div className="relative" ref={clubMenuRef}>
+        <header className="flex flex-col gap-5 border-b border-slate-300 pb-0 dark:border-theme-border-strong sm:gap-7">
+          <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative min-w-0" ref={clubMenuRef}>
               <button
                 type="button"
                 onClick={() => setIsClubMenuOpen((prev) => !prev)}
-                className="flex w-fit items-center gap-1 rounded-xl py-1 pr-2 hover:bg-slate-100 dark:hover:bg-theme-hover"
+                className="flex max-w-full items-center gap-1 rounded-lg py-1 pr-2 text-left hover:bg-slate-100 dark:hover:bg-theme-hover"
                 aria-expanded={isClubMenuOpen}
                 aria-haspopup="menu"
               >
-                <h1 className="text-4xl font-bold leading-10 text-gray-900 dark:text-theme-text">
+                <h1 className="truncate text-2xl font-bold leading-8 text-gray-900 dark:text-theme-text sm:text-3xl sm:leading-9 lg:text-4xl lg:leading-10">
                   {selectedClub.clubName}
                 </h1>
-                <span
-                  className={`text-gray-900 dark:text-theme-text transition-transform ${isClubMenuOpen ? "rotate-180" : ""}`}
-                >
-                  ▾
-                </span>
+                <ChevronDown className={`h-5 w-5 shrink-0 text-slate-500 transition-transform dark:text-theme-muted ${isClubMenuOpen ? "rotate-180" : ""}`} />
               </button>
 
               {isClubMenuOpen && (
                 <div
-                  className="absolute left-0 top-full z-40 mt-3 max-h-80 w-72 overflow-y-auto rounded-xl border border-slate-200 dark:border-theme-border bg-white dark:bg-theme-surface py-2 shadow-lg dark:shadow-theme-shadow"
+                  className="absolute left-0 top-full z-40 mt-2 max-h-80 w-[min(18rem,calc(100vw-2rem))] overflow-y-auto rounded-xl border border-slate-200 bg-white py-2 shadow-lg dark:border-theme-border dark:bg-theme-surface dark:shadow-theme-shadow"
                   role="menu"
                 >
                   {clubs.map((club) => {
@@ -458,12 +469,13 @@ export default function ClubMainPage() {
               )}
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-3">
               {isPresident && (
                 <button
                   onClick={handlePresidentManageClick}
-                  className="h-12 rounded-xl border border-sky-700/30 dark:border-theme-focus bg-white dark:bg-theme-surface px-5 text-sm font-semibold text-sky-700 dark:text-theme-link hover:border-sky-700 dark:hover:border-theme-focus hover:bg-sky-50 dark:hover:bg-theme-accent-hover"
+                  className="flex h-11 items-center justify-center gap-2 rounded-xl border border-sky-700/30 bg-white px-4 text-sm font-semibold text-sky-700 hover:border-sky-700 hover:bg-sky-50 dark:border-theme-focus dark:bg-theme-surface dark:text-theme-link dark:hover:border-theme-focus dark:hover:bg-theme-accent-hover sm:h-12 sm:px-5"
                 >
+                  <Settings className="h-4 w-4" aria-hidden="true" />
                   대표 관리
                 </button>
               )}
@@ -471,15 +483,16 @@ export default function ClubMainPage() {
               {canManageClub && (
                 <button
                   onClick={handlePostCreateClick}
-                  className="h-12 rounded-xl bg-sky-700 dark:bg-theme-primary px-5 text-sm font-semibold text-white hover:bg-sky-800 dark:hover:bg-theme-primary-hover"
+                  className="flex h-11 items-center justify-center gap-2 rounded-xl bg-sky-700 px-4 text-sm font-semibold text-white hover:bg-sky-800 dark:bg-theme-primary dark:hover:bg-theme-primary-hover sm:h-12 sm:px-5"
                 >
+                  <FilePenLine className="h-4 w-4" aria-hidden="true" />
                   게시물 작성
                 </button>
               )}
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center gap-3">
             <div className="flex items-center">
               {previewMembers.map((member, index) => {
                 const profileImage = getMemberProfileImage(member);
@@ -507,56 +520,56 @@ export default function ClubMainPage() {
               })}
             </div>
 
-            <p className="text-base text-slate-900/60 dark:text-theme-muted">
+            <p className="min-w-0 truncate text-sm text-slate-900/60 dark:text-theme-muted sm:text-base">
               {members[0]?.name}
               {members[1]?.name && `, ${members[1].name}`}{" "}
               {hiddenMemberCount > 0 && (
-                <span>+{hiddenMemberCount} others</span>
+                <span> 외 {hiddenMemberCount}명</span>
               )}
             </p>
           </div>
 
-          <nav className="flex">
+          <nav className="grid grid-cols-3" aria-label="동아리 페이지 메뉴">
             <button
               onClick={() => handleTabChange("feeds")}
-              className={`px-7 py-3 text-base font-medium ${
+              className={`min-h-12 px-2 py-3 text-sm font-semibold sm:px-7 sm:text-base ${
                 activeTab === "feeds"
                   ? "border-b-2 border-blue-600 dark:border-theme-focus text-blue-600 dark:text-theme-link"
                   : "text-slate-900/60 dark:text-theme-muted"
               }`}
             >
-              Feeds
+              피드
             </button>
 
             <button
               onClick={() => handleTabChange("members")}
-              className={`px-7 py-3 text-base font-medium ${
+              className={`min-h-12 px-2 py-3 text-sm font-semibold sm:px-7 sm:text-base ${
                 activeTab === "members"
                   ? "border-b-2 border-blue-600 dark:border-theme-focus text-blue-600 dark:text-theme-link"
                   : "text-slate-900/60 dark:text-theme-muted"
               }`}
             >
-              Members
+              멤버
             </button>
 
             <button
               onClick={() => handleTabChange("calendar")}
-              className={`px-7 py-3 text-base font-medium ${
+              className={`min-h-12 px-2 py-3 text-sm font-semibold sm:px-7 sm:text-base ${
                 activeTab === "calendar"
                   ? "border-b-2 border-blue-600 dark:border-theme-focus text-blue-600 dark:text-theme-link"
                   : "text-slate-900/60 dark:text-theme-muted"
               }`}
             >
-              Calendar
+              캘린더
             </button>
           </nav>
         </header>
 
         {/* 조건부로 렌더링 -> 피드 or 멤버 or 캘린더 */}
         {activeTab === "feeds" && isPresident && !isOrderingPosts && (
-          <div className="mt-5 flex justify-end">
+          <div className="mt-4 flex justify-end sm:mt-5">
             <button type="button" onClick={() => setOrderingClubId(selectedClubId)}
-              className="rounded-xl border border-sky-700/30 dark:border-theme-focus bg-white dark:bg-theme-surface px-5 py-3 text-sm font-semibold text-sky-700 dark:text-theme-link hover:bg-sky-50 dark:hover:bg-theme-accent-hover">
+              className="w-full rounded-xl border border-sky-700/30 bg-white px-5 py-3 text-sm font-semibold text-sky-700 hover:bg-sky-50 dark:border-theme-focus dark:bg-theme-surface dark:text-theme-link dark:hover:bg-theme-accent-hover sm:w-auto">
               게시물 순서 편집
             </button>
           </div>
@@ -566,13 +579,13 @@ export default function ClubMainPage() {
             onClose={() => setOrderingClubId(null)}
             onSaved={() => { setCurrentFeedPage(1); setOrderingClubId(null); }} />
         ) : activeTab === "feeds" ? (
-          <section className="grid grid-cols-2 gap-10 py-7">
+          <section className="grid grid-cols-1 gap-4 py-5 md:grid-cols-2 md:gap-6 lg:gap-10 lg:py-7">
             {isPostsLoading ? (
               <p>게시글을 불러오는 중입니다...</p>
             ) : isPostsError ? (
               <p>게시글을 불러오지 못했습니다.</p>
             ) : feeds.length === 0 ? (
-              <div className="col-span-2 flex min-h-80 items-center justify-center rounded-xl border border-dashed border-slate-300 dark:border-theme-border-strong bg-white dark:bg-theme-surface text-base font-medium text-slate-900/50 dark:text-theme-muted">
+              <div className="flex min-h-48 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white px-5 text-center text-sm font-medium text-slate-900/50 dark:border-theme-border-strong dark:bg-theme-surface dark:text-theme-muted md:col-span-2 md:min-h-80 md:text-base">
                 아직 작성된 게시글이 없습니다.
               </div>
             ) : (
@@ -602,13 +615,13 @@ export default function ClubMainPage() {
             )}
           </section>
         ) : activeTab === "members" ? (
-          <section className="py-7">
+          <section className="py-5 sm:py-7">
             {isMembersLoading ? (
               <p>멤버 정보를 불러오는 중입니다...</p>
             ) : isMembersError ? (
               <p>멤버 정보를 불러오지 못했습니다.</p>
             ) : members.length === 0 ? (
-              <div className="flex min-h-80 items-center justify-center rounded-xl border border-dashed border-slate-300 dark:border-theme-border-strong bg-white dark:bg-theme-surface text-base font-medium text-slate-900/50 dark:text-theme-muted">
+              <div className="flex min-h-48 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white px-5 text-center text-sm font-medium text-slate-900/50 dark:border-theme-border-strong dark:bg-theme-surface dark:text-theme-muted sm:min-h-80 sm:text-base">
                 아직 표시할 멤버가 없습니다.
               </div>
             ) : (
@@ -618,7 +631,7 @@ export default function ClubMainPage() {
                 return (
                   <div
                     key={member.userId}
-                    className="flex h-14 items-center gap-3 border-b border-slate-300 dark:border-theme-border-strong"
+                    className="mb-2 flex min-h-16 items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-sm dark:border-theme-border dark:bg-theme-surface sm:mb-0 sm:h-16 sm:rounded-none sm:border-x-0 sm:border-t-0 sm:bg-transparent sm:px-0 sm:shadow-none sm:dark:bg-transparent"
                   >
                     <SafeImage
                       src={profileImage}
@@ -631,11 +644,13 @@ export default function ClubMainPage() {
                         </div>
                       }
                     />
-                    <div className="flex flex-col">
+                    <div className="flex min-w-0 flex-1 items-center justify-between gap-3 sm:block">
+                      <div className="min-w-0">
                       <span className="text-sm font-bold text-gray-900 dark:text-theme-text">
                         {member.name}
                       </span>
-                      <span className="text-sm text-slate-900/60 dark:text-theme-muted">
+                      </div>
+                      <span className="shrink-0 rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-700 dark:bg-theme-accent dark:text-theme-link sm:mt-0.5 sm:inline-block sm:bg-transparent sm:px-0 sm:py-0 sm:text-sm sm:font-normal sm:text-slate-900/60 sm:dark:bg-transparent sm:dark:text-theme-muted">
                         {roleMap[member.role] ?? member.role}
                       </span>
                     </div>
@@ -650,7 +665,7 @@ export default function ClubMainPage() {
 
         {/* 페이지 이동 섹션 */}
         {activeTab !== "calendar" && !isOrderingPosts && totalPages > 1 && (
-          <div className="flex justify-center pb-7">
+          <div className="flex justify-center overflow-x-auto pb-7 pt-1">
           <div className="flex items-center gap-1">
             <button
               onClick={handlePrevPage}
@@ -661,9 +676,7 @@ export default function ClubMainPage() {
               ‹
             </button>
 
-            {Array.from({ length: totalPages }, (_, index) => {
-              const page = index + 1;
-
+            {paginationPages.map((page) => {
               return (
                 <button
                   key={page}
